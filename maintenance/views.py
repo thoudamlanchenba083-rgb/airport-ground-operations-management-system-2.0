@@ -11,17 +11,17 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
     serializer_class = MaintenanceRequestSerializer
     permission_classes = [IsAuthenticatedReadOnly]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['aircraft']
-    search_fields = ['description']
-    ordering_fields = ['created_at']
+    filterset_fields = ['aircraft', 'priority']
+    search_fields = ['issue_description']
+    ordering_fields = ['created_at', 'priority']
     def perform_create(self, serializer):
         instance = serializer.save()
-        log_action(self.request.user, 'CREATE', 'MaintenanceRequest', instance.id, f'Created maintenance request: {instance.id}')
+        log_action(self.request.user, 'CREATE', 'MaintenanceRequest', instance.id, f'Created maintenance request: {instance.id}', self.request)
     def perform_update(self, serializer):
         instance = serializer.save()
-        log_action(self.request.user, 'UPDATE', 'MaintenanceRequest', instance.id, f'Updated maintenance request: {instance.id}')
+        log_action(self.request.user, 'UPDATE', 'MaintenanceRequest', instance.id, f'Updated maintenance request: {instance.id}', self.request)
     def perform_destroy(self, instance):
-        log_action(self.request.user, 'DELETE', 'MaintenanceRequest', instance.id, f'Deleted maintenance request: {instance.id}')
+        log_action(self.request.user, 'DELETE', 'MaintenanceRequest', instance.id, f'Deleted maintenance request: {instance.id}', self.request)
         instance.delete()
 
 class MaintenanceLogViewSet(viewsets.ModelViewSet):
@@ -30,13 +30,13 @@ class MaintenanceLogViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['request']
-    ordering_fields = ['logged_at']
+    ordering_fields = ['completed_at']
     def perform_create(self, serializer):
         instance = serializer.save()
-        log_action(self.request.user, 'CREATE', 'MaintenanceLog', instance.id, f'Created maintenance log: {instance.id}')
+        log_action(self.request.user, 'CREATE', 'MaintenanceLog', instance.id, f'Created maintenance log: {instance.id}', self.request)
     def perform_update(self, serializer):
         instance = serializer.save()
-        log_action(self.request.user, 'UPDATE', 'MaintenanceLog', instance.id, f'Updated maintenance log: {instance.id}')
+        log_action(self.request.user, 'UPDATE', 'MaintenanceLog', instance.id, f'Updated maintenance log: {instance.id}', self.request)
     def perform_destroy(self, instance):
-        log_action(self.request.user, 'DELETE', 'MaintenanceLog', instance.id, f'Deleted maintenance log: {instance.id}')
+        log_action(self.request.user, 'DELETE', 'MaintenanceLog', instance.id, f'Deleted maintenance log: {instance.id}', self.request)
         instance.delete()

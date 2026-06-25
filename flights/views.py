@@ -28,16 +28,16 @@ class AircraftViewSet(viewsets.ModelViewSet):
     serializer_class = AircraftSerializer
     permission_classes = [IsAuthenticatedReadOnly]
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['registration', 'model']
-    ordering_fields = ['model']
+    search_fields = ['registration_number', 'aircraft_type']
+    ordering_fields = ['aircraft_type']
     def perform_create(self, serializer):
         instance = serializer.save()
-        log_action(self.request.user, 'CREATE', 'Aircraft', instance.id, f'Created aircraft {instance.id}', self.request)
+        log_action(self.request.user, 'CREATE', 'Aircraft', instance.id, f'Created aircraft {instance.registration_number}', self.request)
     def perform_update(self, serializer):
         instance = serializer.save()
-        log_action(self.request.user, 'UPDATE', 'Aircraft', instance.id, f'Updated aircraft {instance.id}', self.request)
+        log_action(self.request.user, 'UPDATE', 'Aircraft', instance.id, f'Updated aircraft {instance.registration_number}', self.request)
     def perform_destroy(self, instance):
-        log_action(self.request.user, 'DELETE', 'Aircraft', instance.id, f'Deleted aircraft {instance.id}', self.request)
+        log_action(self.request.user, 'DELETE', 'Aircraft', instance.id, f'Deleted aircraft {instance.registration_number}', self.request)
         instance.delete()
 
 class FlightViewSet(viewsets.ModelViewSet):
