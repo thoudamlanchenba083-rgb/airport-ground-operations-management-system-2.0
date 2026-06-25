@@ -11,7 +11,7 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
     serializer_class = MaintenanceRequestSerializer
     permission_classes = [IsAuthenticatedReadOnly]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['status', 'aircraft']
+    filterset_fields = ['aircraft']
     search_fields = ['description']
     ordering_fields = ['created_at']
     def perform_create(self, serializer):

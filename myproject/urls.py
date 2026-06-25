@@ -27,12 +27,15 @@ urlpatterns = [
 
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/accounts/', include('accounts.urls')),
 
     path('api/', include('flights.urls')),
     path('api/', include('gates.urls')),
     path('api/', include('baggage.urls')),
     path('api/', include('maintenance.urls')),
     path('api/', include('staff.urls')),
+    path('api/', include('notifications.urls')),
+    path('api/', include('reports.urls')),
 
     path(
         'swagger/',
