@@ -1,42 +1,27 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
+from django.conf.urls.static import static
 from rest_framework import permissions
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+import os
+from django.views.static import serve as static_serve
 
 schema_view = get_schema_view(
     openapi.Info(
         title="Airport Ground Operations Management API",
         default_version='v1',
-        description="""
-## Airport Ground Operations Management System
-
-This API provides endpoints for managing all airport ground operations including:
-
-- **Accounts** - User registration, login, profile management
-- **Flights** - Airlines, aircraft, and flight management
-- **Gates** - Gate listing and assignment to flights
-- **Baggage** - Baggage tracking and management
-- **Maintenance** - Maintenance requests and logs
-- **Staff** - Staff, shifts, and scheduling
-- **Notifications** - User notifications
-- **Reports** - Operational reports
-
-## Authentication
-Use the `/api/token/` endpoint to get a JWT token, then click **Authorize** and enter:
-
-    Bearer <your_token>
-        """,
+        description="Airport Ground Operations Management System",
         contact=openapi.Contact(email="admin@airport.com"),
         license=openapi.License(name="MIT License"),
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
+
+FRONTEND = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -55,4 +40,10 @@ urlpatterns = [
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
+    # Serve frontend
+    path('', RedirectView.as_view(url='/pages/index.html')),
+    path('pages/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'pages')}),
+    path('css/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'css')}),
+    path('js/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'js')}),
 ]
