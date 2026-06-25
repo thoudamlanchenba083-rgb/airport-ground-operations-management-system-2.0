@@ -145,3 +145,7 @@ SWAGGER_SETTINGS = {
         },
     },
 }
+import os
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'frontend'),
+]

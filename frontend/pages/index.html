@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Airport Operations</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.23.3/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+    const { useState } = React;
+    const API_BASE = 'http://127.0.0.1:8000/api';
+    const Auth = {
+        getToken: () => localStorage.getItem('access_token'),
+        save: (access, refresh) => {
+            localStorage.setItem('access_token', access);
+            localStorage.setItem('refresh_token', refresh);
+        },
+        isLoggedIn: () => !!localStorage.getItem('access_token')
+    };
+
+    function LoginPage() {
+        const [username, setUsername] = useState('');
+        const [password, setPassword] = useState('');
+        const [error, setError] = useState('');
+        const [loading, setLoading] = useState(false);
+
+        if (Auth.isLoggedIn()) {
+            window.location.href = 'dashboard.html';
+            return null;
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            setLoading(true);
+            setError('');
+            try {
+                const res = await fetch(API_BASE + '/token/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    Auth.save(data.access, data.refresh);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    setError('Invalid username or password');
+                }
+            } catch(err) {
+                setError('Server error. Make sure backend is running.');
+            }
+            setLoading(false);
+        }
+
+        return (
+            <div className="login-page">
+                <div className="login-box">
+                    <h2>Airport Ops</h2>
+                    <p>Ground Operations Management System</p>
+                    <form onSubmit={handleLogin}>
+                        <input
+                            type="text" placeholder="Username"
+                            value={username}
+                            onChange={function(e){ setUsername(e.target.value); }}
+                            required
+                        />
+                        <input
+                            type="password" placeholder="Password"
+                            value={password}
+                            onChange={function(e){ setPassword(e.target.value); }}
+                            required
+                        />
+                        <button type="submit" disabled={loading}>
+                            {loading ? 'Logging in...' : 'Login'}
+                        </button>
+                        {error && <p className="error-msg">{error}</p>}
+                    </form>
+                </div>
+            </div>
+        );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<LoginPage />);
+</script>
+</body>
+</html>
