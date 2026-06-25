@@ -11,7 +11,7 @@ class BaggageViewSet(viewsets.ModelViewSet):
     serializer_class = BaggageSerializer
     permission_classes = [IsAuthenticatedReadOnly]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['status', 'flight']
+    filterset_fields = ['flight']
     search_fields = ['tag_number']
     ordering_fields = ['created_at']
     def perform_create(self, serializer):
@@ -29,7 +29,7 @@ class BaggageTrackingViewSet(viewsets.ModelViewSet):
     serializer_class = BaggageTrackingSerializer
     permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['baggage', 'location']
+    filterset_fields = ['baggage']
     search_fields = ['location']
     ordering_fields = ['timestamp']
     def perform_create(self, serializer):

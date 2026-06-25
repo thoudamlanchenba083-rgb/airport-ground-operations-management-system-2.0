@@ -11,7 +11,7 @@ class StaffViewSet(viewsets.ModelViewSet):
     serializer_class = StaffSerializer
     permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['role', 'shift']
+    filterset_fields = ['staff_type']
     search_fields = ['name', 'email']
     ordering_fields = ['name']
     def perform_create(self, serializer):
