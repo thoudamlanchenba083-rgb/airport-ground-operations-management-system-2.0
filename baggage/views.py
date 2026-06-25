@@ -12,16 +12,16 @@ class BaggageViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedReadOnly]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['flight']
-    search_fields = ['tag_number']
-    ordering_fields = ['created_at']
+    search_fields = ['baggage_tag', 'passenger_name']
+    ordering_fields = ['flight']
     def perform_create(self, serializer):
         instance = serializer.save()
-        log_action(self.request.user, 'CREATE', 'Baggage', instance.id, f'Created baggage: {instance.id}')
+        log_action(self.request.user, 'CREATE', 'Baggage', instance.id, f'Created baggage: {instance.baggage_tag}', self.request)
     def perform_update(self, serializer):
         instance = serializer.save()
-        log_action(self.request.user, 'UPDATE', 'Baggage', instance.id, f'Updated baggage: {instance.id}')
+        log_action(self.request.user, 'UPDATE', 'Baggage', instance.id, f'Updated baggage: {instance.baggage_tag}', self.request)
     def perform_destroy(self, instance):
-        log_action(self.request.user, 'DELETE', 'Baggage', instance.id, f'Deleted baggage: {instance.id}')
+        log_action(self.request.user, 'DELETE', 'Baggage', instance.id, f'Deleted baggage: {instance.baggage_tag}', self.request)
         instance.delete()
 
 class BaggageTrackingViewSet(viewsets.ModelViewSet):
@@ -29,15 +29,15 @@ class BaggageTrackingViewSet(viewsets.ModelViewSet):
     serializer_class = BaggageTrackingSerializer
     permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['baggage']
-    search_fields = ['location']
-    ordering_fields = ['timestamp']
+    filterset_fields = ['baggage', 'status']
+    search_fields = ['status']
+    ordering_fields = ['updated_at']
     def perform_create(self, serializer):
         instance = serializer.save()
-        log_action(self.request.user, 'CREATE', 'BaggageTracking', instance.id, f'Created baggage tracking: {instance.id}')
+        log_action(self.request.user, 'CREATE', 'BaggageTracking', instance.id, f'Created baggage tracking: {instance.id}', self.request)
     def perform_update(self, serializer):
         instance = serializer.save()
-        log_action(self.request.user, 'UPDATE', 'BaggageTracking', instance.id, f'Updated baggage tracking: {instance.id}')
+        log_action(self.request.user, 'UPDATE', 'BaggageTracking', instance.id, f'Updated baggage tracking: {instance.id}', self.request)
     def perform_destroy(self, instance):
-        log_action(self.request.user, 'DELETE', 'BaggageTracking', instance.id, f'Deleted baggage tracking: {instance.id}')
+        log_action(self.request.user, 'DELETE', 'BaggageTracking', instance.id, f'Deleted baggage tracking: {instance.id}', self.request)
         instance.delete()

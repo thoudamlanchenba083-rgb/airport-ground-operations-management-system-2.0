@@ -48,8 +48,7 @@ MIDDLEWARE = [
 ]
 
 
-ROOT_URLCONF = 'myproject.urls'
-
+ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
     {
@@ -67,8 +66,7 @@ TEMPLATES = [
 ]
 
 
-WSGI_APPLICATION = 'myproject.wsgi.application'
-
+WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
