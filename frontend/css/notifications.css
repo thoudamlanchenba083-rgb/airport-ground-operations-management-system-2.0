@@ -1,0 +1,33 @@
+/* ==========================
+   NOTIFICATIONS PAGE - TEAL THEME
+   ========================== */
+
+.page-title {
+    border-left: 4px solid #1abc9c;
+    padding-left: 12px;
+}
+
+.cards .card:hover {
+    box-shadow: 0 6px 16px rgba(26, 188, 156, 0.25);
+    transform: translateY(-4px);
+}
+
+.table-container table tbody tr:hover {
+    background: rgba(26, 188, 156, 0.08);
+}
+
+.toolbar .btn-primary {
+    background: #1abc9c;
+}
+.toolbar .btn-primary:hover {
+    background: #16a085;
+}
+
+.modal h3 {
+    color: #1abc9c;
+}
+
+.modal textarea:focus {
+    border-color: #1abc9c;
+    outline: none;
+}

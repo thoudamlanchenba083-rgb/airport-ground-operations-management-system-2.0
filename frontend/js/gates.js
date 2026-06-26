@@ -1,0 +1,228 @@
+const { useState, useEffect } = React;
+const API_BASE = 'http://127.0.0.1:8000/api';
+
+if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
+
+let redirecting = false;
+
+async function apiFetch(endpoint, options = {}) {
+    if (redirecting) return null;
+    const res = await fetch(API_BASE + endpoint, {
+        ...options,
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        }
+    });
+    if (res.status === 401) {
+        if (!redirecting) {
+            redirecting = true;
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+        return null;
+    }
+    if (res.ok) return res.status === 204 ? true : await res.json();
+    return null;
+}
+function Navbar({ onMenuClick }) {
+    return (
+        <div className="navbar">
+            <div className="navbar-left">
+                <button className="hamburger" onClick={onMenuClick}>☰</button>
+                <h1>✈ Airport Ground Operations</h1>
+            </div>
+            <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
+        </div>
+    );
+}
+
+function Sidebar({ open, onClose }) {
+    return (
+        <>
+            <div className={'sidebar-overlay' + (open ? ' open' : '')} onClick={onClose} />
+            <div className={'sidebar' + (open ? ' mobile-open' : '')}>
+                <a href="dashboard.html">📊 Dashboard</a>
+                <a href="flights.html">✈ Flights</a>
+                <a href="gates.html" className="active">🚪 Gates</a>
+                <a href="baggage.html">🧳 Baggage</a>
+                <a href="maintenance.html">🔧 Maintenance</a>
+                <a href="staff.html">👷 Staff</a>
+                <a href="notifications.html">🔔 Notifications</a>
+                <a href="reports.html">📋 Reports</a>
+            </div>
+        </>
+    );
+}
+
+function StatusBadge({ status }) {
+    const map = {
+        available:   'badge-success',
+        occupied:    'badge-danger',
+        maintenance: 'badge-warning',
+        closed:      'badge-info',
+    };
+    return <span className={'badge ' + (map[status] || 'badge-info')}>{status}</span>;
+}
+
+function GateModal({ gate, onClose, onSaved }) {
+    const blank = { gate_number:'', terminal:'', status:'available', notes:'' };
+    const [form, setForm] = useState(gate || blank);
+    const [saving, setSaving] = useState(false);
+
+    function set(k, v) { setForm(f => ({...f, [k]: v})); }
+
+    async function save() {
+        setSaving(true);
+        const method = gate ? 'PUT' : 'POST';
+        const url = gate ? `/gates/${gate.id}/` : '/gates/';
+        const result = await apiFetch(url, { method, body: JSON.stringify(form) });
+        setSaving(false);
+        if (result) onSaved();
+    }
+
+    return (
+        <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onClose()}>
+            <div className="modal">
+                <h3>{gate ? 'Edit Gate' : 'Add Gate'}</h3>
+                {[
+                    ['gate_number', 'Gate Number', 'text'],
+                    ['terminal',    'Terminal',    'text'],
+                    ['notes',       'Notes',       'text'],
+                ].map(([key, label, type]) => (
+                    <div className="form-group" key={key}>
+                        <label>{label}</label>
+                        <input type={type} value={form[key] || ''} onChange={e => set(key, e.target.value)} />
+                    </div>
+                ))}
+                <div className="form-group">
+                    <label>Status</label>
+                    <select value={form.status} onChange={e => set('status', e.target.value)}>
+                        {['available','occupied','maintenance','closed'].map(s => (
+                            <option key={s} value={s}>{s}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="modal-footer">
+                    <button className="btn" onClick={onClose}>Cancel</button>
+                    <button className="btn btn-primary" onClick={save} disabled={saving}>
+                        {saving ? 'Saving...' : 'Save'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function GatesPage() {
+    const [gates, setGates] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
+    const [modal, setModal] = useState(null);
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    async function load() {
+        setLoading(true);
+        const data = await apiFetch('/gates/');
+        setGates(data ? (data.results || data) : []);
+        setLoading(false);
+    }
+
+    useEffect(() => { load(); }, []);
+
+    async function deleteGate(id) {
+        if (!confirm('Delete this gate?')) return;
+        await apiFetch(`/gates/${id}/`, { method: 'DELETE' });
+        load();
+    }
+
+    const filtered = gates.filter(g =>
+        (g.gate_number || '').toLowerCase().includes(search.toLowerCase()) ||
+        (g.terminal    || '').toLowerCase().includes(search.toLowerCase())
+    );
+
+    const counts = {
+        available:   gates.filter(g => g.status === 'available').length,
+        occupied:    gates.filter(g => g.status === 'occupied').length,
+        maintenance: gates.filter(g => g.status === 'maintenance').length,
+    };
+
+    return (
+        <div>
+            <Navbar onMenuClick={() => setMenuOpen(true)} />
+            <div className="layout">
+                <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
+                <div className="main">
+                    <p className="page-title">🚪 Gates</p>
+
+                    <div className="cards">
+                        <div className="card" style={{borderTop:'4px solid #27ae60'}}>
+                            <h3 style={{color:'#27ae60'}}>{counts.available}</h3>
+                            <p>Available</p>
+                        </div>
+                        <div className="card" style={{borderTop:'4px solid #e74c3c'}}>
+                            <h3 style={{color:'#e74c3c'}}>{counts.occupied}</h3>
+                            <p>Occupied</p>
+                        </div>
+                        <div className="card" style={{borderTop:'4px solid #f39c12'}}>
+                            <h3 style={{color:'#f39c12'}}>{counts.maintenance}</h3>
+                            <p>Maintenance</p>
+                        </div>
+                    </div>
+
+                    <div className="toolbar">
+                        <input
+                            className="search-input"
+                            placeholder="Search by gate number or terminal…"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                        <button className="btn btn-primary" onClick={() => setModal('add')}>+ Add Gate</button>
+                    </div>
+
+                    <div className="table-container">
+                        {loading ? <p style={{padding:'20px',color:'#888'}}>Loading…</p> : (
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Gate #</th>
+                                        <th>Terminal</th>
+                                        <th>Status</th>
+                                        <th>Notes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filtered.length === 0 ? (
+                                        <tr><td colSpan="5" style={{textAlign:'center',color:'#888',padding:'30px'}}>No gates found.</td></tr>
+                                    ) : filtered.map(g => (
+                                        <tr key={g.id}>
+                                            <td><strong>{g.gate_number}</strong></td>
+                                            <td>{g.terminal || '—'}</td>
+                                            <td><StatusBadge status={g.status} /></td>
+                                            <td>{g.notes || '—'}</td>
+                                            <td>
+                                                <button className="btn btn-primary" style={{marginRight:'6px'}} onClick={() => setModal(g)}>Edit</button>
+                                                <button className="btn btn-danger" onClick={() => deleteGate(g.id)}>Delete</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </div>
+            </div>
+            {modal && (
+                <GateModal
+                    gate={modal === 'add' ? null : modal}
+                    onClose={() => setModal(null)}
+                    onSaved={() => { setModal(null); load(); }}
+                />
+            )}
+        </div>
+    );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<GatesPage />);
