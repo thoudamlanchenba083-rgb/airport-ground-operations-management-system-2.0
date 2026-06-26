@@ -42,7 +42,7 @@ urlpatterns = [
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
     # Serve frontend
-    path('', RedirectView.as_view(url='/pages/index.html')),
+    path('', RedirectView.as_view(url='/pages/landing.html')),
     path('pages/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'pages')}),
     path('css/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'css')}),
     path('js/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'js')}),
