@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Airport Operations</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.23.3/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+    const { useState } = React;
+    const API_BASE = 'http://127.0.0.1:8000/api';
+
+    function SignupPage() {
+        const [form, setForm] = useState({
+            username: '', email: '', password: '', confirm_password: '',
+            role: 'GROUND_STAFF', phone: ''
+        });
+        const [error, setError] = useState('');
+        const [success, setSuccess] = useState('');
+        const [loading, setLoading] = useState(false);
+
+        function set(k, v) { setForm(f => ({...f, [k]: v})); }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            setError(''); setSuccess('');
+            if (form.password !== form.confirm_password) {
+                setError('Passwords do not match'); return;
+            }
+            if (form.password.length < 6) {
+                setError('Password must be at least 6 characters'); return;
+            }
+            setLoading(true);
+            try {
+                const res = await fetch(API_BASE + '/accounts/register/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: form.username,
+                        email: form.email,
+                        password: form.password,
+                        role: form.role,
+                        phone: form.phone
+                    })
+                });
+                if (res.ok) {
+                    setSuccess('Account created! Redirecting to login...');
+                    setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+                } else {
+                    const data = await res.json();
+                    const msg = Object.values(data).flat().join(' ');
+                    setError(msg || 'Registration failed');
+                }
+            } catch(err) {
+                setError('Server error. Make sure backend is running.');
+            }
+            setLoading(false);
+        }
+
+        return (
+            <div className="login-page">
+                <div className="login-box" style={{maxWidth:'460px'}}>
+                    <div className="login-brand">
+                        <span className="login-icon">✈</span>
+                        <h2>Create Account</h2>
+                        <p>Join Airport Ops Ground Operations</p>
+                    </div>
+                    <form onSubmit={handleSubmit}>
+                        <label className="login-label">Username</label>
+                        <input type="text" placeholder="Choose a username"
+                            value={form.username}
+                            onChange={e => set('username', e.target.value)} required />
+
+                        <label className="login-label">Email</label>
+                        <input type="email" placeholder="your@email.com"
+                            value={form.email}
+                            onChange={e => set('email', e.target.value)} />
+
+                        <label className="login-label">Phone</label>
+                        <input type="text" placeholder="+91 00000 00000"
+                            value={form.phone}
+                            onChange={e => set('phone', e.target.value)} />
+
+                        <label className="login-label">Role</label>
+                        <select value={form.role} onChange={e => set('role', e.target.value)}
+                            style={{width:'100%', padding:'12px 14px', borderRadius:'8px',
+                                border:'1px solid rgba(255,255,255,0.15)',
+                                background:'rgba(255,255,255,0.08)',
+                                color:'white', fontSize:'0.95rem', marginBottom:'4px'}}>
+                            <option value="GROUND_STAFF">Ground Staff</option>
+                            <option value="GATE_AGENT">Gate Agent</option>
+                            <option value="BAGGAGE_HANDLER">Baggage Handler</option>
+                            <option value="MAINTENANCE">Maintenance</option>
+                            <option value="SUPERVISOR">Supervisor</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+
+                        <label className="login-label">Password</label>
+                        <input type="password" placeholder="Min 6 characters"
+                            value={form.password}
+                            onChange={e => set('password', e.target.value)} required />
+
+                        <label className="login-label">Confirm Password</label>
+                        <input type="password" placeholder="Repeat your password"
+                            value={form.confirm_password}
+                            onChange={e => set('confirm_password', e.target.value)} required />
+
+                        <button type="submit" disabled={loading}>
+                            {loading ? 'Creating account...' : 'Create Account →'}
+                        </button>
+
+                        {error && <p className="error-msg">{error}</p>}
+                        {success && <p style={{color:'#00d4ff', textAlign:'center', marginTop:'12px', fontSize:'0.85rem'}}>{success}</p>}
+                    </form>
+                    <div className="login-back">
+                        Already have an account? <a href="index.html">Login</a>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<SignupPage />);
+</script>
+</body>
+</html>

@@ -28,18 +28,18 @@
         const [password, setPassword] = useState('');
         const [error, setError] = useState('');
         const [loading, setLoading] = useState(false);
-
         const [checked, setChecked] = useState(false);
 
-React.useEffect(() => {
-    if (Auth.isLoggedIn()) {
-        window.location.href = 'dashboard.html';
-    } else {
-        setChecked(true);
-    }
-}, []);
+        React.useEffect(() => {
+            if (Auth.isLoggedIn()) {
+                window.location.href = 'dashboard.html';
+            } else {
+                setChecked(true);
+            }
+        }, []);
 
-if (!checked) return null;
+        if (!checked) return null;
+
         async function handleLogin(e) {
             e.preventDefault();
             setLoading(true);
@@ -66,26 +66,34 @@ if (!checked) return null;
         return (
             <div className="login-page">
                 <div className="login-box">
-                    <h2>Airport Ops</h2>
-                    <p>Ground Operations Management System</p>
+                    <div className="login-brand">
+                        <span className="login-icon">✈</span>
+                        <h2>Airport Ops</h2>
+                        <p>Ground Operations Management System</p>
+                    </div>
                     <form onSubmit={handleLogin}>
+                        <label className="login-label">Username</label>
                         <input
-                            type="text" placeholder="Username"
+                            type="text" placeholder="Enter your username"
                             value={username}
                             onChange={function(e){ setUsername(e.target.value); }}
                             required
                         />
+                        <label className="login-label">Password</label>
                         <input
-                            type="password" placeholder="Password"
+                            type="password" placeholder="Enter your password"
                             value={password}
                             onChange={function(e){ setPassword(e.target.value); }}
                             required
                         />
                         <button type="submit" disabled={loading}>
-                            {loading ? 'Logging in...' : 'Login'}
+                            {loading ? 'Logging in...' : 'Login →'}
                         </button>
                         {error && <p className="error-msg">{error}</p>}
                     </form>
+                    <div className="login-back">
+                        <a href="landing.html">← Back to Home</a>
+                    </div>
                 </div>
             </div>
         );
