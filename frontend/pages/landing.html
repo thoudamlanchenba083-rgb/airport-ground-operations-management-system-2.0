@@ -716,8 +716,8 @@
     }
     .profile-grid {
       display: grid;
-      grid-template-columns: repeat(4,1fr);
-      gap: 24px;
+      grid-template-columns: repeat(5,1fr);
+      gap: 20px;
       margin-top: 56px;
     }
     .profile-card {
@@ -928,6 +928,9 @@
     }
     .reveal.visible { opacity:1; transform:translateY(0); }
 
+    @media (max-width: 1200px) {
+      .profile-grid { grid-template-columns: repeat(3,1fr); }
+    }
     /* ===== RESPONSIVE ===== */
     @media (max-width: 960px) {
       .hero-inner { grid-template-columns: 1fr; }
@@ -1117,9 +1120,9 @@
   <div style="max-width:1200px;margin:0 auto;">
     <div class="section-header-row">
       <div>
-        <span class="section-eyebrow">✦ Operations Team</span>
-        <h2 class="section-title reveal">The People Behind<br>Every Flight</h2>
-        <p class="section-sub reveal">From air traffic controllers to baggage handlers — meet the roles that keep the airport moving.</p>
+        <span class="section-eyebrow">✦ Development Team</span>
+        <h2 class="section-title reveal">The People Behind<br>This System</h2>
+        <p class="section-sub reveal">Meet the team that designed, built, and tested the Airport Ground Operations Management System.</p>
       </div>
     </div>
     <div class="profile-grid" id="profileGrid">
@@ -1482,10 +1485,11 @@ placeNodes();
 
 /* ---- PROFILES ---- */
 const profiles = [
-  { emoji:'👨‍✈️', name:'Capt. Arjun Mehta', role:'Air Traffic Controller', bio:'12 years ensuring safe takeoffs and landings across 3 major airports. Handles up to 80 simultaneous flights.' },
-  { emoji:'👩‍💼', name:'Priya Sharma', role:'Operations Manager', bio:'Oversees all ground crew shifts, gate assignments, and daily operational reporting for Terminal 2.' },
-  { emoji:'🧑‍🔧', name:'Ravi Kumar', role:'Chief Maintenance Tech', bio:'Leads a 20-person team for aircraft clearances, ensuring zero-delay maintenance turnarounds.' },
-  { emoji:'👩‍💻', name:'Sneha Patel', role:'Systems Administrator', bio:'Manages the Airport Ops platform, user access, integrations, and uptime across all modules.' },
+  { emoji:'⚙️', name:'Thoudam Lanchenba', role:'Backend Developer', bio:'Develops the Django backend, creates REST APIs, implements authentication and authorization, configures URL routing, and integrates frontend with backend.' },
+  { emoji:'🎨', name:'Lakshya', role:'Frontend Developer', bio:'Develops responsive web pages using HTML, CSS, and JavaScript, implements the user interface, and integrates frontend components with backend APIs.' },
+  { emoji:'🗄️', name:'Kowshika', role:'Database Developer', bio:'Designs and manages the database, creates Django models, performs migrations, maintains table relationships, and ensures efficient data storage and retrieval.' },
+  { emoji:'🖌️', name:'Shreepriyan', role:'UI/UX Designer', bio:'Designs the application\'s user interface, improves user experience, creates responsive layouts, and maintains consistent visual design across all pages.' },
+  { emoji:'🧪', name:'Naren', role:'API Tester (QA)', bio:'Tests REST APIs using Postman, verifies API requests and responses, validates functionality, reports bugs, and ensures smooth frontend-backend integration.' },
 ];
 
 const profileGrid = document.getElementById('profileGrid');
