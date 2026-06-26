@@ -1,0 +1,27 @@
+/* ==========================
+   REPORTS PAGE - SLATE THEME
+   ========================== */
+
+.page-title {
+    border-left: 4px solid #34495e;
+    padding-left: 12px;
+}
+
+.table-container {
+    border-top: 3px solid #34495e;
+}
+
+.table-container h3 {
+    color: #34495e;
+}
+
+.table-container table tbody tr:hover {
+    background: rgba(52, 73, 94, 0.06);
+}
+
+.btn-success {
+    background: #34495e;
+}
+.btn-success:hover {
+    background: #2c3e50;
+}
