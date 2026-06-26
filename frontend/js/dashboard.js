@@ -23,13 +23,27 @@ async function apiFetch(endpoint) {
 }
 
 function Navbar({ onMenuClick }) {
+    const [dark, setDark] = useState(localStorage.getItem('theme') !== 'light');
+
+    useEffect(() => {
+        document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+    }, [dark]);
+
     return (
         <div className="navbar">
             <div className="navbar-left">
                 <button className="hamburger" onClick={onMenuClick}>☰</button>
                 <h1>✈ Airport Ground Operations</h1>
             </div>
-            <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
+            <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                <button
+                    onClick={() => setDark(d => !d)}
+                    style={{background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'white', padding:'7px 14px', borderRadius:'20px', cursor:'pointer', fontSize:'0.85rem'}}>
+                    {dark ? '☀ Light' : '🌙 Dark'}
+                </button>
+                <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
+            </div>
         </div>
     );
 }
@@ -100,7 +114,6 @@ function Dashboard() {
                 <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
                 <div className="main">
                     <p className="page-title">📊 Dashboard</p>
-
                     <div className="cards">
                         <StatCard title="Total Flights"   count={stats.flights}       color="#3498db" link="flights.html" />
                         <StatCard title="Gates"           count={stats.gates}         color="#2ecc71" link="gates.html" />
@@ -109,7 +122,6 @@ function Dashboard() {
                         <StatCard title="Staff"           count={stats.staff}         color="#9b59b6" link="staff.html" />
                         <StatCard title="Notifications"   count={stats.notifications} color="#1abc9c" link="notifications.html" />
                     </div>
-
                     <div className="table-container">
                         <h3 style={{marginBottom:'15px', color:'#1a1a2e'}}>Quick Links</h3>
                         <table>
