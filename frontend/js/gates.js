@@ -1,4 +1,4 @@
-const { useState, useEffect } = React;
+﻿const { useState, useEffect } = React;
 const API_BASE = 'http://127.0.0.1:8000/api';
 
 if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
@@ -27,13 +27,25 @@ async function apiFetch(endpoint, options = {}) {
     return null;
 }
 function Navbar({ onMenuClick }) {
+    const [dark, setDark] = React.useState(localStorage.getItem('theme') !== 'light');
+    React.useEffect(() => {
+        document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+    }, [dark]);
     return (
         <div className="navbar">
             <div className="navbar-left">
                 <button className="hamburger" onClick={onMenuClick}>☰</button>
                 <h1>✈ Airport Ground Operations</h1>
             </div>
-            <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
+            <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                <button
+                    onClick={() => setDark(d => !d)}
+                    style={{background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'white', padding:'7px 14px', borderRadius:'20px', cursor:'pointer', fontSize:'0.85rem'}}>
+                    {dark ? '☀ Light' : '🌙 Dark'}
+                </button>
+                <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
+            </div>
         </div>
     );
 }
