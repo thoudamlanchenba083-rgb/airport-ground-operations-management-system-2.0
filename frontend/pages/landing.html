@@ -1,143 +1,1560 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Airport Ops - Ground Operations Management</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/landing.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.1/aos.css">
-</head>
-<body class="landing-body">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Airport Ops — Ground Operations Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --navy:   #0b0e1a;
+      --deep:   #0f1629;
+      --panel:  rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.10);
+      --cyan:   #00d4ff;
+      --cyan2:  #0099cc;
+      --violet: #7c3aed;
+      --glow:   rgba(0,212,255,0.18);
+      --text:   #e4e8f0;
+      --muted:  #8892a4;
+      --white:  #ffffff;
+      --r: 14px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--navy);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
 
-    <nav class="landing-navbar">
-        <span class="brand">✈ Airport Ops</span>
-        <div class="nav-links">
-            <a href="landing.html" class="active">Home</a>
-            <a href="services.html">Services</a>
-            <a href="about.html">About</a>
-            <a href="careers.html">Careers</a>
-            <a href="index.html" class="btn-login">Login</a>
-        </div>
-        <button class="hamburger-btn" onclick="toggleMobileMenu()">☰</button>
-    </nav>
-    <div class="mobile-menu" id="mobileMenu">
-        <a href="landing.html" class="active">Home</a>
-        <a href="services.html">Services</a>
-        <a href="about.html">About</a>
-        <a href="careers.html">Careers</a>
-        <a href="index.html">Login</a>
+    /* ===== CANVAS PARTICLE BG ===== */
+    #particles-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ===== GLASSMORPHISM UTILITY ===== */
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+    }
+    .glass-dark {
+      background: rgba(11,14,26,0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--r);
+    }
+
+    /* ===== NAVBAR ===== */
+    nav {
+      position: fixed;
+      top: 16px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      width: calc(100% - 48px);
+      max-width: 1200px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px;
+      background: rgba(11,14,26,0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0,212,255,0.15);
+      border-radius: 50px;
+      transition: all .3s;
+    }
+    nav.scrolled {
+      background: rgba(11,14,26,0.92);
+      border-color: rgba(0,212,255,0.25);
+      box-shadow: 0 8px 40px rgba(0,212,255,0.08);
+    }
+    .nav-brand {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-brand .plane-icon {
+      display: inline-block;
+      animation: planeBob 3s ease-in-out infinite;
+    }
+    @keyframes planeBob {
+      0%,100%{ transform: translateY(0) rotate(0deg); }
+      50%{ transform: translateY(-4px) rotate(5deg); }
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+    .nav-links a {
+      font-size: .88rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color .2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0; right: 0;
+      height: 1.5px;
+      background: var(--cyan);
+      transform: scaleX(0);
+      transition: transform .25s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--white); }
+    .nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+    .btn-nav-login {
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      color: #fff !important;
+      padding: 9px 22px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: .85rem;
+      transition: opacity .2s, transform .2s;
+      border: none;
+    }
+    .btn-nav-login:hover { opacity:.85; transform: translateY(-2px); }
+    .btn-nav-login::after { display:none !important; }
+
+    /* Hamburger */
+    .hamburger { display:none; background:none; border:none; color:var(--text); font-size:1.4rem; cursor:pointer; }
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 80px; left: 16px; right: 16px;
+      z-index: 999;
+      flex-direction: column;
+      gap: 4px;
+      padding: 16px;
+      background: rgba(11,14,26,0.96);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a { padding: 12px 16px; border-radius: 8px; font-size:.95rem; color: var(--muted); }
+    .mobile-nav a:hover, .mobile-nav a.active { background: var(--panel); color: var(--cyan); }
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 40px 80px;
+      z-index: 1;
+      overflow: hidden;
+    }
+    /* Aurora mesh background */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 40%, rgba(0,212,255,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 70% at 80% 60%, rgba(124,58,237,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 50% 100%, rgba(0,150,200,0.08) 0%, transparent 70%);
+      z-index: 0;
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 60px;
+    }
+    .hero-text .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--cyan);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .hero-text h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 22px;
+      color: var(--white);
+    }
+    .hero-text h1 .gradient-text {
+      background: linear-gradient(90deg, var(--cyan), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-text p {
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.75;
+      max-width: 500px;
+      margin-bottom: 36px;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      color: #fff;
+      padding: 14px 32px;
+      border-radius: 50px;
+      font-size: .95rem;
+      font-weight: 600;
+      transition: transform .2s, box-shadow .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,212,255,0.3); }
+    .btn-ghost {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 32px;
+      border-radius: 50px;
+      font-size: .95rem;
+      font-weight: 500;
+      transition: background .2s, border-color .2s, transform .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-ghost:hover { background: rgba(0,212,255,0.08); border-color: var(--cyan); transform: translateY(-3px); }
+
+    /* ===== HERO RIGHT: LIVE DASHBOARD CARD ===== */
+    .hero-visual {
+      position: relative;
+    }
+    .hero-dashboard-card {
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-dashboard-card::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: 40px; right: 40px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    }
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .dash-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .live-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .75rem;
+      color: #4ade80;
+      font-weight: 500;
+    }
+    .live-dot span {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100%{ opacity:1; transform:scale(1); }
+      50%{ opacity:.5; transform:scale(1.5); }
+    }
+    .flight-rows { display: flex; flex-direction: column; gap: 10px; }
+    .flight-row {
+      display: grid;
+      grid-template-columns: 60px 1fr auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: background .2s;
+      animation: rowFadeIn .5s ease both;
+    }
+    .flight-row:hover { background: rgba(0,212,255,0.06); }
+    @keyframes rowFadeIn {
+      from { opacity:0; transform:translateX(20px); }
+      to   { opacity:1; transform:translateX(0); }
+    }
+    .flight-code {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+    .flight-route { font-size: .8rem; color: var(--muted); }
+    .flight-gate {
+      font-size: .75rem;
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .status-badge {
+      font-size: .7rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 50px;
+    }
+    .status-on-time   { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .status-boarding  { background: rgba(0,212,255,0.15);  color: var(--cyan); }
+    .status-delayed   { background: rgba(251,146,60,0.15); color: #fb923c; }
+    .status-departed  { background: rgba(124,58,237,0.15); color: #a78bfa; }
+
+    .mini-stats {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .mini-stat {
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      text-align: center;
+    }
+    .mini-stat .val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--cyan);
+      display: block;
+    }
+    .mini-stat .lbl { font-size: .68rem; color: var(--muted); margin-top: 2px; }
+
+    /* Floating badges around the card */
+    .float-badge {
+      position: absolute;
+      padding: 8px 14px;
+      border-radius: 50px;
+      font-size: .75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      animation: floatY 4s ease-in-out infinite;
+      z-index: 3;
+    }
+    @keyframes floatY {
+      0%,100%{ transform: translateY(0); }
+      50%{ transform: translateY(-10px); }
+    }
+    .fb1 { top: -20px; left: -30px; background: rgba(124,58,237,0.9); color:#fff; border:1px solid rgba(255,255,255,0.2); animation-delay:.5s; }
+    .fb2 { bottom: 0px; right: -24px; background: rgba(0,212,255,0.9); color:#0b0e1a; border:1px solid rgba(255,255,255,0.2); animation-delay:1.5s; }
+    .fb3 { top: 50%; right: -34px; background: rgba(74,222,128,0.9); color:#0b0e1a; border:1px solid rgba(255,255,255,0.2); animation-delay:1s; transform: translateY(-50%); }
+
+    /* ===== STATS BAR ===== */
+    .stats-bar {
+      position: relative;
+      z-index: 1;
+      padding: 48px 40px;
+      background: rgba(255,255,255,0.03);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 20px;
+    }
+    .stat-box {
+      text-align: center;
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      transition: border-color .3s, background .3s;
+      cursor: default;
+    }
+    .stat-box:hover {
+      border-color: rgba(0,212,255,0.3);
+      background: rgba(0,212,255,0.05);
+    }
+    .stat-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--cyan), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label { color: var(--muted); font-size: .85rem; margin-top: 4px; }
+
+    /* ===== SECTION WRAPPER ===== */
+    .section-wrap {
+      position: relative;
+      z-index: 1;
+      padding: 100px 40px;
+    }
+    .section-wrap .inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section-eyebrow {
+      display: inline-block;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 560px;
+      line-height: 1.7;
+    }
+    .section-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 56px;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    /* ===== 3D FEATURE SLIDER ===== */
+    .slider-viewport {
+      position: relative;
+      height: 380px;
+      perspective: 1200px;
+    }
+    .slider-track {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform .7s cubic-bezier(.4,0,.2,1);
+    }
+    .slide-card {
+      position: absolute;
+      width: 320px;
+      height: 340px;
+      left: 50%;
+      top: 50%;
+      transform: translateX(-50%) translateY(-50%);
+      padding: 36px 28px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+      transition: all .6s cubic-bezier(.4,0,.2,1);
+      transform-origin: center;
+      user-select: none;
+    }
+    .slide-card.active {
+      background: rgba(0,212,255,0.08);
+      border-color: rgba(0,212,255,0.3);
+      box-shadow: 0 20px 60px rgba(0,212,255,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .slide-icon {
+      width: 60px; height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 22px;
+      position: relative;
+    }
+    .slide-icon::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .slide-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 12px;
+    }
+    .slide-card p {
+      font-size: .88rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .slide-tag {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 50px;
+      background: rgba(0,212,255,0.12);
+      color: var(--cyan);
+    }
+    .slider-nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 32px;
+    }
+    .slider-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: all .3s;
+    }
+    .slider-dot.active {
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      width: 24px;
+      border-radius: 4px;
+    }
+    .slider-arrows {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .slider-arrow {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .slider-arrow:hover { background: rgba(0,212,255,0.12); border-color: var(--cyan); color: var(--cyan); }
+
+    /* ===== EXPLODING ORB SECTION ===== */
+    .orb-section {
+      position: relative;
+      z-index: 1;
+      padding: 100px 40px;
+      background: linear-gradient(180deg, transparent, rgba(0,212,255,0.03) 50%, transparent);
+    }
+    .orb-arena {
+      position: relative;
+      max-width: 900px;
+      margin: 60px auto 0;
+      height: 480px;
+    }
+    /* Central hub */
+    .orb-hub {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(0,212,255,0.4), rgba(124,58,237,0.4));
+      border: 2px solid rgba(0,212,255,0.5);
+      box-shadow: 0 0 40px rgba(0,212,255,0.3), inset 0 0 30px rgba(124,58,237,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      cursor: pointer;
+      animation: hubPulse 3s ease-in-out infinite;
+      z-index: 10;
+    }
+    @keyframes hubPulse {
+      0%,100% { box-shadow: 0 0 40px rgba(0,212,255,0.3), inset 0 0 30px rgba(124,58,237,0.2); }
+      50%      { box-shadow: 0 0 70px rgba(0,212,255,0.5), inset 0 0 50px rgba(124,58,237,0.3); }
+    }
+    /* Orbit ring */
+    .orbit-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border: 1px dashed rgba(0,212,255,0.18);
+      border-radius: 50%;
+      animation: spinOrbit 20s linear infinite;
+    }
+    @keyframes spinOrbit { from{transform:translate(-50%,-50%) rotate(0deg)} to{transform:translate(-50%,-50%) rotate(360deg)} }
+    .orbit-ring-1 { width: 260px; height: 260px; }
+    .orbit-ring-2 { width: 420px; height: 420px; animation-duration: 35s; animation-direction: reverse; }
+
+    /* Orbiting nodes */
+    .orb-node {
+      position: absolute;
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: transform .3s, box-shadow .3s;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      z-index: 5;
+    }
+    .orb-node:hover { transform: scale(1.25); }
+    .orb-node.exploding { animation: nodeExplode .5s ease forwards; }
+    @keyframes nodeExplode {
+      0%  { transform: scale(1); }
+      40% { transform: scale(1.5); }
+      60% { transform: scale(0.9); }
+      100%{ transform: scale(1.15); }
+    }
+
+    /* Info popup */
+    .orb-popup {
+      position: absolute;
+      width: 220px;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(11,14,26,0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(0,212,255,0.25);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,212,255,0.1);
+      z-index: 20;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.8) translateY(10px);
+      transition: opacity .3s, transform .3s;
+      font-size: .8rem;
+    }
+    .orb-popup.visible {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+    }
+    .orb-popup h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .9rem;
+      color: var(--cyan);
+      margin-bottom: 6px;
+    }
+    .orb-popup p { color: var(--muted); line-height: 1.5; }
+    .orb-popup .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      font-size: .72rem;
+    }
+    .orb-popup .stat-row strong { color: var(--cyan); font-size: .95rem; }
+    /* Particle burst */
+    .burst-particle {
+      position: absolute;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      pointer-events: none;
+      animation: burst .8s ease forwards;
+    }
+    @keyframes burst {
+      0%  { opacity:1; transform: scale(1) translate(0,0); }
+      100%{ opacity:0; transform: scale(0) translate(var(--dx), var(--dy)); }
+    }
+
+    /* ===== PROFILE / TEAM SECTION ===== */
+    .profile-section {
+      position: relative;
+      z-index: 1;
+      padding: 100px 40px;
+      background: rgba(255,255,255,0.02);
+      border-top: 1px solid var(--border);
+    }
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 24px;
+      margin-top: 56px;
+    }
+    .profile-card {
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .3s, box-shadow .3s;
+      position: relative;
+    }
+    .profile-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,212,255,0.2); }
+    .profile-avatar-wrap {
+      position: relative;
+      height: 180px;
+      overflow: hidden;
+    }
+    .profile-avatar {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .profile-avatar-fallback {
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.15));
+    }
+    .profile-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(11,14,26,1) 0%, transparent 60%);
+    }
+    .profile-body {
+      padding: 20px 20px 24px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 20px 20px;
+    }
+    .profile-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+    .profile-role {
+      font-size: .78rem;
+      color: var(--cyan);
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    .profile-bio { font-size: .78rem; color: var(--muted); line-height: 1.55; }
+    .profile-socials {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .social-btn {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      transition: background .2s, border-color .2s;
+      cursor: pointer;
+    }
+    .social-btn:hover { background: rgba(0,212,255,0.12); border-color: var(--cyan); }
+
+    /* ===== ANIMATED TIMELINE ===== */
+    .timeline-section {
+      position: relative;
+      z-index: 1;
+      padding: 100px 40px;
+    }
+    .timeline {
+      position: relative;
+      max-width: 800px;
+      margin: 56px auto 0;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--cyan) 10%, var(--cyan) 90%, transparent);
+      transform: translateX(-50%);
+    }
+    .tl-item {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 56px;
+      align-items: flex-start;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .tl-item.visible { opacity:1; transform:translateY(0); }
+    .tl-item:nth-child(even) { flex-direction: row-reverse; }
+    .tl-content {
+      flex: 1;
+      padding: 24px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      transition: border-color .3s;
+    }
+    .tl-content:hover { border-color: rgba(0,212,255,0.25); }
+    .tl-dot {
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 0 4px rgba(0,212,255,0.2);
+      margin-top: 24px;
+    }
+    .tl-step {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 8px;
+    }
+    .tl-content h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.05rem;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    .tl-content p { font-size: .85rem; color: var(--muted); line-height: 1.6; }
+
+    /* ===== CTA BAND ===== */
+    .cta-band {
+      position: relative;
+      z-index: 1;
+      padding: 100px 40px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .cta-band::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .cta-band .inner { position: relative; }
+    .cta-band h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 18px;
+    }
+    .cta-band p { color: var(--muted); font-size: 1rem; margin-bottom: 36px; }
+    .cta-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ===== FOOTER ===== */
+    footer {
+      position: relative;
+      z-index: 1;
+      background: rgba(7,9,18,0.95);
+      border-top: 1px solid var(--border);
+      padding: 60px 40px 28px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+    }
+    .footer-brand .logo { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--cyan); margin-bottom: 12px; }
+    .footer-brand p { font-size: .85rem; color: var(--muted); line-height: 1.7; max-width: 280px; }
+    .footer-col h4 { color: var(--white); font-size: .88rem; font-weight: 600; margin-bottom: 16px; }
+    .footer-col a { display: block; color: var(--muted); font-size: .83rem; padding: 5px 0; transition: color .2s; }
+    .footer-col a:hover { color: var(--cyan); }
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 24px;
+      font-size: .78rem;
+      color: #555;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* ===== SCROLL REVEAL ===== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 960px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-visual { display: none; }
+      .stats-inner { grid-template-columns: repeat(2,1fr); }
+      .profile-grid { grid-template-columns: repeat(2,1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .section-wrap, .orb-section, .profile-section, .timeline-section, .cta-band { padding: 60px 20px; }
+      .stats-bar { padding: 32px 20px; }
+      .stats-inner { grid-template-columns: repeat(2,1fr); gap: 12px; }
+      .hero { padding: 100px 20px 60px; }
+      .hero-buttons { flex-direction: column; }
+      .profile-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      nav { width: calc(100% - 24px); padding: 12px 18px; }
+      .nav-links { display: none; }
+      .hamburger { display: block; }
+      .timeline::before { left: 16px; }
+      .tl-item, .tl-item:nth-child(even) { flex-direction: column; padding-left: 40px; }
+      .tl-dot { position: absolute; left: 8px; }
+      .timeline { position: relative; }
+      .slider-viewport { height: 420px; }
+      .orb-arena { height: 360px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Canvas particle background -->
+<canvas id="particles-canvas"></canvas>
+
+<!-- ===== NAVBAR ===== -->
+<nav id="main-nav">
+  <div class="nav-brand">
+    <span class="plane-icon">✈</span> Airport Ops
+  </div>
+  <div class="nav-links">
+    <a href="landing.html" class="active">Home</a>
+    <a href="services.html">Services</a>
+    <a href="about.html">About</a>
+    <a href="careers.html">Careers</a>
+    <a href="index.html" class="btn-nav-login">Login →</a>
+  </div>
+  <button class="hamburger" onclick="toggleMobile()">☰</button>
+</nav>
+<div class="mobile-nav" id="mobileNav">
+  <a href="landing.html" class="active">Home</a>
+  <a href="services.html">Services</a>
+  <a href="about.html">About</a>
+  <a href="careers.html">Careers</a>
+  <a href="index.html">Login</a>
+</div>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-inner">
+    <!-- Left: text -->
+    <div class="hero-text reveal">
+      <span class="eyebrow">✦ Ground Operations Platform</span>
+      <h1>
+        Airport Ops.<br>
+        <span class="gradient-text">Command the Ground.</span>
+      </h1>
+      <p>
+        A unified real-time platform for managing flights, baggage, gates, staff, and maintenance — giving every operator total situational awareness from a single interface.
+      </p>
+      <div class="hero-buttons">
+        <a href="index.html" class="btn-primary">
+          <span>→</span> Launch Dashboard
+        </a>
+        <a href="services.html" class="btn-ghost">
+          <span>⚡</span> Explore Features
+        </a>
+      </div>
     </div>
 
-    <section class="hero" style="background-image: url('../images/landing/hero-bg.jpg');">
-        <div class="hero-content" data-aos="fade-up">
-            <span class="eyebrow">Ground Operations Platform</span>
-            <h1>Airport Operations, <span>Simplified</span></h1>
-            <p>A unified system to manage flights, baggage, gates, staff, and maintenance — built for speed, clarity, and control over every part of ground operations.</p>
-            <div class="hero-buttons">
-                <a href="index.html" class="btn-cta">Login</a>
-                <a href="signup.html" class="btn-cta" style="background:#0f3460; color:white;">Sign Up</a>
-                <a href="services.html" class="btn-outline">Explore Services</a>
-            </div>
-        </div>
-    </section>
+    <!-- Right: live dashboard card -->
+    <div class="hero-visual">
+      <!-- Floating badges -->
+      <span class="float-badge fb1">🛫 Gate B12 — Boarding</span>
+      <span class="float-badge fb2">✅ 98.2% On-Time</span>
+      <span class="float-badge fb3">🟢 45 Active Gates</span>
 
-    <section class="stats-section">
-        <div class="stats-grid">
-            <div class="stat-item" data-aos="fade-up">
-                <h2 class="stat-number" data-target="500" data-suffix="+">0</h2>
-                <p>Flights Managed Daily</p>
-            </div>
-            <div class="stat-item" data-aos="fade-up" data-aos-delay="100">
-                <h2 class="stat-number" data-target="120" data-suffix="+">0</h2>
-                <p>Ground Staff Coordinated</p>
-            </div>
-            <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
-                <h2 class="stat-number" data-target="45">0</h2>
-                <p>Gates Tracked Live</p>
-            </div>
-            <div class="stat-item" data-aos="fade-up" data-aos-delay="300">
-                <h2 class="stat-number" data-target="24" data-suffix="/7">0</h2>
-                <p>Operations Monitoring</p>
-            </div>
+      <div class="glass hero-dashboard-card">
+        <div class="dash-header">
+          <span class="dash-title">Live Flight Board</span>
+          <span class="live-dot"><span></span>LIVE</span>
         </div>
-    </section>
+        <div class="flight-rows">
+          <div class="flight-row" style="animation-delay:.1s">
+            <span class="flight-code">AI-202</span>
+            <span class="flight-route">DEL → BOM</span>
+            <span class="flight-gate">B4</span>
+            <span class="status-badge status-boarding">Boarding</span>
+          </div>
+          <div class="flight-row" style="animation-delay:.2s">
+            <span class="flight-code">6E-411</span>
+            <span class="flight-route">BLR → HYD</span>
+            <span class="flight-gate">A12</span>
+            <span class="status-badge status-on-time">On Time</span>
+          </div>
+          <div class="flight-row" style="animation-delay:.3s">
+            <span class="flight-code">SG-109</span>
+            <span class="flight-route">MAA → CCU</span>
+            <span class="flight-gate">C7</span>
+            <span class="status-badge status-delayed">Delayed 12m</span>
+          </div>
+          <div class="flight-row" style="animation-delay:.4s">
+            <span class="flight-code">UK-803</span>
+            <span class="flight-route">BOM → GOI</span>
+            <span class="flight-gate">D2</span>
+            <span class="status-badge status-departed">Departed</span>
+          </div>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat"><span class="val">47</span><div class="lbl">Flights Today</div></div>
+          <div class="mini-stat"><span class="val">3</span><div class="lbl">Delayed</div></div>
+          <div class="mini-stat"><span class="val">12</span><div class="lbl">Boarding</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <section class="section">
-        <div class="section-header" data-aos="fade-up">
-            <span class="eyebrow">What We Offer</span>
-            <h2>Everything Ground Ops Needs</h2>
-            <p>One platform to manage every moving part of airport ground operations in real time.</p>
-        </div>
-        <div class="card-grid">
-            <div class="feature-card" data-aos="fade-up">
-                <div class="icon">✈️</div>
-                <h3>Flight Tracking</h3>
-                <p>Live schedules, status updates, and delay tracking across every flight in your network.</p>
-            </div>
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-                <div class="icon">🧳</div>
-                <h3>Baggage Handling</h3>
-                <p>End-to-end baggage tracking from check-in to claim, with full status history.</p>
-            </div>
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                <div class="icon">🚪</div>
-                <h3>Gate Management</h3>
-                <p>Real-time gate availability and assignment across every terminal.</p>
-            </div>
-            <div class="feature-card" data-aos="fade-up">
-                <div class="icon">👷</div>
-                <h3>Staff Scheduling</h3>
-                <p>Coordinate ground crew, security, and maintenance shifts effortlessly.</p>
-            </div>
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-                <div class="icon">🔧</div>
-                <h3>Maintenance Logs</h3>
-                <p>Track aircraft maintenance requests from report to resolution.</p>
-            </div>
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                <div class="icon">📋</div>
-                <h3>Operational Reports</h3>
-                <p>Exportable insights across flights, gates, baggage, and staff performance.</p>
-            </div>
-        </div>
-    </section>
+<!-- ===== STATS BAR ===== -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-box reveal">
+      <div class="stat-num" data-target="500" data-suffix="+">0</div>
+      <div class="stat-label">Flights Managed Daily</div>
+    </div>
+    <div class="stat-box reveal" style="transition-delay:.1s">
+      <div class="stat-num" data-target="120" data-suffix="+">0</div>
+      <div class="stat-label">Ground Staff Coordinated</div>
+    </div>
+    <div class="stat-box reveal" style="transition-delay:.2s">
+      <div class="stat-num" data-target="45">0</div>
+      <div class="stat-label">Live Gates Tracked</div>
+    </div>
+    <div class="stat-box reveal" style="transition-delay:.3s">
+      <div class="stat-num" data-target="99" data-suffix=".9%">0</div>
+      <div class="stat-label">System Uptime</div>
+    </div>
+  </div>
+</div>
 
-    <section class="cta-band" data-aos="fade-up">
-        <h2>Ready to streamline your ground operations?</h2>
-        <p>Log in to access your dashboard and start managing operations today.</p>
-        <a href="index.html" class="btn-cta">Login to Dashboard</a>
-    </section>
+<!-- ===== 3D SLIDER SECTION ===== -->
+<section class="section-wrap">
+  <div class="inner">
+    <div class="section-header-row">
+      <div>
+        <span class="section-eyebrow">✦ Platform Modules</span>
+        <h2 class="section-title reveal">Everything<br>Ground Ops Needs</h2>
+        <p class="section-sub reveal">Drag or click the arrows to explore each operational module powering your airport.</p>
+      </div>
+    </div>
+    <div class="slider-viewport" id="featureSlider">
+      <!-- Cards injected by JS -->
+    </div>
+    <div class="slider-arrows">
+      <button class="slider-arrow" id="sliderPrev">←</button>
+      <div class="slider-nav" id="sliderDots"></div>
+      <button class="slider-arrow" id="sliderNext">→</button>
+    </div>
+  </div>
+</section>
 
-    <footer class="landing-footer">
-        <div class="footer-grid">
-            <div class="footer-brand">
-                <h3>✈ Airport Ops</h3>
-                <p>A complete ground operations management platform for modern airports — built for reliability, visibility, and speed.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Company</h4>
-                <a href="about.html">About Us</a>
-                <a href="services.html">Services</a>
-                <a href="careers.html">Careers</a>
-            </div>
-            <div class="footer-col">
-                <h4>Platform</h4>
-                <a href="index.html">Login</a>
-                <a href="services.html">Features</a>
-            </div>
-            <div class="footer-col">
-                <h4>Contact</h4>
-                <a href="mailto:admin@airport.com">admin@airport.com</a>
-                <a href="tel:+910000000000">+91 00000 00000</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            &copy; 2026 Airport Ops. Ground Operations Management System.
-        </div>
-    </footer>
+<!-- ===== EXPLODING ORB SECTION ===== -->
+<section class="orb-section">
+  <div style="max-width:1200px;margin:0 auto;text-align:center;">
+    <span class="section-eyebrow reveal">✦ Operations Overview</span>
+    <h2 class="section-title reveal">Tap any node to explore</h2>
+    <p class="section-sub reveal" style="margin:0 auto;">Each operational area is live-monitored. Click a node to reveal real-time metrics.</p>
+  </div>
+  <div class="orb-arena" id="orbArena">
+    <div class="orbit-ring orbit-ring-1"></div>
+    <div class="orbit-ring orbit-ring-2"></div>
+    <div class="orb-hub" id="orbHub" onclick="explodeAll()">✈</div>
+    <!-- Nodes injected by JS -->
+  </div>
+</section>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.1/aos.js"></script>
-    <script src="../js/landing.js"></script>
+<!-- ===== TEAM PROFILES ===== -->
+<section class="profile-section">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="section-header-row">
+      <div>
+        <span class="section-eyebrow">✦ Operations Team</span>
+        <h2 class="section-title reveal">The People Behind<br>Every Flight</h2>
+        <p class="section-sub reveal">From air traffic controllers to baggage handlers — meet the roles that keep the airport moving.</p>
+      </div>
+    </div>
+    <div class="profile-grid" id="profileGrid">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS TIMELINE ===== -->
+<section class="timeline-section">
+  <div style="max-width:1200px;margin:0 auto;text-align:center;">
+    <span class="section-eyebrow">✦ Workflow</span>
+    <h2 class="section-title reveal">From Login to Lift-off</h2>
+    <p class="section-sub reveal" style="margin:0 auto;">How Airport Ops turns real-time data into coordinated ground operations.</p>
+  </div>
+  <div class="timeline" id="timeline">
+    <!-- Injected by JS -->
+  </div>
+</section>
+
+<!-- ===== CTA BAND ===== -->
+<section class="cta-band">
+  <div class="inner">
+    <span class="section-eyebrow">✦ Ready?</span>
+    <h2>Take control of<br><span class="gradient-text">every operation.</span></h2>
+    <p>Log in to your Airport Ops dashboard and manage every moving part of ground operations — in real time.</p>
+    <div class="cta-buttons">
+      <a href="index.html" class="btn-primary">Launch Dashboard →</a>
+      <a href="signup.html" class="btn-ghost">Create Account</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">✈ Airport Ops</div>
+        <p>A complete ground operations management platform for modern airports — built for reliability, visibility, and speed.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="about.html">About Us</a>
+        <a href="services.html">Services</a>
+        <a href="careers.html">Careers</a>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="index.html">Login</a>
+        <a href="services.html">Features</a>
+        <a href="signup.html">Sign Up</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="mailto:admin@airport.com">admin@airport.com</a>
+        <a href="tel:+910000000000">+91 00000 00000</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Airport Ops. Ground Operations Management System.</span>
+      <span>Built with care for airport teams.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+/* ---- PARTICLE CANVAS ---- */
+(function(){
+  const canvas = document.getElementById('particles-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resize); resize();
+
+  function randomParticle(){
+    return {
+      x: Math.random()*W, y: Math.random()*H,
+      vx: (Math.random()-.5)*.3, vy: (Math.random()-.5)*.3,
+      r: Math.random()*1.5+.5,
+      a: Math.random(),
+      color: Math.random()<.5 ? '0,212,255' : '124,58,237'
+    };
+  }
+  for(let i=0;i<80;i++) particles.push(randomParticle());
+
+  let mx=-9999, my=-9999;
+  window.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; });
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach((p,i)=>{
+      // slight mouse repel
+      const dx=p.x-mx, dy=p.y-my, d=Math.sqrt(dx*dx+dy*dy);
+      if(d<120){ p.vx+=dx/d*.05; p.vy+=dy/d*.05; }
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W) p.vx*=-1;
+      if(p.y<0||p.y>H) p.vy*=-1;
+      // speed clamp
+      const sp=Math.sqrt(p.vx*p.vx+p.vy*p.vy);
+      if(sp>.8){ p.vx/=sp*.8; p.vy/=sp*.8; }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(${p.color},${p.a*.6})`;
+      ctx.fill();
+
+      // Connect nearby
+      for(let j=i+1;j<particles.length;j++){
+        const q=particles[j];
+        const dist=Math.sqrt((p.x-q.x)**2+(p.y-q.y)**2);
+        if(dist<120){
+          ctx.beginPath();
+          ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y);
+          ctx.strokeStyle=`rgba(0,212,255,${.12*(1-dist/120)})`;
+          ctx.lineWidth=.5;
+          ctx.stroke();
+        }
+      }
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ---- NAVBAR SCROLL ---- */
+window.addEventListener('scroll', ()=>{
+  document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+function toggleMobile(){
+  document.getElementById('mobileNav').classList.toggle('open');
+}
+
+/* ---- COUNTER ANIMATION ---- */
+function animateCounters(){
+  document.querySelectorAll('[data-target]').forEach(el=>{
+    const target = parseFloat(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    let current = 0;
+    const step = target / 60;
+    const id = setInterval(()=>{
+      current = Math.min(current+step, target);
+      el.textContent = (Number.isInteger(target) ? Math.floor(current) : current.toFixed(1)) + suffix;
+      if(current >= target) clearInterval(id);
+    }, 22);
+  });
+}
+
+/* ---- SCROLL REVEAL ---- */
+const revealObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      if(e.target.classList.contains('stats-bar')) animateCounters();
+    }
+  });
+}, { threshold: .15 });
+
+document.querySelectorAll('.reveal').forEach(el=>revealObserver.observe(el));
+revealObserver.observe(document.querySelector('.stats-bar'));
+
+/* ---- TIMELINE REVEAL ---- */
+const tlObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: .2 });
+
+/* ---- 3D SLIDER ---- */
+const slides = [
+  { icon:'✈️', color:'rgba(0,212,255,0.15)', label:'Flight Ops', title:'Flight Tracking', desc:'Live schedules, status updates, and AI-powered delay predictions across every flight in your network.', tag:'Real-time' },
+  { icon:'🧳', color:'rgba(74,222,128,0.12)', label:'Baggage', title:'Baggage Handling', desc:'End-to-end baggage tracking from check-in to claim, with full status history and exception alerts.', tag:'Full Lifecycle' },
+  { icon:'🚪', color:'rgba(124,58,237,0.12)', label:'Gates', title:'Gate Management', desc:'Real-time gate availability, dynamic reassignment, and occupancy tracking across every terminal.', tag:'Live Status' },
+  { icon:'👷', color:'rgba(251,146,60,0.12)', label:'Staff', title:'Staff Scheduling', desc:'Coordinate ground crew, security, and maintenance teams with conflict-free shift management.', tag:'Role-based' },
+  { icon:'🔧', color:'rgba(239,68,68,0.12)', label:'Maintenance', title:'Maintenance Logs', desc:'Track aircraft maintenance requests from report to resolution with full audit trails.', tag:'Compliance Ready' },
+  { icon:'📋', color:'rgba(168,85,247,0.12)', label:'Reports', title:'Operational Reports', desc:'Exportable insights across flights, gates, baggage, and staff with custom date range filtering.', tag:'Exportable' },
+];
+
+let currentSlide = 0;
+const viewport = document.getElementById('featureSlider');
+const dotsEl = document.getElementById('sliderDots');
+
+function buildSlider(){
+  viewport.innerHTML = '';
+  slides.forEach((s, i)=>{
+    const card = document.createElement('div');
+    card.className = 'slide-card glass';
+    card.style.background = s.color;
+    card.innerHTML = `
+      <div class="slide-icon" style="background:${s.color}">${s.icon}</div>
+      <h3>${s.title}</h3>
+      <p>${s.desc}</p>
+      <span class="slide-tag">${s.tag}</span>
+    `;
+    card.addEventListener('click', ()=>goSlide(i));
+    viewport.appendChild(card);
+
+    const dot = document.createElement('div');
+    dot.className = 'slider-dot';
+    dot.addEventListener('click', ()=>goSlide(i));
+    dotsEl.appendChild(dot);
+  });
+  goSlide(0);
+}
+
+function goSlide(n){
+  currentSlide = (n + slides.length) % slides.length;
+  const cards = viewport.querySelectorAll('.slide-card');
+  const dots = dotsEl.querySelectorAll('.slider-dot');
+  const total = slides.length;
+
+  cards.forEach((card, i)=>{
+    const offset = ((i - currentSlide + total) % total);
+    const relPos = offset <= total/2 ? offset : offset - total;
+    const absPos = Math.abs(relPos);
+    const zIndex = 10 - absPos;
+    const xPct = relPos * 52;
+    const scale = 1 - absPos * 0.14;
+    const opacity = absPos > 2 ? 0 : 1 - absPos * 0.3;
+    const rotY = relPos * -8;
+
+    card.style.cssText = `
+      transform: translateX(calc(-50% + ${xPct}%)) translateY(-50%) scale(${scale}) rotateY(${rotY}deg);
+      z-index: ${zIndex};
+      opacity: ${opacity};
+    `;
+    card.classList.toggle('active', i === currentSlide);
+  });
+
+  dots.forEach((d,i)=>d.classList.toggle('active', i===currentSlide));
+}
+
+document.getElementById('sliderNext').addEventListener('click', ()=>goSlide(currentSlide+1));
+document.getElementById('sliderPrev').addEventListener('click', ()=>goSlide(currentSlide-1));
+// Auto-advance
+setInterval(()=>goSlide(currentSlide+1), 4500);
+buildSlider();
+
+/* ---- EXPLODING ORB NODES ---- */
+const orbData = [
+  { icon:'✈️', label:'Flights', color:'rgba(0,212,255,0.25)', title:'Flight Control', desc:'Monitor 47 active flights with live status and gate assignments.', metaLabel:'Active Flights', metaVal:'47' },
+  { icon:'🧳', label:'Baggage', color:'rgba(74,222,128,0.2)', title:'Baggage System', desc:'3,200 pieces tracked across 8 active conveyors with zero loss today.', metaLabel:'Items Tracked', metaVal:'3,200' },
+  { icon:'🚪', label:'Gates', color:'rgba(124,58,237,0.2)', title:'Gate Control', desc:'45 gates monitored with 12 currently boarding and 6 on standby.', metaLabel:'Boarding Now', metaVal:'12' },
+  { icon:'👷', label:'Staff', color:'rgba(251,146,60,0.2)', title:'Staff Operations', desc:'120 active crew members on shift across 6 zones.', metaLabel:'On Shift', metaVal:'120' },
+  { icon:'🔧', label:'Maintenance', color:'rgba(239,68,68,0.2)', title:'Maintenance', desc:'4 open work orders, 1 critical, 2 aircraft cleared since morning.', metaLabel:'Open Orders', metaVal:'4' },
+  { icon:'📡', label:'Incidents', color:'rgba(168,85,247,0.2)', title:'Incident Log', desc:'0 critical incidents in the last 24 hours. All systems normal.', metaLabel:'Incidents (24h)', metaVal:'0' },
+];
+
+const arena = document.getElementById('orbArena');
+const aW = 900, aH = 480;
+
+function placeNodes(){
+  orbData.forEach((d, i)=>{
+    const angle = (i / orbData.length) * Math.PI * 2 - Math.PI/2;
+    const radius = 170;
+    const cx = aW/2, cy = aH/2;
+    const x = cx + Math.cos(angle)*radius - 32;
+    const y = cy + Math.sin(angle)*radius - 32;
+
+    const node = document.createElement('div');
+    node.className = 'orb-node';
+    node.style.cssText = `left:${x}px; top:${y}px; background:${d.color}; backdrop-filter:blur(12px);`;
+    node.textContent = d.icon;
+    node.title = d.label;
+
+    // Popup
+    const popup = document.createElement('div');
+    popup.className = 'orb-popup';
+    popup.innerHTML = `
+      <h4>${d.title}</h4>
+      <p>${d.desc}</p>
+      <div class="stat-row">
+        <span>${d.metaLabel}</span>
+        <strong>${d.metaVal}</strong>
+      </div>
+    `;
+
+    // Position popup intelligently
+    const onLeft = x < aW/2;
+    const onTop  = y < aH/2;
+    popup.style.cssText = `
+      ${onLeft ? 'left:72px' : 'right:72px'};
+      ${onTop  ? 'top:0'     : 'bottom:0'};
+    `;
+
+    node.addEventListener('click', (e)=>{
+      // Explode effect
+      node.classList.remove('exploding');
+      void node.offsetWidth; // reflow
+      node.classList.add('exploding');
+      burstParticles(x+32, y+32);
+
+      // Toggle popup
+      const isOpen = popup.classList.contains('visible');
+      document.querySelectorAll('.orb-popup').forEach(p=>p.classList.remove('visible'));
+      if(!isOpen) popup.classList.add('visible');
+      e.stopPropagation();
+    });
+
+    // Connector line (SVG)
+    drawConnector(angle, radius, cx, cy);
+
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;';
+    wrap.appendChild(node);
+    wrap.appendChild(popup);
+    arena.appendChild(wrap);
+  });
+}
+
+function drawConnector(angle, radius, cx, cy){
+  let svg = arena.querySelector('.connector-svg');
+  if(!svg){
+    svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('class','connector-svg');
+    svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;';
+    arena.insertBefore(svg, arena.firstChild);
+  }
+  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+  const x2 = cx + Math.cos(angle)*radius;
+  const y2 = cy + Math.sin(angle)*radius;
+  line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+  line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+  line.setAttribute('stroke', 'rgba(0,212,255,0.18)');
+  line.setAttribute('stroke-width', '1');
+  line.setAttribute('stroke-dasharray', '4 4');
+  svg.appendChild(line);
+}
+
+function burstParticles(x, y){
+  const arenaRect = arena.getBoundingClientRect();
+  for(let i=0;i<12;i++){
+    const p = document.createElement('div');
+    p.className = 'burst-particle';
+    const dx = (Math.random()-.5)*120, dy = (Math.random()-.5)*120;
+    p.style.cssText = `
+      left:${x}px; top:${y}px;
+      --dx:${dx}px; --dy:${dy}px;
+      background: ${Math.random()<.5 ? 'var(--cyan)' : '#a78bfa'};
+    `;
+    arena.appendChild(p);
+    setTimeout(()=>p.remove(), 900);
+  }
+}
+
+function explodeAll(){
+  document.querySelectorAll('.orb-node').forEach((n,i)=>{
+    setTimeout(()=>{
+      n.classList.remove('exploding');
+      void n.offsetWidth;
+      n.classList.add('exploding');
+    }, i*80);
+  });
+}
+
+// Close popups on outside click
+document.addEventListener('click', ()=>document.querySelectorAll('.orb-popup').forEach(p=>p.classList.remove('visible')));
+
+placeNodes();
+
+/* ---- PROFILES ---- */
+const profiles = [
+  { emoji:'👨‍✈️', name:'Capt. Arjun Mehta', role:'Air Traffic Controller', bio:'12 years ensuring safe takeoffs and landings across 3 major airports. Handles up to 80 simultaneous flights.' },
+  { emoji:'👩‍💼', name:'Priya Sharma', role:'Operations Manager', bio:'Oversees all ground crew shifts, gate assignments, and daily operational reporting for Terminal 2.' },
+  { emoji:'🧑‍🔧', name:'Ravi Kumar', role:'Chief Maintenance Tech', bio:'Leads a 20-person team for aircraft clearances, ensuring zero-delay maintenance turnarounds.' },
+  { emoji:'👩‍💻', name:'Sneha Patel', role:'Systems Administrator', bio:'Manages the Airport Ops platform, user access, integrations, and uptime across all modules.' },
+];
+
+const profileGrid = document.getElementById('profileGrid');
+profiles.forEach(p=>{
+  const card = document.createElement('div');
+  card.className = 'profile-card reveal';
+  card.innerHTML = `
+    <div class="profile-avatar-wrap">
+      <div class="profile-avatar-fallback">${p.emoji}</div>
+      <div class="profile-overlay"></div>
+    </div>
+    <div class="profile-body glass">
+      <div class="profile-name">${p.name}</div>
+      <div class="profile-role">${p.role}</div>
+      <div class="profile-bio">${p.bio}</div>
+      <div class="profile-socials">
+        <div class="social-btn">✉</div>
+        <div class="social-btn">🔗</div>
+        <div class="social-btn">📱</div>
+      </div>
+    </div>
+  `;
+  profileGrid.appendChild(card);
+  revealObserver.observe(card);
+});
+
+/* ---- TIMELINE ---- */
+const timelineData = [
+  { step:'Step 01', title:'Login & Role Assignment', desc:'Staff log in to Airport Ops and are assigned their operational role — admin, manager, staff, or technician — with relevant module access.' },
+  { step:'Step 02', title:'Real-Time Data Sync', desc:'The dashboard pulls live data from flight APIs, baggage scanners, and gate sensors, updating every 30 seconds automatically.' },
+  { step:'Step 03', title:'Assign & Dispatch', desc:'Managers assign gates, schedule staff shifts, and log maintenance requests — all from a single operational view.' },
+  { step:'Step 04', title:'Monitor & Alert', desc:'Built-in incident and notification system alerts staff the moment a delay, gate conflict, or baggage exception is detected.' },
+  { step:'Step 05', title:'Report & Optimize', desc:'After each operational cycle, exportable reports surface patterns, bottlenecks, and efficiency metrics for continuous improvement.' },
+];
+
+const tlEl = document.getElementById('timeline');
+timelineData.forEach((t, i)=>{
+  const item = document.createElement('div');
+  item.className = 'tl-item';
+  const content = `
+    <div class="tl-content glass">
+      <div class="tl-step">${t.step}</div>
+      <h3>${t.title}</h3>
+      <p>${t.desc}</p>
+    </div>
+    <div class="tl-dot"></div>
+    <div style="flex:1"></div>
+  `;
+  item.innerHTML = content;
+  tlEl.appendChild(item);
+  tlObserver.observe(item);
+});
+
+/* ---- DRAG SLIDER (touch + mouse) ---- */
+let dragStart = null;
+viewport.addEventListener('mousedown', e=>{ dragStart=e.clientX; });
+viewport.addEventListener('mouseup', e=>{
+  if(dragStart===null) return;
+  const delta = e.clientX - dragStart;
+  if(Math.abs(delta)>40) goSlide(currentSlide+(delta<0?1:-1));
+  dragStart=null;
+});
+viewport.addEventListener('touchstart', e=>{ dragStart=e.touches[0].clientX; });
+viewport.addEventListener('touchend', e=>{
+  if(dragStart===null) return;
+  const delta = e.changedTouches[0].clientX - dragStart;
+  if(Math.abs(delta)>40) goSlide(currentSlide+(delta<0?1:-1));
+  dragStart=null;
+});
+</script>
 </body>
 </html>
