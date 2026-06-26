@@ -46,4 +46,5 @@ urlpatterns = [
     path('pages/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'pages')}),
     path('css/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'css')}),
     path('js/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'js')}),
+    path('images/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'images')}),
 ]
