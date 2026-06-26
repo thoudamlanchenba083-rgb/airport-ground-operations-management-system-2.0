@@ -25,6 +25,7 @@ class BaggageTracking(models.Model):
     ]
 
     baggage = models.ForeignKey(
+   
         Baggage,
         on_delete=models.CASCADE
     )
@@ -33,6 +34,7 @@ class BaggageTracking(models.Model):
         max_length=20,
         choices=STATUS_CHOICES
     )
+
 
     updated_at = models.DateTimeField(auto_now=True)
 
