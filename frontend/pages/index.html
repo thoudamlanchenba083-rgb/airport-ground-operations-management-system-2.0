@@ -1,105 +1,749 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Airport Operations</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone@7.23.3/babel.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Airport Ops</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.23.3/babel.min.js"></script>
+  <style>
+
+    /* ── TOKENS ── */
+    :root {
+      --accent:     #3b9eff;
+      --accent-dim: rgba(59,158,255,0.16);
+      --teal:       #00c9a7;
+      --green:      #22c55e;
+      --amber:      #f59e0b;
+      --red:        #ef4444;
+      --violet:     #8b5cf6;
+      --text:       #e2e8f0;
+      --muted:      #64748b;
+      --subtle:     #94a3b8;
+      --white:      #f8fafc;
+      --glass:      rgba(8,12,26,0.52);
+      --glass-bd:   rgba(255,255,255,0.10);
+      --glass-hi:   rgba(255,255,255,0.055);
+      --r:          14px;
+      --r-sm:       9px;
+    }
+
+    /* ── RESET ── */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; font-size:16px; }
+    body {
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;           /* one screen — no scroll */
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration:none; color:inherit; }
+
+    /* ══════════════════════════════════════════
+       FULL-SCREEN LAYOUT
+    ══════════════════════════════════════════ */
+    .page {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      background-image: url('../images/landing/login-bg.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* Dark wash over photo */
+    .page::before {
+      content:'';
+      position:absolute; inset:0;
+      background: linear-gradient(
+        110deg,
+        rgba(4,7,18,0.80) 0%,
+        rgba(4,7,18,0.55) 52%,
+        rgba(4,7,18,0.78) 100%
+      );
+      z-index:0;
+    }
+
+    /* Dot-grid texture */
+    .page::after {
+      content:'';
+      position:absolute; inset:0;
+      background-image: radial-gradient(rgba(255,255,255,0.028) 1px, transparent 1px);
+      background-size: 28px 28px;
+      z-index:0;
+      pointer-events:none;
+    }
+
+    /* Ambient colour blobs */
+    .blob {
+      position:absolute; border-radius:50%;
+      filter:blur(110px); pointer-events:none; z-index:0;
+    }
+    .blob-1 { width:500px; height:500px; background:rgba(59,158,255,0.11); top:-160px; left:-80px; }
+    .blob-2 { width:380px; height:380px; background:rgba(0,201,167,0.08);  bottom:-80px; right:80px; }
+
+    /* ── LEFT: branding column ── */
+    .left {
+      position:relative; z-index:1;
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      padding: 36px 48px 32px;
+      min-width:0;
+      overflow:hidden;
+    }
+
+    /* brand */
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand-icon {
+      width:42px; height:42px; border-radius:11px;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.2rem;
+      animation: bob 3s ease-in-out infinite;
+    }
+    @keyframes bob {
+      0%,100%{ transform:rotate(0deg) translateY(0); }
+      50%     { transform:rotate(5deg) translateY(-3px); }
+    }
+    .brand-name {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:1.1rem; font-weight:700; color:var(--white);
+    }
+    .brand-sub {
+      font-size:.67rem; font-weight:600;
+      letter-spacing:2px; text-transform:uppercase;
+      color:var(--accent); margin-top:1px;
+    }
+
+    /* centre hero block */
+    .hero { flex:1; display:flex; flex-direction:column; justify-content:center; padding:24px 0; }
+
+    .live-pill {
+      display:inline-flex; align-items:center; gap:7px;
+      padding:5px 13px; border-radius:50px;
+      font-size:.68rem; font-weight:700;
+      letter-spacing:1.8px; text-transform:uppercase;
+      color:var(--accent);
+      border:1px solid rgba(59,158,255,0.3);
+      background:rgba(59,158,255,0.09);
+      backdrop-filter:blur(8px);
+      margin-bottom:18px; width:fit-content;
+    }
+    .live-dot {
+      width:6px; height:6px; border-radius:50%;
+      background:var(--green); box-shadow:0 0 5px var(--green);
+      animation:blink 1.6s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.25;} }
+
+    .headline {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:clamp(1.8rem,3.4vw,2.9rem);
+      font-weight:700; line-height:1.12;
+      color:var(--white); letter-spacing:-.4px;
+      margin-bottom:12px;
+    }
+    .headline .hl {
+      background:linear-gradient(90deg,var(--accent),var(--teal));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .hero-desc {
+      font-size:.85rem; color:var(--subtle); line-height:1.7;
+      max-width:380px; margin-bottom:22px;
+    }
+
+    /* stat pills */
+    .stat-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px; }
+    .stat-pill {
+      display:flex; align-items:center; gap:7px;
+      padding:7px 14px; border-radius:50px;
+      background:var(--glass); border:1px solid var(--glass-bd);
+      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+      font-size:.73rem;
+    }
+    .stat-pill .pval { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:.88rem; color:var(--white); }
+    .stat-pill .plbl { color:var(--subtle); }
+    .sdot { width:6px;height:6px;border-radius:50%;flex-shrink:0; }
+
+    /* flight ticker */
+    .ticker {
+      background:var(--glass);
+      border:1px solid var(--glass-bd);
+      border-top:1px solid rgba(59,158,255,0.22);
+      backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+      border-radius:var(--r);
+      padding:14px 16px;
+      max-width:480px;
+    }
+    .ticker-hdr {
+      display:flex; align-items:center;
+      justify-content:space-between; margin-bottom:10px;
+    }
+    .ticker-hdr-title {
+      font-family:'Rajdhani',sans-serif;
+      font-size:.68rem; font-weight:700;
+      letter-spacing:2px; text-transform:uppercase; color:var(--subtle);
+    }
+    .live-tag {
+      display:flex; align-items:center; gap:5px;
+      font-size:.64rem; font-weight:700; color:var(--green); letter-spacing:.8px;
+    }
+    .live-tag span { width:5px;height:5px;border-radius:50%;background:var(--green); animation:blink 1.6s infinite; }
+
+    .t-rows { display:flex; flex-direction:column; gap:5px; }
+    .t-row {
+      display:grid; grid-template-columns:52px 1fr auto auto;
+      gap:8px; align-items:center;
+      padding:7px 10px; border-radius:7px;
+      background:var(--glass-hi); border:1px solid rgba(255,255,255,0.05);
+      font-size:.73rem; transition:background .18s;
+    }
+    .t-row:hover { background:rgba(59,158,255,0.07); }
+    .tc { font-family:'Space Grotesk',sans-serif; font-weight:700; color:var(--accent); font-size:.76rem; }
+    .tr { color:var(--muted); }
+    .tg { color:var(--text); background:rgba(255,255,255,0.07); padding:2px 7px; border-radius:4px; font-size:.67rem; }
+    .ts { font-size:.65rem; font-weight:700; padding:2px 8px; border-radius:50px; }
+    .s1 { background:rgba(59,158,255,.14); color:var(--accent); }
+    .s2 { background:rgba(34,197,94,.14);  color:var(--green); }
+    .s3 { background:rgba(245,158,11,.14); color:var(--amber); }
+    .s4 { background:rgba(139,92,246,.14); color:var(--violet); }
+
+    /* bottom bar */
+    .left-foot { font-size:.7rem; color:var(--muted); display:flex; align-items:center; gap:8px; }
+    .left-foot a { color:var(--accent); }
+    .left-foot .sep { opacity:.3; }
+
+    /* ── RIGHT: login card ── */
+    .right {
+      position:relative; z-index:1;
+      display:flex; align-items:center; justify-content:center;
+      padding:24px 48px 24px 20px;
+      flex-shrink:0;
+      width: min(440px, 48vw);
+    }
+
+    .card {
+      width:100%;
+      background:rgba(7,11,24,0.65);
+      backdrop-filter:blur(36px) saturate(160%);
+      -webkit-backdrop-filter:blur(36px) saturate(160%);
+      border:1px solid rgba(255,255,255,0.11);
+      border-top:1px solid rgba(255,255,255,0.20);
+      border-radius:22px;
+      padding:30px 28px;
+      box-shadow:
+        0 28px 70px rgba(0,0,0,0.60),
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        inset 0 0 0 1px rgba(59,158,255,0.05);
+      position:relative; overflow:hidden;
+    }
+
+    /* shimmer top line */
+    .card::before {
+      content:'';
+      position:absolute; top:0; left:15%; right:15%; height:1px;
+      background:linear-gradient(90deg,transparent,var(--accent),var(--teal),transparent);
+      opacity:.5;
+    }
+    /* inner glow */
+    .card::after {
+      content:'';
+      position:absolute; top:-50px; left:50%;
+      transform:translateX(-50%);
+      width:260px; height:160px;
+      background:radial-gradient(ellipse,rgba(59,158,255,0.06) 0%,transparent 70%);
+      pointer-events:none;
+    }
+
+    /* card brand */
+    .card-brand {
+      display:flex; flex-direction:column; align-items:center;
+      margin-bottom:20px; position:relative; z-index:1;
+    }
+    .card-icon {
+      width:52px; height:52px; border-radius:14px;
+      background:linear-gradient(135deg,rgba(59,158,255,0.22),rgba(0,201,167,0.18));
+      border:1px solid rgba(59,158,255,0.32);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.5rem; margin-bottom:11px;
+      box-shadow:0 6px 22px rgba(59,158,255,0.18);
+      animation:bob 3s ease-in-out infinite;
+    }
+    .card-brand h2 {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:1.2rem; font-weight:700;
+      color:var(--white); letter-spacing:-.3px; margin-bottom:3px;
+    }
+    .card-brand p { font-size:.72rem; color:var(--subtle); }
+
+    /* divider */
+    .div-line {
+      height:1px;
+      background:linear-gradient(90deg,transparent,var(--glass-bd),transparent);
+      margin-bottom:16px;
+    }
+
+    /* status chips */
+    .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px; position:relative;z-index:1; }
+    .chip {
+      display:flex; align-items:center; gap:5px;
+      padding:4px 10px; border-radius:50px;
+      font-size:.64rem; font-weight:600;
+      background:var(--glass-hi); border:1px solid rgba(255,255,255,0.07);
+      color:var(--subtle); letter-spacing:.3px;
+    }
+    .cdot { width:5px;height:5px;border-radius:50%;flex-shrink:0; }
+    .cg { background:var(--green); box-shadow:0 0 4px var(--green); }
+    .cb { background:var(--accent); box-shadow:0 0 4px var(--accent); }
+    .ca { background:var(--amber); box-shadow:0 0 4px var(--amber); }
+
+    /* form */
+    form { position:relative;z-index:1; }
+    .fgroup { margin-bottom:11px; }
+    .flabel {
+      display:block; font-size:.67rem; font-weight:700;
+      letter-spacing:1.4px; text-transform:uppercase;
+      color:var(--subtle); margin-bottom:5px;
+    }
+    .fwrap { position:relative; }
+    .ficon {
+      position:absolute; left:12px; top:50%;
+      transform:translateY(-50%); font-size:.88rem;
+      pointer-events:none; opacity:.45;
+    }
+    .finput {
+      width:100%; padding:11px 12px 11px 38px;
+      background:rgba(255,255,255,0.055);
+      border:1px solid rgba(255,255,255,0.10);
+      border-radius:var(--r-sm);
+      color:var(--white); font-size:.875rem;
+      font-family:'Inter',sans-serif; outline:none;
+      transition:border-color .2s,background .2s,box-shadow .2s;
+    }
+    .finput::placeholder { color:rgba(255,255,255,0.22); }
+    .finput:focus {
+      border-color:rgba(59,158,255,0.55);
+      background:rgba(59,158,255,0.07);
+      box-shadow:0 0 0 3px rgba(59,158,255,0.10);
+    }
+    .ptoggle {
+      position:absolute; right:11px; top:50%;
+      transform:translateY(-50%);
+      background:none; border:none; cursor:pointer;
+      font-size:.8rem; color:var(--muted);
+      transition:color .2s; padding:3px; font-family:inherit;
+    }
+    .ptoggle:hover { color:var(--accent); }
+
+    /* options row */
+    .opts {
+      display:flex; align-items:center;
+      justify-content:space-between; margin-bottom:18px;
+    }
+    .rmb { display:flex; align-items:center; gap:6px; cursor:pointer; }
+    .chk {
+      width:15px;height:15px; border-radius:4px;
+      border:1px solid rgba(255,255,255,0.18);
+      background:rgba(255,255,255,0.05);
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; transition:background .2s,border-color .2s;
+      font-size:.58rem; color:#fff; font-weight:700;
+    }
+    .chk.on { background:var(--accent); border-color:var(--accent); }
+    .rmb-lbl { font-size:.73rem; color:var(--subtle); user-select:none; }
+    .forgot { font-size:.73rem; color:var(--accent); }
+    .forgot:hover { opacity:.75; }
+
+    /* submit */
+    .sbtn {
+      width:100%; padding:12px;
+      border-radius:var(--r-sm);
+      background:linear-gradient(135deg,var(--accent),#2563eb);
+      border:none; color:#fff;
+      font-size:.9rem; font-weight:700;
+      font-family:'Inter',sans-serif; cursor:pointer;
+      position:relative; z-index:1; overflow:hidden;
+      transition:transform .2s,box-shadow .2s,opacity .2s;
+      letter-spacing:.3px; margin-bottom:3px;
+    }
+    .sbtn::before {
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(255,255,255,0.13) 0%,transparent 60%);
+    }
+    .sbtn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 28px rgba(59,158,255,0.38); }
+    .sbtn:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+
+    .spinner {
+      display:inline-block; width:13px;height:13px;
+      border:2px solid rgba(255,255,255,0.3);
+      border-top-color:#fff; border-radius:50%;
+      animation:spin .7s linear infinite;
+      vertical-align:middle; margin-right:6px;
+    }
+    @keyframes spin { to{transform:rotate(360deg);} }
+
+    .errmsg {
+      margin-top:10px; padding:9px 13px;
+      border-radius:7px;
+      background:rgba(239,68,68,0.10);
+      border:1px solid rgba(239,68,68,0.24);
+      color:#fca5a5; font-size:.76rem; text-align:center;
+      animation:shake .35s ease;
+    }
+    @keyframes shake {
+      0%,100%{transform:translateX(0);}
+      25%{transform:translateX(-6px);}
+      75%{transform:translateX(6px);}
+    }
+
+    /* footer block */
+    .card-foot { margin-top:18px; position:relative;z-index:1; }
+    .foot-div {
+      display:flex; align-items:center; gap:8px; margin-bottom:12px;
+    }
+    .foot-div::before,.foot-div::after {
+      content:''; flex:1; height:1px;
+      background:linear-gradient(90deg,transparent,var(--glass-bd));
+    }
+    .foot-div::after { background:linear-gradient(90deg,var(--glass-bd),transparent); }
+    .foot-div span { font-size:.65rem; color:var(--muted); white-space:nowrap; }
+
+    /* role tiles — 2×2 compact */
+    .tiles {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:6px; margin-bottom:14px;
+    }
+    .tile {
+      padding:9px 11px; border-radius:8px;
+      background:var(--glass-hi); border:1px solid rgba(255,255,255,0.06);
+      display:flex; align-items:center; gap:8px;
+    }
+    .tile-ico { font-size:.9rem; flex-shrink:0; }
+    .tile-name { font-size:.72rem; font-weight:600; color:var(--text); }
+    .tile-sub  { font-size:.63rem; color:var(--muted); margin-top:1px; }
+
+    .back { text-align:center; font-size:.73rem; color:var(--muted); }
+    .back a { color:var(--accent); font-weight:600; }
+    .back a:hover { opacity:.75; }
+
+    /* ══════════════════════════════════════
+       MEDIA QUERIES
+    ══════════════════════════════════════ */
+
+    /* Large desktop ≥ 1400px */
+    @media (min-width:1400px) {
+      .left  { padding:40px 60px 36px; }
+      .right { width:460px; padding-right:60px; }
+      .headline { font-size:3rem; }
+    }
+
+    /* Standard desktop 1200–1399px — default above */
+
+    /* Small desktop / large tablet 960–1199px */
+    @media (max-width:1199px) {
+      .left  { padding:28px 36px 24px; }
+      .right { width:min(400px,44vw); padding:20px 32px 20px 14px; }
+      .headline { font-size:clamp(1.6rem,2.8vw,2.4rem); }
+      .hero-desc { font-size:.8rem; }
+    }
+
+    /* Tablet landscape 768–959px: stack vertically, card top-right floating */
+    @media (max-width:959px) {
+      body { overflow:auto; }
+      .page {
+        flex-direction:column;
+        min-height:100vh; height:auto;
+        position:relative; inset:auto;
+      }
+      .page::before {
+        background:linear-gradient(180deg,rgba(4,7,18,0.75) 0%,rgba(4,7,18,0.92) 60%);
+      }
+      .left  { padding:28px 28px 0; flex:none; }
+      .ticker { display:none; }
+      .right {
+        width:100%; padding:16px 28px 40px;
+        justify-content:center;
+      }
+      .card { max-width:420px; margin:0 auto; }
+    }
+
+    /* Tablet portrait 600–767px */
+    @media (max-width:767px) {
+      body { overflow:auto; }
+      .page { position:relative; inset:auto; flex-direction:column; min-height:100vh; height:auto; }
+      .left  { padding:22px 20px 0; }
+      .stat-row { display:none; }
+      .hero-desc { max-width:100%; }
+      .right { padding:14px 16px 36px; }
+      .card  { padding:26px 20px; border-radius:18px; }
+    }
+
+    /* Mobile ≤ 599px */
+    @media (max-width:599px) {
+      .headline { font-size:1.7rem; }
+      .left  { padding:18px 16px 0; }
+      .right { padding:10px 12px 32px; }
+      .card  { padding:22px 16px; }
+      .tiles { grid-template-columns:1fr; }
+    }
+
+    /* Very small ≤ 380px */
+    @media (max-width:380px) {
+      .card { padding:18px 12px; }
+      .chips { gap:4px; }
+      .chip  { font-size:.6rem; padding:3px 8px; }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+    }
+  </style>
 </head>
 <body>
 <div id="root"></div>
+
 <script type="text/babel" data-presets="react">
-    const { useState } = React;
-    const API_BASE = 'http://127.0.0.1:8000/api';
-    const Auth = {
-        getToken: () => localStorage.getItem('access_token'),
-        save: (access, refresh) => {
-            localStorage.setItem('access_token', access);
-            localStorage.setItem('refresh_token', refresh);
-        },
-        isLoggedIn: () => !!localStorage.getItem('access_token')
-    };
+const { useState, useEffect } = React;
+const API_BASE = 'http://127.0.0.1:8000/api';
 
-    function LoginPage() {
-        const [username, setUsername] = useState('');
-        const [password, setPassword] = useState('');
-        const [error, setError] = useState('');
-        const [loading, setLoading] = useState(false);
-        const [checked, setChecked] = useState(false);
+const Auth = {
+  save:      (a,r) => { localStorage.setItem('access_token',a); localStorage.setItem('refresh_token',r); },
+  isLoggedIn:() => !!localStorage.getItem('access_token'),
+};
 
-        React.useEffect(() => {
-            if (Auth.isLoggedIn()) {
-                window.location.href = 'dashboard.html';
-            } else {
-                setChecked(true);
-            }
-        }, []);
+/* animated counter */
+function Counter({ to, suffix='' }) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    let v=0, step=to/50;
+    const id = setInterval(()=>{ v=Math.min(v+step,to); setN(Math.floor(v)); if(v>=to) clearInterval(id); },22);
+    return ()=>clearInterval(id);
+  },[]);
+  return React.createElement(React.Fragment,null,n+suffix);
+}
 
-        if (!checked) return null;
+function LoginPage() {
+  const [uname,  setUname]  = useState('');
+  const [pass,   setPass]   = useState('');
+  const [show,   setShow]   = useState(false);
+  const [rem,    setRem]    = useState(false);
+  const [err,    setErr]    = useState('');
+  const [load,   setLoad]   = useState(false);
+  const [ready,  setReady]  = useState(false);
 
-        async function handleLogin(e) {
-            e.preventDefault();
-            setLoading(true);
-            setError('');
-            try {
-                const res = await fetch(API_BASE + '/token/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    Auth.save(data.access, data.refresh);
-                    window.location.href = 'dashboard.html';
-                } else {
-                    setError('Invalid username or password');
-                }
-            } catch(err) {
-                setError('Server error. Make sure backend is running.');
-            }
-            setLoading(false);
-        }
+  useEffect(()=>{ if(Auth.isLoggedIn()) window.location.href='dashboard.html'; else setReady(true); },[]);
+  if (!ready) return null;
 
-        return (
-            <div className="login-page">
-                <div className="login-box">
-                    <div className="login-brand">
-                        <span className="login-icon">✈</span>
-                        <h2>Airport Ops</h2>
-                        <p>Ground Operations Management System</p>
-                    </div>
-                    <form onSubmit={handleLogin}>
-                        <label className="login-label">Username</label>
-                        <input
-                            type="text" placeholder="Enter your username"
-                            value={username}
-                            onChange={function(e){ setUsername(e.target.value); }}
-                            required
-                        />
-                        <label className="login-label">Password</label>
-                        <input
-                            type="password" placeholder="Enter your password"
-                            value={password}
-                            onChange={function(e){ setPassword(e.target.value); }}
-                            required
-                        />
-                        <button type="submit" disabled={loading}>
-                            {loading ? 'Logging in...' : 'Login →'}
-                        </button>
-                        {error && <p className="error-msg">{error}</p>}
-                    </form>
-                    <div className="login-back">
-                        <a href="landing.html">← Back to Home</a>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+  async function handleLogin(e) {
+    e.preventDefault(); setLoad(true); setErr('');
+    try {
+      const res = await fetch(API_BASE+'/token/',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({username:uname, password:pass}),
+      });
+      if (res.ok) { const d=await res.json(); Auth.save(d.access,d.refresh); window.location.href='dashboard.html'; }
+      else setErr('Invalid username or password. Please try again.');
+    } catch { setErr('Cannot reach server. Ensure the backend is running.'); }
+    setLoad(false);
+  }
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<LoginPage />);
+  const flights = [
+    {code:'AI-202',route:'DEL → BOM',gate:'B4', label:'Boarding',   cls:'s1'},
+    {code:'6E-411',route:'BLR → HYD',gate:'A12',label:'On Time',    cls:'s2'},
+    {code:'SG-109',route:'MAA → CCU',gate:'C7', label:'Delayed 12m',cls:'s3'},
+    {code:'UK-803',route:'BOM → GOI',gate:'D2', label:'Departed',   cls:'s4'},
+  ];
+
+  const roles = [
+    {ico:'🛡',name:'Admin',      sub:'Full system access'},
+    {ico:'📋',name:'Manager',    sub:'Ops + scheduling'},
+    {ico:'👷',name:'Staff',      sub:'Assigned tasks'},
+    {ico:'🔧',name:'Technician', sub:'Maintenance logs'},
+  ];
+
+  return React.createElement('div',{className:'page'},
+    /* blobs */
+    React.createElement('div',{className:'blob blob-1'}),
+    React.createElement('div',{className:'blob blob-2'}),
+
+    /* ── LEFT ── */
+    React.createElement('div',{className:'left'},
+
+      /* brand */
+      React.createElement('div',{className:'brand'},
+        React.createElement('div',{className:'brand-icon'},'✈'),
+        React.createElement('div',null,
+          React.createElement('div',{className:'brand-name'},'Airport Ops'),
+          React.createElement('div',{className:'brand-sub'},'Ground Ops · Control Platform'),
+        ),
+      ),
+
+      /* hero block */
+      React.createElement('div',{className:'hero'},
+        React.createElement('div',{className:'live-pill'},
+          React.createElement('span',{className:'live-dot'}),
+          'Systems Operational',
+        ),
+        React.createElement('h1',{className:'headline'},
+          'Total Command of ',
+          React.createElement('br'),
+          React.createElement('span',{className:'hl'},'Ground Operations'),
+        ),
+        React.createElement('p',{className:'hero-desc'},
+          'Real-time coordination of flights, gates, baggage, staff, and maintenance — all from one unified platform built for modern airport operations.',
+        ),
+
+        /* stat pills */
+        React.createElement('div',{className:'stat-row'},
+          React.createElement('div',{className:'stat-pill'},
+            React.createElement('span',{className:'sdot',style:{background:'#22c55e',boxShadow:'0 0 5px #22c55e'}}),
+            React.createElement('span',{className:'pval'},React.createElement(Counter,{to:47})),
+            React.createElement('span',{className:'plbl'},'Active Flights'),
+          ),
+          React.createElement('div',{className:'stat-pill'},
+            React.createElement('span',{className:'sdot',style:{background:'#3b9eff',boxShadow:'0 0 5px #3b9eff'}}),
+            React.createElement('span',{className:'pval'},React.createElement(Counter,{to:45})),
+            React.createElement('span',{className:'plbl'},'Live Gates'),
+          ),
+          React.createElement('div',{className:'stat-pill'},
+            React.createElement('span',{className:'sdot',style:{background:'#f59e0b',boxShadow:'0 0 5px #f59e0b'}}),
+            React.createElement('span',{className:'pval'},React.createElement(Counter,{to:3})),
+            React.createElement('span',{className:'plbl'},'Delays'),
+          ),
+        ),
+
+        /* ticker */
+        React.createElement('div',{className:'ticker'},
+          React.createElement('div',{className:'ticker-hdr'},
+            React.createElement('span',{className:'ticker-hdr-title'},'Live Flight Board'),
+            React.createElement('span',{className:'live-tag'},React.createElement('span'),'LIVE'),
+          ),
+          React.createElement('div',{className:'t-rows'},
+            ...flights.map(f=>React.createElement('div',{className:'t-row',key:f.code},
+              React.createElement('span',{className:'tc'},f.code),
+              React.createElement('span',{className:'tr'},f.route),
+              React.createElement('span',{className:'tg'},f.gate),
+              React.createElement('span',{className:`ts ${f.cls}`},f.label),
+            )),
+          ),
+        ),
+      ),
+
+      /* left footer */
+      React.createElement('div',{className:'left-foot'},
+        React.createElement('span',null,'© 2026 Airport Ops'),
+        React.createElement('span',{className:'sep'},'·'),
+        React.createElement('a',{href:'#',style:{color:'#3b9eff'}},'Privacy'),
+        React.createElement('span',{className:'sep'},'·'),
+        React.createElement('a',{href:'#',style:{color:'#3b9eff'}},'Support'),
+        React.createElement('span',{className:'sep'},'·'),
+        React.createElement('span',null,'v2.4.1'),
+      ),
+    ),
+
+    /* ── RIGHT: card ── */
+    React.createElement('div',{className:'right'},
+      React.createElement('div',{className:'card'},
+
+        /* brand */
+        React.createElement('div',{className:'card-brand'},
+          React.createElement('div',{className:'card-icon'},'✈'),
+          React.createElement('h2',null,'Welcome back'),
+          React.createElement('p',null,'Airport Ground Operations Management'),
+        ),
+
+        React.createElement('div',{className:'div-line'}),
+
+        /* chips */
+        React.createElement('div',{className:'chips'},
+          React.createElement('div',{className:'chip'},React.createElement('span',{className:'cdot cg'}),'All Systems Online'),
+          React.createElement('div',{className:'chip'},React.createElement('span',{className:'cdot cb'}),'Secure Connection'),
+          React.createElement('div',{className:'chip'},React.createElement('span',{className:'cdot ca'}),'2FA Ready'),
+        ),
+
+        /* form */
+        React.createElement('form',{onSubmit:handleLogin},
+
+          /* username */
+          React.createElement('div',{className:'fgroup'},
+            React.createElement('label',{className:'flabel'},'Username'),
+            React.createElement('div',{className:'fwrap'},
+              React.createElement('span',{className:'ficon'},'👤'),
+              React.createElement('input',{
+                className:'finput', type:'text',
+                placeholder:'Enter your username',
+                value:uname, onChange:e=>setUname(e.target.value),
+                required:true, autoComplete:'username',
+              }),
+            ),
+          ),
+
+          /* password */
+          React.createElement('div',{className:'fgroup'},
+            React.createElement('label',{className:'flabel'},'Password'),
+            React.createElement('div',{className:'fwrap'},
+              React.createElement('span',{className:'ficon'},'🔒'),
+              React.createElement('input',{
+                className:'finput',
+                type:show?'text':'password',
+                placeholder:'Enter your password',
+                value:pass, onChange:e=>setPass(e.target.value),
+                required:true, autoComplete:'current-password',
+                style:{paddingRight:'40px'},
+              }),
+              React.createElement('button',{
+                type:'button', className:'ptoggle',
+                onClick:()=>setShow(s=>!s), tabIndex:-1,
+              }, show?'🙈':'👁'),
+            ),
+          ),
+
+          /* options */
+          React.createElement('div',{className:'opts'},
+            React.createElement('div',{className:'rmb',onClick:()=>setRem(r=>!r)},
+              React.createElement('div',{className:`chk${rem?' on':''}`},rem?'✓':''),
+              React.createElement('span',{className:'rmb-lbl'},'Remember me'),
+            ),
+            React.createElement('a',{href:'#',className:'forgot'},'Forgot password?'),
+          ),
+
+          /* submit */
+          React.createElement('button',{type:'submit',className:'sbtn',disabled:load},
+            load&&React.createElement('span',{className:'spinner'}),
+            load?'Authenticating…':'Sign in to Dashboard →',
+          ),
+
+          err&&React.createElement('p',{className:'errmsg'},'⚠ ',err),
+        ),
+
+        /* footer */
+        React.createElement('div',{className:'card-foot'},
+          React.createElement('div',{className:'foot-div'},React.createElement('span',null,'Access levels')),
+          React.createElement('div',{className:'tiles'},
+            ...roles.map(r=>React.createElement('div',{className:'tile',key:r.name},
+              React.createElement('span',{className:'tile-ico'},r.ico),
+              React.createElement('div',null,
+                React.createElement('div',{className:'tile-name'},r.name),
+                React.createElement('div',{className:'tile-sub'},r.sub),
+              ),
+            )),
+          ),
+          React.createElement('div',{className:'back'},
+            React.createElement('a',{href:'landing.html'},'← Back to Home'),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(LoginPage));
 </script>
 </body>
 </html>
