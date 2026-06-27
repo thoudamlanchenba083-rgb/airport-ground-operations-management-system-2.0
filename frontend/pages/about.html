@@ -1,116 +1,781 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Airport Ops</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/landing.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.1/aos.css">
-</head>
-<body class="landing-body">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us — Airport Ops</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
 
-    <nav class="landing-navbar">
-        <span class="brand">✈ Airport Ops</span>
-        <div class="nav-links">
-            <a href="landing.html">Home</a>
-            <a href="services.html">Services</a>
-            <a href="about.html" class="active">About</a>
-            <a href="careers.html">Careers</a>
-            <a href="index.html" class="btn-login">Login</a>
-        </div>
-        <button class="hamburger-btn" onclick="toggleMobileMenu()">☰</button>
-    </nav>
-    <div class="mobile-menu" id="mobileMenu">
-        <a href="landing.html">Home</a>
-        <a href="services.html">Services</a>
-        <a href="about.html" class="active">About</a>
-        <a href="careers.html">Careers</a>
-        <a href="index.html">Login</a>
+    /* ═══════════════════════════════════════
+       TOKENS  (shared design system)
+    ═══════════════════════════════════════ */
+    :root {
+      --bg:         #07090f;
+      --surf-1:     #0d1120;
+      --surf-2:     #111827;
+      --surf-3:     rgba(255,255,255,0.04);
+      --border:     rgba(255,255,255,0.08);
+      --accent:     #3b9eff;
+      --accent-dim: rgba(59,158,255,0.14);
+      --teal:       #00c9a7;
+      --teal-dim:   rgba(0,201,167,0.12);
+      --green:      #22c55e;
+      --amber:      #f59e0b;
+      --violet:     #8b5cf6;
+      --red:        #ef4444;
+      --text:       #e2e8f0;
+      --muted:      #64748b;
+      --subtle:     #94a3b8;
+      --white:      #f8fafc;
+      --px:         clamp(20px,5vw,80px);
+      --r:          16px;
+      --r-sm:       10px;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; font-size:16px; }
+    body {
+      font-family:'Inter',sans-serif;
+      background:var(--bg); color:var(--text);
+      overflow-x:hidden; -webkit-font-smoothing:antialiased;
+    }
+    a { text-decoration:none; color:inherit; }
+
+    /* Background dot grid */
+    body::before {
+      content:''; position:fixed; inset:0;
+      background-image:radial-gradient(rgba(255,255,255,0.030) 1px,transparent 1px);
+      background-size:30px 30px; z-index:0; pointer-events:none;
+    }
+
+    /* Aurora blobs */
+    .aurora { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .a-blob {
+      position:absolute; border-radius:50%;
+      filter:blur(120px); opacity:.09;
+      animation:aFloat 20s ease-in-out infinite;
+    }
+    .a-blob:nth-child(1){width:580px;height:580px;background:#3b9eff;top:-180px;right:-80px;animation-delay:0s;}
+    .a-blob:nth-child(2){width:460px;height:460px;background:#00c9a7;bottom:-100px;left:-60px;animation-delay:-8s;}
+    .a-blob:nth-child(3){width:360px;height:360px;background:#8b5cf6;top:45%;left:40%;animation-delay:-15s;}
+    @keyframes aFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(25px,-20px) scale(1.05);}66%{transform:translate(-18px,15px) scale(.96);}}
+
+    /* ═══════════════════════════════════════
+       NAVBAR
+    ═══════════════════════════════════════ */
+    nav {
+      position:fixed;top:0;left:0;right:0;z-index:1000;
+      height:66px;display:flex;align-items:center;
+      justify-content:space-between;padding:0 var(--px);
+      background:rgba(7,9,15,.55);
+      backdrop-filter:blur(24px) saturate(160%);
+      -webkit-backdrop-filter:blur(24px) saturate(160%);
+      border-bottom:1px solid rgba(255,255,255,.06);
+      transition:background .3s,border-color .3s,box-shadow .3s;
+    }
+    nav.scrolled{background:rgba(7,9,15,.92);border-color:rgba(59,158,255,.14);box-shadow:0 1px 40px rgba(0,0,0,.6);}
+    .nav-brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-size:1.08rem;font-weight:700;color:var(--white);}
+    .nav-icon{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--teal));display:flex;align-items:center;justify-content:center;font-size:1rem;animation:bob 3s ease-in-out infinite;}
+    @keyframes bob{0%,100%{transform:rotate(0)translateY(0);}50%{transform:rotate(5deg)translateY(-3px);}}
+    .nav-links{display:flex;align-items:center;gap:28px;}
+    .nav-links a{font-size:.875rem;font-weight:500;color:var(--subtle);transition:color .2s;position:relative;}
+    .nav-links a::after{content:'';position:absolute;bottom:-3px;left:0;right:0;height:1.5px;background:var(--accent);border-radius:2px;transform:scaleX(0);transition:transform .25s;}
+    .nav-links a:hover,.nav-links a.active{color:var(--white);}
+    .nav-links a:hover::after,.nav-links a.active::after{transform:scaleX(1);}
+    .btn-nav{padding:8px 20px;border-radius:50px;background:var(--accent);color:#fff;font-size:.83rem;font-weight:600;transition:opacity .2s,transform .2s,box-shadow .2s;}
+    .btn-nav::after{display:none!important;}
+    .btn-nav:hover{opacity:.88;transform:translateY(-2px);box-shadow:0 6px 18px rgba(59,158,255,.35);}
+    .hamburger{display:none;background:none;border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;font-size:1.1rem;cursor:pointer;}
+    .mob-nav{display:none;position:fixed;top:72px;left:12px;right:12px;z-index:999;flex-direction:column;gap:4px;padding:14px;background:rgba(13,17,32,.97);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 20px 60px rgba(0,0,0,.7);}
+    .mob-nav.open{display:flex;}
+    .mob-nav a{padding:11px 14px;border-radius:var(--r-sm);font-size:.92rem;color:var(--subtle);transition:background .2s,color .2s;}
+    .mob-nav a:hover,.mob-nav a.active{background:var(--surf-3);color:var(--white);}
+
+    /* ═══════════════════════════════════════
+       PAGE HERO
+    ═══════════════════════════════════════ */
+    .page-hero {
+      position:relative;z-index:1;
+      padding:140px var(--px) 80px;
+      text-align:center;overflow:hidden;
+    }
+    .page-hero::before {
+      content:'';position:absolute;top:60px;left:50%;
+      transform:translateX(-50%);
+      width:700px;height:400px;
+      background:radial-gradient(ellipse,rgba(59,158,255,.09) 0%,transparent 65%);
+      pointer-events:none;
+    }
+    .page-hero::after {
+      content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,var(--border),transparent);
+    }
+    .hero-eyebrow {
+      display:inline-flex;align-items:center;gap:7px;
+      padding:5px 14px;border-radius:50px;
+      font-size:.7rem;font-weight:700;
+      letter-spacing:2px;text-transform:uppercase;
+      color:var(--accent);border:1px solid rgba(59,158,255,.28);
+      background:rgba(59,158,255,.09);backdrop-filter:blur(8px);
+      margin-bottom:22px;
+    }
+    .page-hero h1 {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:clamp(2.2rem,5.5vw,4rem);
+      font-weight:700;line-height:1.1;
+      color:var(--white);letter-spacing:-.5px;margin-bottom:18px;
+    }
+    .page-hero h1 span {
+      background:linear-gradient(90deg,var(--accent),var(--teal));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    .page-hero p{font-size:1.05rem;color:var(--subtle);line-height:1.75;max-width:560px;margin:0 auto;}
+
+    /* ═══════════════════════════════════════
+       UTILITIES
+    ═══════════════════════════════════════ */
+    .section{position:relative;z-index:1;padding:80px var(--px);}
+    .sec-label{font-size:.7rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+    .sec-label::after{content:'';width:28px;height:1px;background:var(--accent);opacity:.5;}
+    .sec-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.6rem,3vw,2.4rem);font-weight:700;color:var(--white);line-height:1.18;margin-bottom:14px;}
+    .sec-sub{font-size:.95rem;color:var(--subtle);line-height:1.75;}
+    .reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease;}
+    .reveal.visible{opacity:1;transform:none;}
+
+    /* ═══════════════════════════════════════
+       WHY WE BUILT THIS  — 2-col layout
+    ═══════════════════════════════════════ */
+    .about-grid {
+      display:grid;grid-template-columns:1fr 1fr;
+      gap:56px;align-items:start;
+    }
+    .about-text p {
+      font-size:.93rem;color:var(--subtle);
+      line-height:1.8;margin-bottom:16px;
+    }
+    /* value list */
+    .value-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:24px;}
+    .value-list li {
+      display:flex;align-items:flex-start;gap:11px;
+      font-size:.86rem;color:var(--text);line-height:1.55;
+    }
+    .value-list li::before {
+      content:'✓';flex-shrink:0;
+      width:20px;height:20px;border-radius:50%;
+      background:var(--accent-dim);color:var(--accent);
+      font-size:.65rem;font-weight:700;
+      display:flex;align-items:center;justify-content:center;margin-top:1px;
+    }
+
+    /* Glassmorphism info panel (right side) */
+    .info-panel {
+      display:flex;flex-direction:column;gap:14px;
+    }
+    .info-card {
+      background:rgba(13,17,32,.62);
+      backdrop-filter:blur(24px) saturate(150%);
+      -webkit-backdrop-filter:blur(24px) saturate(150%);
+      border:1px solid var(--border);
+      border-radius:var(--r);
+      padding:22px;overflow:hidden;position:relative;
+      transition:border-color .3s,transform .3s;
+    }
+    .info-card::before {
+      content:'';position:absolute;top:0;left:20%;right:20%;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(59,158,255,.4),transparent);
+      opacity:0;transition:opacity .3s;
+    }
+    .info-card:hover{border-color:rgba(59,158,255,.28);transform:translateY(-4px);}
+    .info-card:hover::before{opacity:1;}
+    .ic-hdr{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+    .ic-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:1px solid var(--border);background:var(--surf-3);flex-shrink:0;}
+    .ic-title{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;color:var(--white);}
+    .ic-sub{font-size:.72rem;color:var(--muted);margin-top:1px;}
+    .ic-body{font-size:.82rem;color:var(--subtle);line-height:1.65;}
+    /* mini bar chart inside card */
+    .bar-row{display:flex;align-items:center;gap:9px;margin-top:12px;}
+    .bar-label{font-size:.7rem;color:var(--muted);width:70px;flex-shrink:0;}
+    .bar-track{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden;}
+    .bar-fill{height:100%;border-radius:3px;animation:barGrow .9s ease both;}
+    @keyframes barGrow{from{width:0};}
+    .bar-val{font-size:.7rem;color:var(--subtle);width:32px;text-align:right;flex-shrink:0;}
+
+    /* ═══════════════════════════════════════
+       STATS STRIP
+    ═══════════════════════════════════════ */
+    .stats-strip {
+      position:relative;z-index:1;
+      padding:0 var(--px);
+      background:var(--surf-1);
+      border-top:1px solid var(--border);
+      border-bottom:1px solid var(--border);
+    }
+    .stats-inner {
+      display:grid;grid-template-columns:repeat(4,1fr);
+    }
+    .stat-item {
+      padding:44px 20px;
+      text-align:center;
+      border-right:1px solid var(--border);
+      position:relative;
+      transition:background .3s;
+    }
+    .stat-item:last-child{border-right:none;}
+    .stat-item:hover{background:var(--accent-dim);}
+    .stat-num {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:3rem;font-weight:700;
+      display:block;
+      background:linear-gradient(135deg,var(--accent),var(--teal));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;margin-bottom:8px;
+    }
+    .stat-lbl{color:var(--muted);font-size:.82rem;}
+
+    /* ═══════════════════════════════════════
+       TEAM SECTION
+    ═══════════════════════════════════════ */
+    .team-grid{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:16px;
+    }
+    .team-card {
+      background:rgba(13,17,32,.62);
+      backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+      border:1px solid var(--border);border-radius:var(--r);
+      overflow:hidden;
+      transition:transform .3s,box-shadow .3s,border-color .3s;
+    }
+    .team-card:hover{
+      transform:translateY(-7px);
+      border-color:rgba(59,158,255,.28);
+      box-shadow:0 20px 50px rgba(0,0,0,.45);
+    }
+    .team-avatar {
+      height:130px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:3.2rem;
+      background:linear-gradient(135deg,rgba(59,158,255,.08),rgba(0,201,167,.08));
+      border-bottom:1px solid var(--border);
+      position:relative;
+    }
+    .team-body{padding:16px;}
+    .team-name{font-family:'Space Grotesk',sans-serif;font-size:.92rem;font-weight:700;color:var(--white);margin-bottom:3px;}
+    .team-role{font-size:.72rem;color:var(--accent);font-weight:500;margin-bottom:9px;}
+    .team-bio{font-size:.74rem;color:var(--muted);line-height:1.55;}
+
+    /* ═══════════════════════════════════════
+       TECH STACK SECTION
+    ═══════════════════════════════════════ */
+    .tech-grid{
+      display:grid;grid-template-columns:repeat(4,1fr);
+      gap:14px;
+    }
+    .tech-card {
+      padding:20px;border-radius:var(--r);
+      background:rgba(13,17,32,.55);
+      border:1px solid var(--border);
+      backdrop-filter:blur(20px);
+      text-align:center;
+      transition:border-color .3s,background .3s,transform .3s;
+    }
+    .tech-card:hover{border-color:rgba(59,158,255,.26);background:var(--accent-dim);transform:translateY(-4px);}
+    .tech-icon{font-size:2rem;margin-bottom:10px;display:block;}
+    .tech-name{font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:700;color:var(--white);margin-bottom:4px;}
+    .tech-desc{font-size:.74rem;color:var(--muted);}
+    .tech-tag{display:inline-block;margin-top:8px;padding:2px 9px;border-radius:50px;font-size:.62rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(59,158,255,.18);}
+
+    /* ═══════════════════════════════════════
+       VALUES SECTION
+    ═══════════════════════════════════════ */
+    .values-bg{
+      position:relative;z-index:1;
+      padding:80px var(--px);
+      background:var(--surf-1);
+      border-top:1px solid var(--border);
+      border-bottom:1px solid var(--border);
+      overflow:hidden;
+    }
+    .values-bg::before{
+      content:'';position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      width:700px;height:500px;
+      background:radial-gradient(ellipse,rgba(0,201,167,.05) 0%,transparent 65%);
+      pointer-events:none;
+    }
+    .values-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);
+      gap:18px;margin-top:48px;
+    }
+    .value-card {
+      padding:26px 22px;border-radius:var(--r);
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      backdrop-filter:blur(18px);
+      transition:border-color .3s,background .3s,transform .3s;
+      position:relative;overflow:hidden;
+    }
+    .value-card::after{
+      content:'';position:absolute;
+      bottom:-30px;right:-30px;
+      width:100px;height:100px;border-radius:50%;
+      background:radial-gradient(circle,rgba(59,158,255,.06) 0%,transparent 70%);
+    }
+    .value-card:hover{border-color:rgba(59,158,255,.24);background:var(--accent-dim);transform:translateY(-5px);}
+    .v-icon{font-size:1.6rem;margin-bottom:14px;display:block;}
+    .value-card h4{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;color:var(--white);margin-bottom:8px;}
+    .value-card p{font-size:.82rem;color:var(--subtle);line-height:1.7;}
+
+    /* ═══════════════════════════════════════
+       CTA
+    ═══════════════════════════════════════ */
+    .cta-section{
+      position:relative;z-index:1;
+      padding:96px var(--px);text-align:center;
+      background:var(--bg);overflow:hidden;
+    }
+    .cta-section::before{
+      content:'';position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      width:600px;height:500px;
+      background:radial-gradient(circle,rgba(59,158,255,.07) 0%,transparent 65%);
+      pointer-events:none;
+    }
+    .cta-section h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.7rem,3.5vw,2.6rem);font-weight:700;color:var(--white);margin-bottom:14px;position:relative;z-index:1;}
+    .cta-section p{color:var(--subtle);font-size:.95rem;margin-bottom:32px;position:relative;z-index:1;}
+    .cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;}
+    .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:50px;background:var(--accent);color:#fff;font-size:.9rem;font-weight:600;transition:transform .2s,box-shadow .2s;}
+    .btn-primary:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(59,158,255,.35);}
+    .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:50px;background:transparent;border:1px solid rgba(255,255,255,.14);color:var(--text);font-size:.9rem;font-weight:500;transition:border-color .2s,background .2s,transform .2s;}
+    .btn-ghost:hover{border-color:var(--accent);background:var(--accent-dim);transform:translateY(-3px);}
+
+    /* ═══════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════ */
+    footer{position:relative;z-index:1;background:var(--bg);border-top:1px solid var(--border);padding:0 var(--px);}
+    footer::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),var(--teal),transparent);opacity:.3;}
+    .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;padding:48px 0 40px;border-bottom:1px solid var(--border);}
+    .foot-brand h3{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;color:var(--white);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+    .foot-brand p{font-size:.82rem;color:var(--muted);line-height:1.75;max-width:280px;}
+    .foot-col h4{font-family:'Rajdhani',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--white);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+    .foot-col a{display:block;color:var(--muted);font-size:.82rem;padding:4px 0;transition:color .2s;}
+    .foot-col a:hover{color:var(--accent);}
+    .footer-bottom{padding:18px 0;font-size:.74rem;color:var(--muted);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+
+    /* ═══════════════════════════════════════
+       MEDIA QUERIES
+    ═══════════════════════════════════════ */
+
+    /* Large ≥ 1400px */
+    @media (min-width:1400px){
+      :root{--px:100px;}
+      .team-grid{grid-template-columns:repeat(5,1fr);}
+    }
+
+    /* Small desktop 960–1199px */
+    @media (max-width:1199px){
+      :root{--px:40px;}
+      .about-grid{grid-template-columns:1fr;gap:40px;}
+      .info-panel{flex-direction:row;flex-wrap:wrap;}
+      .info-card{flex:1;min-width:240px;}
+      .team-grid{grid-template-columns:repeat(3,1fr);}
+      .tech-grid{grid-template-columns:repeat(3,1fr);}
+      .footer-grid{grid-template-columns:1.5fr 1fr 1fr;gap:28px;}
+      .footer-grid .foot-brand{grid-column:1/-1;}
+    }
+
+    /* Tablet landscape 768–959px */
+    @media (max-width:959px){
+      :root{--px:28px;}
+      .about-grid{grid-template-columns:1fr;}
+      .stats-inner{grid-template-columns:repeat(2,1fr);}
+      .stats-inner .stat-item:nth-child(2){border-right:none;}
+      .stats-inner .stat-item:nth-child(3){border-right:1px solid var(--border);}
+      .team-grid{grid-template-columns:repeat(3,1fr);}
+      .tech-grid{grid-template-columns:repeat(2,1fr);}
+      .values-grid{grid-template-columns:repeat(2,1fr);}
+      .footer-grid{grid-template-columns:1fr 1fr;gap:24px;}
+    }
+
+    /* Tablet portrait 600–767px */
+    @media (max-width:767px){
+      :root{--px:20px;}
+      .nav-links{display:none;}
+      .hamburger{display:flex;align-items:center;justify-content:center;}
+      .section{padding:60px var(--px);}
+      .values-bg{padding:60px var(--px);}
+      .stats-inner{grid-template-columns:repeat(2,1fr);}
+      .team-grid{grid-template-columns:repeat(2,1fr);}
+      .tech-grid{grid-template-columns:repeat(2,1fr);}
+      .values-grid{grid-template-columns:1fr;}
+      .footer-grid{grid-template-columns:1fr 1fr;}
+    }
+
+    /* Mobile ≤ 599px */
+    @media (max-width:599px){
+      :root{--px:16px;}
+      .page-hero{padding:120px var(--px) 60px;}
+      .page-hero h1{font-size:2rem;}
+      .stats-inner{grid-template-columns:1fr 1fr;}
+      .team-grid{grid-template-columns:repeat(2,1fr);}
+      .tech-grid{grid-template-columns:1fr 1fr;}
+      .footer-grid{grid-template-columns:1fr;gap:20px;}
+      .cta-btns{flex-direction:column;align-items:center;}
+      .footer-bottom{flex-direction:column;text-align:center;}
+      .info-panel{flex-direction:column;}
+    }
+
+    /* Very small ≤ 380px */
+    @media (max-width:380px){
+      .page-hero h1{font-size:1.75rem;}
+      .team-grid{grid-template-columns:1fr;}
+      .stat-num{font-size:2.2rem;}
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+      .reveal{opacity:1;transform:none;}
+    }
+
+    /* Print */
+    @media print{
+      body::before,.aurora{display:none;}
+      nav{position:static;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="aurora">
+  <div class="a-blob"></div>
+  <div class="a-blob"></div>
+  <div class="a-blob"></div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-brand">
+    <div class="nav-icon">✈</div>
+    Airport Ops
+  </div>
+  <div class="nav-links">
+    <a href="landing.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="about.html" class="active">About</a>
+    <a href="careers.html">Careers</a>
+    <a href="index.html" class="btn-nav">Login →</a>
+  </div>
+  <button class="hamburger" onclick="document.getElementById('mob').classList.toggle('open')">☰</button>
+</nav>
+<div class="mob-nav" id="mob">
+  <a href="landing.html">Home</a>
+  <a href="services.html">Services</a>
+  <a href="about.html" class="active">About</a>
+  <a href="careers.html">Careers</a>
+  <a href="index.html">Login →</a>
+</div>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div class="hero-eyebrow reveal">✦ Our Story</div>
+  <h1 class="reveal">About <span>Airport Ops</span></h1>
+  <p class="reveal">Built by people who understand how complex ground operations really are — and designed to make every part of it simpler.</p>
+</section>
+
+<!-- WHY WE BUILT THIS -->
+<section class="section">
+  <div class="about-grid">
+    <!-- Left: text -->
+    <div class="reveal">
+      <div class="sec-label">Our Mission</div>
+      <h2 class="sec-title">Why We<br>Built This</h2>
+      <p class="sec-sub" style="margin-bottom:16px">Airport ground operations involve dozens of moving parts — flights landing and departing, baggage moving between terminals, gates opening and closing, staff rotating through shifts, and aircraft needing constant maintenance.</p>
+      <p class="sec-sub" style="margin-bottom:0">Airport Ops brings all of this together into a single, reliable platform — giving ground teams real-time visibility and control over every part of daily operations, without juggling spreadsheets or disconnected systems.</p>
+      <ul class="value-list">
+        <li>Real-time visibility across flights, gates, and baggage</li>
+        <li>Centralised staff scheduling and shift management</li>
+        <li>Transparent maintenance tracking from request to resolution</li>
+        <li>Built for speed — designed for fast-paced ground teams</li>
+        <li>Role-based access so every user sees exactly what they need</li>
+      </ul>
     </div>
 
-    <section class="page-banner" style="background-image: url('../images/landing/about-bg.jpg');">
-        <div class="page-banner-content" data-aos="fade-up">
-            <h1>About Airport Ops</h1>
-            <p>Built by people who understand how complex ground operations really are.</p>
+    <!-- Right: glass info cards -->
+    <div class="info-panel">
+      <div class="info-card reveal" style="transition-delay:.1s">
+        <div class="ic-hdr">
+          <div class="ic-icon">📊</div>
+          <div>
+            <div class="ic-title">Operational Coverage</div>
+            <div class="ic-sub">Across all 6 modules</div>
+          </div>
         </div>
-    </section>
+        <div class="ic-body">Every module works together — a gate assignment reflects in flight tracking; a maintenance log links to the aircraft record.</div>
+        <div class="bar-row"><span class="bar-label">Flights</span><div class="bar-track"><div class="bar-fill" style="width:92%;background:linear-gradient(90deg,#3b9eff,#00c9a7)"></div></div><span class="bar-val">92%</span></div>
+        <div class="bar-row"><span class="bar-label">Baggage</span><div class="bar-track"><div class="bar-fill" style="width:87%;background:linear-gradient(90deg,#22c55e,#00c9a7);animation-delay:.1s"></div></div><span class="bar-val">87%</span></div>
+        <div class="bar-row"><span class="bar-label">Gates</span><div class="bar-track"><div class="bar-fill" style="width:95%;background:linear-gradient(90deg,#8b5cf6,#3b9eff);animation-delay:.2s"></div></div><span class="bar-val">95%</span></div>
+      </div>
 
-    <section class="section">
-        <div class="about-grid">
-            <div class="about-text" data-aos="fade-right">
-                <h2>Why We Built This</h2>
-                <p>Airport ground operations involve dozens of moving parts — flights landing and departing, baggage moving between terminals, gates opening and closing, staff rotating through shifts, and aircraft needing constant maintenance.</p>
-                <p>Airport Ops brings all of this together into a single, reliable platform — giving ground teams real-time visibility and control over every part of daily operations, without juggling spreadsheets or disconnected systems.</p>
-                <ul class="value-list">
-                    <li>Real-time visibility across flights, gates, and baggage</li>
-                    <li>Centralized staff scheduling and shift management</li>
-                    <li>Transparent maintenance tracking from request to resolution</li>
-                    <li>Built for speed — designed for fast-paced ground teams</li>
-                </ul>
-            </div>
-            <div class="about-image" data-aos="fade-left">
-                <img src="../images/landing/about-bg.jpg" alt="Airport operations">
-            </div>
+      <div class="info-card reveal" style="transition-delay:.18s">
+        <div class="ic-hdr">
+          <div class="ic-icon" style="background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.15)">✅</div>
+          <div>
+            <div class="ic-title">System Reliability</div>
+            <div class="ic-sub">Live uptime monitoring</div>
+          </div>
         </div>
-    </section>
+        <div class="ic-body">99.9% uptime guaranteed. Built on Django REST with live database syncing, every operation is logged and auditable.</div>
+        <div class="bar-row"><span class="bar-label">Uptime</span><div class="bar-track"><div class="bar-fill" style="width:99%;background:linear-gradient(90deg,#22c55e,#00c9a7)"></div></div><span class="bar-val">99%</span></div>
+        <div class="bar-row"><span class="bar-label">API Speed</span><div class="bar-track"><div class="bar-fill" style="width:96%;background:linear-gradient(90deg,#3b9eff,#8b5cf6);animation-delay:.1s"></div></div><span class="bar-val">96%</span></div>
+      </div>
 
-    <section class="stats-section">
-        <div class="stats-grid">
-            <div class="stat-item" data-aos="fade-up">
-                <h2 class="stat-number" data-target="6">0</h2>
-                <p>Core Modules</p>
-            </div>
-            <div class="stat-item" data-aos="fade-up" data-aos-delay="100">
-                <h2 class="stat-number" data-target="99" data-suffix="%">0</h2>
-                <p>Uptime Reliability</p>
-            </div>
-            <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
-                <h2 class="stat-number" data-target="120" data-suffix="+">0</h2>
-                <p>Staff Coordinated</p>
-            </div>
-            <div class="stat-item" data-aos="fade-up" data-aos-delay="300">
-                <h2 class="stat-number" data-target="24" data-suffix="/7">0</h2>
-                <p>Live Monitoring</p>
-            </div>
+      <div class="info-card reveal" style="transition-delay:.26s">
+        <div class="ic-hdr">
+          <div class="ic-icon" style="background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.15)">🕐</div>
+          <div>
+            <div class="ic-title">Always On</div>
+            <div class="ic-sub">24 / 7 / 365 operations</div>
+          </div>
         </div>
-    </section>
+        <div class="ic-body">Airport Ops mirrors the airport it serves — it never sleeps. Control room access is available round the clock across all shifts.</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <section class="cta-band" data-aos="fade-up">
-        <h2>Want to see it in action?</h2>
-        <p>Explore what Airport Ops can do for your ground operations team.</p>
-        <a href="services.html" class="btn-cta">View Services</a>
-    </section>
+<!-- STATS -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div class="stat-item reveal">
+      <span class="stat-num" data-target="6">0</span>
+      <div class="stat-lbl">Core Modules</div>
+    </div>
+    <div class="stat-item reveal" style="transition-delay:.08s">
+      <span class="stat-num" data-target="99" data-suffix="%">0</span>
+      <div class="stat-lbl">Uptime Reliability</div>
+    </div>
+    <div class="stat-item reveal" style="transition-delay:.16s">
+      <span class="stat-num" data-target="120" data-suffix="+">0</span>
+      <div class="stat-lbl">Staff Coordinated</div>
+    </div>
+    <div class="stat-item reveal" style="transition-delay:.24s">
+      <span class="stat-num" data-target="24" data-suffix="/7">0</span>
+      <div class="stat-lbl">Live Monitoring</div>
+    </div>
+  </div>
+</div>
 
-    <footer class="landing-footer">
-        <div class="footer-grid">
-            <div class="footer-brand">
-                <h3>✈ Airport Ops</h3>
-                <p>A complete ground operations management platform for modern airports — built for reliability, visibility, and speed.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Company</h4>
-                <a href="about.html">About Us</a>
-                <a href="services.html">Services</a>
-                <a href="careers.html">Careers</a>
-            </div>
-            <div class="footer-col">
-                <h4>Platform</h4>
-                <a href="index.html">Login</a>
-                <a href="services.html">Features</a>
-            </div>
-            <div class="footer-col">
-                <h4>Contact</h4>
-                <a href="mailto:admin@airport.com">admin@airport.com</a>
-                <a href="tel:+910000000000">+91 00000 00000</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            &copy; 2026 Airport Ops. Ground Operations Management System.
-        </div>
-    </footer>
+<!-- MEET THE TEAM -->
+<section class="section">
+  <div style="margin-bottom:48px">
+    <div class="sec-label reveal">Development Team</div>
+    <h2 class="sec-title reveal">The People Behind<br>Airport Ops</h2>
+    <p class="sec-sub reveal">Five specialists who designed, built, and tested every module of this platform from the ground up.</p>
+  </div>
+  <div class="team-grid">
+    <div class="team-card reveal">
+      <div class="team-avatar">⚙️</div>
+      <div class="team-body">
+        <div class="team-name">Thoudam Lanchenba</div>
+        <div class="team-role">Backend Developer</div>
+        <div class="team-bio">Builds the Django backend, creates REST APIs, implements authentication, and configures URL routing.</div>
+      </div>
+    </div>
+    <div class="team-card reveal" style="transition-delay:.08s">
+      <div class="team-avatar">🎨</div>
+      <div class="team-body">
+        <div class="team-name">Lakshya</div>
+        <div class="team-role">Frontend Developer</div>
+        <div class="team-bio">Develops responsive web pages using HTML, CSS, and JavaScript, and integrates frontend with backend APIs.</div>
+      </div>
+    </div>
+    <div class="team-card reveal" style="transition-delay:.16s">
+      <div class="team-avatar">🗄️</div>
+      <div class="team-body">
+        <div class="team-name">Kowshika</div>
+        <div class="team-role">Database Developer</div>
+        <div class="team-bio">Designs and manages the database, creates Django models, performs migrations, and maintains table relationships.</div>
+      </div>
+    </div>
+    <div class="team-card reveal" style="transition-delay:.24s">
+      <div class="team-avatar">🖌️</div>
+      <div class="team-body">
+        <div class="team-name">Shreepriyan</div>
+        <div class="team-role">UI/UX Designer</div>
+        <div class="team-bio">Designs the application's interface, improves user experience, and maintains consistent visual design.</div>
+      </div>
+    </div>
+    <div class="team-card reveal" style="transition-delay:.32s">
+      <div class="team-avatar">🧪</div>
+      <div class="team-body">
+        <div class="team-name">Naren</div>
+        <div class="team-role">QA Engineer</div>
+        <div class="team-bio">Tests REST APIs using Postman, validates functionality, reports bugs, and ensures smooth integration.</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.1/aos.js"></script>
-    <script src="../js/landing.js"></script>
+<!-- TECH STACK -->
+<section class="section" style="padding-top:0">
+  <div style="margin-bottom:40px">
+    <div class="sec-label reveal">Built With</div>
+    <h2 class="sec-title reveal">Our Tech Stack</h2>
+  </div>
+  <div class="tech-grid">
+    <div class="tech-card reveal">
+      <span class="tech-icon">🐍</span>
+      <div class="tech-name">Django</div>
+      <div class="tech-desc">Backend framework powering all REST APIs and authentication.</div>
+      <span class="tech-tag">Backend</span>
+    </div>
+    <div class="tech-card reveal" style="transition-delay:.08s">
+      <span class="tech-icon">⚛️</span>
+      <div class="tech-name">React</div>
+      <div class="tech-desc">Frontend UI framework used for the interactive login and dashboard views.</div>
+      <span class="tech-tag" style="background:rgba(0,201,167,.1);color:var(--teal);border-color:rgba(0,201,167,.2)">Frontend</span>
+    </div>
+    <div class="tech-card reveal" style="transition-delay:.16s">
+      <span class="tech-icon">🗃️</span>
+      <div class="tech-name">PostgreSQL</div>
+      <div class="tech-desc">Relational database managing all flight, baggage, gate, and staff records.</div>
+      <span class="tech-tag" style="background:rgba(139,92,246,.1);color:var(--violet);border-color:rgba(139,92,246,.2)">Database</span>
+    </div>
+    <div class="tech-card reveal" style="transition-delay:.24s">
+      <span class="tech-icon">🔌</span>
+      <div class="tech-name">REST APIs</div>
+      <div class="tech-desc">Clean JWT-authenticated API endpoints connecting frontend to backend seamlessly.</div>
+      <span class="tech-tag" style="background:rgba(245,158,11,.1);color:var(--amber);border-color:rgba(245,158,11,.2)">Integration</span>
+    </div>
+  </div>
+</section>
+
+<!-- VALUES -->
+<div class="values-bg">
+  <div style="text-align:center;position:relative;z-index:1">
+    <div class="sec-label reveal" style="justify-content:center">What Drives Us</div>
+    <h2 class="sec-title reveal">Our Core Values</h2>
+  </div>
+  <div class="values-grid">
+    <div class="value-card reveal">
+      <span class="v-icon">🎯</span>
+      <h4>Clarity First</h4>
+      <p>Every interface and report is designed so ground teams spend less time interpreting data and more time acting on it.</p>
+    </div>
+    <div class="value-card reveal" style="transition-delay:.08s">
+      <span class="v-icon">⚡</span>
+      <h4>Speed Matters</h4>
+      <p>Airports run on tight schedules. Our platform is optimised to deliver updates and actions in under a second.</p>
+    </div>
+    <div class="value-card reveal" style="transition-delay:.16s">
+      <span class="v-icon">🔗</span>
+      <h4>Everything Connected</h4>
+      <p>No silos. Flights, gates, baggage, and staff are all linked — so every update propagates where it matters.</p>
+    </div>
+    <div class="value-card reveal" style="transition-delay:.08s">
+      <span class="v-icon">🔒</span>
+      <h4>Secure by Design</h4>
+      <p>JWT authentication and role-based access ensure that sensitive operations are always protected and audited.</p>
+    </div>
+    <div class="value-card reveal" style="transition-delay:.16s">
+      <span class="v-icon">📈</span>
+      <h4>Built to Scale</h4>
+      <p>Designed to handle hundreds of concurrent operations — from a single terminal to a multi-concourse international hub.</p>
+    </div>
+    <div class="value-card reveal" style="transition-delay:.24s">
+      <span class="v-icon">🌐</span>
+      <h4>Open & Extensible</h4>
+      <p>REST-first architecture means Airport Ops can integrate with any existing airport system or third-party API.</p>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="sec-label reveal" style="justify-content:center">Next Step</div>
+  <h2 class="reveal">Want to see it<br>in action?</h2>
+  <p class="reveal">Explore what Airport Ops can do for your ground operations team — or log in to the dashboard directly.</p>
+  <div class="cta-btns reveal">
+    <a href="services.html" class="btn-primary">View Services →</a>
+    <a href="index.html" class="btn-ghost">Login to Dashboard</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="foot-brand reveal">
+      <h3><span>✈</span> Airport Ops</h3>
+      <p>A complete ground operations management platform for modern airports — built for reliability, real-time visibility, and speed.</p>
+    </div>
+    <div class="foot-col reveal">
+      <h4>Company</h4>
+      <a href="about.html">About Us</a>
+      <a href="services.html">Services</a>
+      <a href="careers.html">Careers</a>
+    </div>
+    <div class="foot-col reveal">
+      <h4>Platform</h4>
+      <a href="index.html">Login</a>
+      <a href="services.html">Features</a>
+      <a href="#">API Docs</a>
+    </div>
+    <div class="foot-col reveal">
+      <h4>Contact</h4>
+      <a href="mailto:ops@airportops.in">ops@airportops.in</a>
+      <a href="tel:+914422334455">+91 44 2233 4455</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Airport Ops. Ground Operations Management System.</span>
+    <div style="display:flex;gap:18px">
+      <a href="#" style="color:var(--muted);transition:color .2s" onmouseover="this.style.color='#3b9eff'" onmouseout="this.style.color=''">Privacy</a>
+      <a href="#" style="color:var(--muted);transition:color .2s" onmouseover="this.style.color='#3b9eff'" onmouseout="this.style.color=''">Terms</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* Navbar scroll */
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>50);
+});
+
+/* Reveal */
+const ro = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      /* Animate stat counters */
+      e.target.querySelectorAll('[data-target]').forEach(el=>animateCount(el));
+      if(e.target.matches('[data-target]')) animateCount(e.target);
+    }
+  });
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+/* also observe stat items directly */
+document.querySelectorAll('[data-target]').forEach(el=>{
+  const obs = new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting){ animateCount(el); obs.disconnect(); }
+  },{threshold:.5});
+  obs.observe(el);
+});
+
+function animateCount(el){
+  const target = parseFloat(el.dataset.target);
+  const suffix = el.dataset.suffix||'';
+  let v=0, step=target/55;
+  const id=setInterval(()=>{
+    v=Math.min(v+step,target);
+    el.textContent=Math.floor(v)+suffix;
+    if(v>=target) clearInterval(id);
+  },22);
+}
+</script>
 </body>
 </html>
