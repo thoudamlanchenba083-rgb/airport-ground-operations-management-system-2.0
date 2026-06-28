@@ -25,11 +25,11 @@ const Auth = {
                 body: JSON.stringify({ refresh }),
             }).finally(() => {
                 localStorage.clear();
-                window.location.href = 'index.html';
+                window.location.href = 'landing.html';
             });
         } else {
             localStorage.clear();
-            window.location.href = 'index.html';
+            window.location.href = 'landing.html';
         }
     },
 
@@ -37,7 +37,7 @@ const Auth = {
 
     requireAuth: () => {
         if (!localStorage.getItem('access_token')) {
-            window.location.href = 'index.html';
+            window.location.href = 'landing.html';
         }
     },
 };
@@ -134,7 +134,7 @@ async function apiFetch(endpoint, options = {}) {
             if (!isRedirecting) {
                 isRedirecting = true;
                 localStorage.clear();
-                window.location.href = 'index.html';
+                window.location.href = 'landing.html';
             }
             return null;
         }
