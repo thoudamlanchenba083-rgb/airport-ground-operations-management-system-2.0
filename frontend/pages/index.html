@@ -510,7 +510,7 @@
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect } = React;
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = (['localhost:5501','127.0.0.1:5501'].some(o=>window.location.host===o)) ? 'http://127.0.0.1:8000/api' : (window.location.origin+'/api');
 
 const Auth = {
   save:      (a,r) => { localStorage.setItem('access_token',a); localStorage.setItem('refresh_token',r); },

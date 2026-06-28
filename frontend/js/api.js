@@ -1,4 +1,10 @@
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = (() => {
+    // In production the frontend is served by Django on the same origin.
+    // In local dev (Live Server on :5501) point to the Django dev server.
+    const devOrigins = ['localhost:5501', '127.0.0.1:5501'];
+    const isDev = devOrigins.some(o => window.location.host === o);
+    return isDev ? 'http://127.0.0.1:8000/api' : (window.location.origin + '/api');
+})();
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 const Auth = {

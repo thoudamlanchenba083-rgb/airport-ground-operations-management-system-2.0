@@ -13,7 +13,7 @@
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
     const { useState } = React;
-    const API_BASE = 'http://127.0.0.1:8000/api';
+    const API_BASE = (['localhost:5501','127.0.0.1:5501'].some(o=>window.location.host===o)) ? 'http://127.0.0.1:8000/api' : (window.location.origin+'/api');
 
     function SignupPage() {
         const [form, setForm] = useState({
@@ -93,11 +93,10 @@
                                 background:'rgba(255,255,255,0.08)',
                                 color:'white', fontSize:'0.95rem', marginBottom:'4px'}}>
                             <option value="GROUND_STAFF">Ground Staff</option>
-                            <option value="GATE_AGENT">Gate Agent</option>
-                            <option value="BAGGAGE_HANDLER">Baggage Handler</option>
+                            
                             <option value="MAINTENANCE">Maintenance</option>
                             <option value="SUPERVISOR">Supervisor</option>
-                            <option value="ADMIN">Admin</option>
+                            
                         </select>
 
                         <label className="login-label">Password</label>
