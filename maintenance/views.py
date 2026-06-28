@@ -1,14 +1,24 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import MaintenanceRequest, MaintenanceLog
-from .serializers import MaintenanceRequestSerializer, MaintenanceLogSerializer
+from .serializers import (
+    MaintenanceRequestSerializer,
+    MaintenanceRequestApprovalSerializer,
+    MaintenanceLogSerializer,
+)
 from core_app.utils import log_action
-from core_app.permissions import IsAdminUser, IsAuthenticatedReadOnly, IsMaintenanceStaff
+from core_app.permissions import IsAdminUser, IsMaintenanceStaff
+
+
+def is_supervisor_or_admin(user):
+    return user.role in ('ADMIN', 'SUPERVISOR') or user.is_staff
 
 
 class MaintenanceRequestViewSet(viewsets.ModelViewSet):
-    queryset = MaintenanceRequest.objects.all()
+    queryset = MaintenanceRequest.objects.all().order_by('-created_at')
     serializer_class = MaintenanceRequestSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['aircraft', 'priority', 'status']
@@ -21,7 +31,10 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
         return [IsAdminUser()]
 
     def perform_create(self, serializer):
-        instance = serializer.save(reported_by=self.request.user)
+        instance = serializer.save(
+            reported_by=self.request.user,
+            status='PENDING_APPROVAL',
+        )
         log_action(self.request.user, 'CREATE', 'MaintenanceRequest', instance.id,
                    f'Created maintenance request: {instance.id}', self.request)
 
@@ -34,6 +47,71 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
         log_action(self.request.user, 'DELETE', 'MaintenanceRequest', instance.id,
                    f'Deleted maintenance request: {instance.id}', self.request)
         instance.delete()
+
+    @action(detail=True, methods=['post'], url_path='approve')
+    def approve(self, request, pk=None):
+        """SUPERVISOR or ADMIN can approve a pending request."""
+        if not is_supervisor_or_admin(request.user):
+            return Response(
+                {'detail': 'Only supervisors or admins can approve requests.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        instance = self.get_object()
+        if instance.status != 'PENDING_APPROVAL':
+            return Response(
+                {'detail': f'Cannot approve a request with status "{instance.status}". Must be PENDING_APPROVAL.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        instance.status = 'APPROVED'
+        instance.approved_by = request.user
+        instance.rejection_reason = ''
+        instance.save()
+        log_action(request.user, 'UPDATE', 'MaintenanceRequest', instance.id,
+                   f'Approved maintenance request: {instance.id}', request)
+        return Response(MaintenanceRequestSerializer(instance).data)
+
+    @action(detail=True, methods=['post'], url_path='reject')
+    def reject(self, request, pk=None):
+        """SUPERVISOR or ADMIN can reject a pending request."""
+        if not is_supervisor_or_admin(request.user):
+            return Response(
+                {'detail': 'Only supervisors or admins can reject requests.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        instance = self.get_object()
+        if instance.status != 'PENDING_APPROVAL':
+            return Response(
+                {'detail': f'Cannot reject a request with status "{instance.status}". Must be PENDING_APPROVAL.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        serializer = MaintenanceRequestApprovalSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance.status = 'REJECTED'
+        instance.rejection_reason = serializer.validated_data.get('rejection_reason', '')
+        instance.save()
+        log_action(request.user, 'UPDATE', 'MaintenanceRequest', instance.id,
+                   f'Rejected maintenance request: {instance.id}', request)
+        return Response(MaintenanceRequestSerializer(instance).data)
+
+    @action(detail=True, methods=['post'], url_path='start')
+    def start(self, request, pk=None):
+        """Move an APPROVED request to IN_PROGRESS."""
+        if not is_supervisor_or_admin(request.user):
+            return Response(
+                {'detail': 'Only supervisors or admins can start requests.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        instance = self.get_object()
+        if instance.status != 'APPROVED':
+            return Response(
+                {'detail': f'Cannot start a request with status "{instance.status}". Must be APPROVED.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        instance.status = 'IN_PROGRESS'
+        instance.save()
+        log_action(request.user, 'UPDATE', 'MaintenanceRequest', instance.id,
+                   f'Started maintenance request: {instance.id}', request)
+        return Response(MaintenanceRequestSerializer(instance).data)
 
 
 class MaintenanceLogViewSet(viewsets.ModelViewSet):

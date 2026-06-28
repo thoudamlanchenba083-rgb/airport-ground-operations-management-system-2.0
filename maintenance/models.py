@@ -5,10 +5,13 @@ from flights.models import Aircraft
 
 class MaintenanceRequest(models.Model):
     STATUS_CHOICES = [
-        ('OPEN', 'Open'),
-        ('IN_PROGRESS', 'In Progress'),
-        ('RESOLVED', 'Resolved'),
-        ('CLOSED', 'Closed'),
+        ('OPEN',             'Open'),
+        ('PENDING_APPROVAL', 'Pending Approval'),
+        ('APPROVED',         'Approved'),
+        ('REJECTED',         'Rejected'),
+        ('IN_PROGRESS',      'In Progress'),
+        ('RESOLVED',         'Resolved'),
+        ('CLOSED',           'Closed'),
     ]
 
     aircraft = models.ForeignKey(Aircraft, on_delete=models.CASCADE)
@@ -34,6 +37,13 @@ class MaintenanceRequest(models.Model):
         null=True, blank=True,
         related_name='assigned_requests'
     )
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='approved_requests'
+    )
+    rejection_reason = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
