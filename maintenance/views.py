@@ -66,6 +66,8 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
         instance.approved_by = request.user
         instance.rejection_reason = ''
         instance.save()
+        from core_app.email_utils import send_maintenance_approved_email
+        send_maintenance_approved_email(instance)
         log_action(request.user, 'UPDATE', 'MaintenanceRequest', instance.id,
                    f'Approved maintenance request: {instance.id}', request)
         return Response(MaintenanceRequestSerializer(instance).data)
@@ -89,6 +91,8 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
         instance.status = 'REJECTED'
         instance.rejection_reason = serializer.validated_data.get('rejection_reason', '')
         instance.save()
+        from core_app.email_utils import send_maintenance_rejected_email
+        send_maintenance_rejected_email(instance)
         log_action(request.user, 'UPDATE', 'MaintenanceRequest', instance.id,
                    f'Rejected maintenance request: {instance.id}', request)
         return Response(MaintenanceRequestSerializer(instance).data)

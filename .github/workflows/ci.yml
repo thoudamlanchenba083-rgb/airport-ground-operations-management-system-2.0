@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SECRET_KEY: ci-test-secret-key-not-for-production
+      DEBUG: "True"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+      CORS_ALLOWED_ORIGINS: "http://localhost:3000"
+      DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
+      RATELIMIT_ENABLE: "False"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run system check
+        run: python manage.py check
+
+      - name: Run migrations
+        run: python manage.py migrate
+
+      - name: Run unit tests
+        run: python manage.py test core_app --verbosity=2
+
+      - name: Run integration tests
+        run: python manage.py test core_app.integration_tests --verbosity=2
+
+  lint:
+    name: Lint Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install flake8
+        run: pip install flake8
+
+      - name: Run flake8
+        run: |
+          flake8 . \
+            --exclude=env,migrations,__pycache__,.git \
+            --max-line-length=120 \
+            --ignore=E501,W503 \
+            --count
