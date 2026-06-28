@@ -7,6 +7,187 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../css/login.css" />
+    <style>
+        /* ── Modal Overlay ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: #1e1e1e;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 540px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+            animation: modalIn 0.2s ease;
+        }
+        @keyframes modalIn {
+            from { opacity:0; transform: translateY(16px) scale(0.98); }
+            to   { opacity:1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+        }
+        .modal-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #00d4ff;
+            letter-spacing: 0.3px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #6b7ca4;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .modal-close:hover { color: #fff; background: rgba(255,255,255,0.07); }
+
+        .modal-body {
+            padding: 20px 24px 24px;
+            overflow-y: auto;
+            color: #8892b0;
+            font-size: 0.85rem;
+            line-height: 1.75;
+        }
+        .modal-body h3 {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #c0caf5;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin: 18px 0 8px;
+        }
+        .modal-body h3:first-child { margin-top: 0; }
+        .modal-body p { margin-bottom: 10px; }
+        .modal-body ul { padding-left: 18px; margin-bottom: 10px; }
+        .modal-body ul li { margin-bottom: 5px; }
+
+        /* ── Footer links ── */
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 212, 255, 0.08);
+            font-size: 0.75rem;
+            color: #3d4a6b;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .footer-links button {
+            background: none;
+            border: none;
+            color: #00d4ff;
+            font-size: 0.72rem;
+            cursor: pointer;
+            font-family: inherit;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            padding: 0;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .footer-links button:hover { opacity: 1; }
+
+        /* Carbon override */
+        body { background: #171717 !important; }
+        body::before {
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(0,212,255,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(15,52,96,0.2) 0%, transparent 50%),
+                linear-gradient(135deg, #171717 0%, #1e1e1e 50%, #161616 100%) !important;
+        }
+        .login-card { background: rgba(23,23,23,0.90) !important; }
+        .tab-bar { background: rgba(10,10,10,0.7) !important; }
+        .form-group input, .form-group select { background: rgba(10,10,10,0.75) !important; }
+        .form-group select option { background: #171717 !important; }
+    
+    
+    .script, .hero h1 span, .hero-title span.hl { font-family: 'Dancing Script', cursive !important; }
+
+    /* Block/Princeton — section titles, nav brand */
+    h2, .section-title, .nav-brand, .footer-brand h3 { font-family: 'Bebas Neue', sans-serif !important; letter-spacing: 1px; }
+
+    /* Times Roman — body text, labels, paragraphs */
+    p, label, .footer-col a, .footer-brand p, .faq-a p, .modal-body p, .modal-body li,
+    .job-card p, .perk-card p, .hero p { font-family: 'Playfair Display', serif !important; }
+
+    /* Kill any remaining non-carbon backgrounds */
+    body::before { background-image: radial-gradient(rgba(255,255,255,0.018) 1px, transparent 1px) !important; background-size:30px 30px !important; }
+    .aurora .a-blob { opacity: .05 !important; }
+
+    
+    /* ══════════════════════════════════════
+       PURE CARBON OVERRIDE — #171717 ONLY
+    ══════════════════════════════════════ */
+    html, body {
+      background: #171717 !important;
+    }
+    /* Kill ALL aurora blobs */
+    .aurora, .a-blob { display: none !important; }
+    /* Kill ALL glow overlays on hero/sections */
+    .page-hero::before, .page-hero::after,
+    .hero::before, .hero::after,
+    section::before, section::after { 
+      background: none !important;
+      display: none !important;
+    }
+    /* Kill body gradient overlay, keep only dot grid */
+    body::before {
+      background-image: radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px) !important;
+      background-size: 30px 30px !important;
+      background-color: transparent !important;
+    }
+    body::after { display: none !important; }
+    /* Nav — pure carbon */
+    nav {
+      background: rgba(23,23,23,0.92) !important;
+      border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    }
+    nav.scrolled {
+      background: rgba(23,23,23,0.98) !important;
+    }
+    /* Cards/surfaces */
+    :root {
+      --bg:     #171717 !important;
+      --surf-1: #1e1e1e !important;
+      --surf-2: #242424 !important;
+      --surf-3: rgba(255,255,255,0.03) !important;
+    }
+    /* Login card */
+    .login-card { background: rgba(30,30,30,0.95) !important; }
+    .tab-bar { background: rgba(15,15,15,0.8) !important; }
+    .form-group input, .form-group select { background: rgba(15,15,15,0.8) !important; }
+
+    </style>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Bebas+Neue&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
 
@@ -112,10 +293,150 @@
         <!-- Footer -->
         <div class="login-footer">
             © 2024 Airport Ground Operations Management System
+            <div class="footer-links">
+                <button onclick="openModal('faqModal')">FAQ</button>
+                <button onclick="openModal('privacyModal')">Privacy Policy</button>
+                <button onclick="openModal('termsModal')">Terms &amp; Conditions</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FAQ MODAL
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="faqModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2>✈ Frequently Asked Questions</h2>
+            <button class="modal-close" onclick="closeModal('faqModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <h3>What is Airport Ground Operations Management System?</h3>
+            <p>It is a unified command platform for managing flights, baggage, gates, staff, and maintenance — giving every operator total situational awareness from a single interface.</p>
+
+            <h3>Who can register?</h3>
+            <p>Access is limited to authorised airport personnel. You may register as Ground Staff, Supervisor, or Maintenance crew. New accounts are reviewed before activation.</p>
+
+            <h3>I forgot my password. What do I do?</h3>
+            <p>Click the "Forgot password?" link on the Sign In tab. A reset link will be sent to your registered email address.</p>
+
+            <h3>Why is my account not activated yet?</h3>
+            <p>New registrations require approval from a Supervisor or Admin. You will receive an email once your account is activated.</p>
+
+            <h3>Which browsers are supported?</h3>
+            <p>The system works best on the latest versions of Chrome, Edge, and Firefox. Internet Explorer is not supported.</p>
+
+            <h3>Who do I contact for technical support?</h3>
+            <p>Reach out to your airport IT helpdesk or email <strong style="color:#00d4ff">support@airportops.in</strong>.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PRIVACY POLICY MODAL
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="privacyModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2>🔒 Privacy Policy</h2>
+            <button class="modal-close" onclick="closeModal('privacyModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <p>Last updated: June 2024</p>
+
+            <h3>Information We Collect</h3>
+            <p>We collect information you provide during registration (username, email, role, phone) and activity data generated while using the platform (login timestamps, actions performed).</p>
+
+            <h3>How We Use Your Information</h3>
+            <ul>
+                <li>To authenticate and authorise your access to the system.</li>
+                <li>To provide operational features relevant to your role.</li>
+                <li>To generate audit logs for safety and compliance purposes.</li>
+                <li>To send system notifications and alerts.</li>
+            </ul>
+
+            <h3>Data Sharing</h3>
+            <p>Your data is not sold or shared with third parties. It may be shared with authorised supervisors and administrators within your airport organisation for operational needs.</p>
+
+            <h3>Data Retention</h3>
+            <p>Account data is retained for the duration of your employment. Audit logs may be retained for up to 7 years as required by aviation safety regulations.</p>
+
+            <h3>Security</h3>
+            <p>We use industry-standard encryption and access controls to protect your data. Passwords are stored using secure hashing algorithms.</p>
+
+            <h3>Your Rights</h3>
+            <p>You may request access to, correction of, or deletion of your personal data by contacting your system administrator.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TERMS & CONDITIONS MODAL
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="termsModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2>📋 Terms &amp; Conditions</h2>
+            <button class="modal-close" onclick="closeModal('termsModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <p>Last updated: June 2024</p>
+
+            <h3>1. Acceptance of Terms</h3>
+            <p>By accessing or using this system, you agree to be bound by these terms. If you do not agree, you must not use this platform.</p>
+
+            <h3>2. Authorised Use Only</h3>
+            <p>This system is for exclusive use by authorised airport ground operations personnel. Unauthorised access is strictly prohibited and may result in disciplinary and legal action.</p>
+
+            <h3>3. User Responsibilities</h3>
+            <ul>
+                <li>Keep your login credentials confidential at all times.</li>
+                <li>Report any suspected unauthorised access immediately.</li>
+                <li>Use the system only for legitimate operational purposes.</li>
+                <li>Do not attempt to bypass security controls or access data outside your role.</li>
+            </ul>
+
+            <h3>4. Accuracy of Information</h3>
+            <p>Users are responsible for the accuracy of data they enter into the system. Incorrect operational data can affect flight safety and must be corrected immediately upon discovery.</p>
+
+            <h3>5. System Availability</h3>
+            <p>We aim for high availability but do not guarantee uninterrupted access. Planned maintenance windows will be communicated in advance.</p>
+
+            <h3>6. Intellectual Property</h3>
+            <p>All software, designs, and content within this platform are the property of Airport Ground Operations Management System and may not be reproduced without written permission.</p>
+
+            <h3>7. Termination</h3>
+            <p>Access may be suspended or terminated at any time for violation of these terms or upon end of employment.</p>
+
+            <h3>8. Changes to Terms</h3>
+            <p>We may update these terms periodically. Continued use of the system constitutes acceptance of the updated terms.</p>
         </div>
     </div>
 </div>
 
 <script src="../js/login.js"></script>
+<script>
+    function openModal(id) {
+        document.getElementById(id).classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    // Close on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) closeModal(this.id);
+        });
+    });
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+        }
+    });
+</script>
 </body>
 </html>

@@ -12,9 +12,9 @@
        TOKENS  (shared design system)
     ═══════════════════════════════════════ */
     :root {
-      --bg:         #07090f;
-      --surf-1:     #0d1120;
-      --surf-2:     #111827;
+      --bg:         #171717;
+      --surf-1:     #1e1e1e;
+      --surf-2:     #242424;
       --surf-3:     rgba(255,255,255,0.04);
       --border:     rgba(255,255,255,0.08);
       --accent:     #3b9eff;
@@ -54,7 +54,7 @@
     .aurora { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
     .a-blob {
       position:absolute; border-radius:50%;
-      filter:blur(120px); opacity:.09;
+      filter:blur(120px); opacity:.06;
       animation:aFloat 20s ease-in-out infinite;
     }
     .a-blob:nth-child(1){width:580px;height:580px;background:#3b9eff;top:-180px;right:-80px;animation-delay:0s;}
@@ -69,13 +69,13 @@
       position:fixed;top:0;left:0;right:0;z-index:1000;
       height:66px;display:flex;align-items:center;
       justify-content:space-between;padding:0 var(--px);
-      background:rgba(7,9,15,.55);
+      background:rgba(23,23,23,.55);
       backdrop-filter:blur(24px) saturate(160%);
       -webkit-backdrop-filter:blur(24px) saturate(160%);
       border-bottom:1px solid rgba(255,255,255,.06);
       transition:background .3s,border-color .3s,box-shadow .3s;
     }
-    nav.scrolled{background:rgba(7,9,15,.92);border-color:rgba(59,158,255,.14);box-shadow:0 1px 40px rgba(0,0,0,.6);}
+    nav.scrolled{background:rgba(23,23,23,.95);border-color:rgba(59,158,255,.14);box-shadow:0 1px 40px rgba(0,0,0,.6);}
     .nav-brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-size:1.08rem;font-weight:700;color:var(--white);}
     .nav-icon{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--teal));display:flex;align-items:center;justify-content:center;font-size:1rem;animation:bob 3s ease-in-out infinite;}
     @keyframes bob{0%,100%{transform:rotate(0)translateY(0);}50%{transform:rotate(5deg)translateY(-3px);}}
@@ -88,7 +88,7 @@
     .btn-nav::after{display:none!important;}
     .btn-nav:hover{opacity:.88;transform:translateY(-2px);box-shadow:0 6px 18px rgba(59,158,255,.35);}
     .hamburger{display:none;background:none;border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;font-size:1.1rem;cursor:pointer;}
-    .mob-nav{display:none;position:fixed;top:72px;left:12px;right:12px;z-index:999;flex-direction:column;gap:4px;padding:14px;background:rgba(13,17,32,.97);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 20px 60px rgba(0,0,0,.7);}
+    .mob-nav{display:none;position:fixed;top:72px;left:12px;right:12px;z-index:999;flex-direction:column;gap:4px;padding:14px;background:rgba(23,23,23,.97);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 20px 60px rgba(0,0,0,.7);}
     .mob-nav.open{display:flex;}
     .mob-nav a{padding:11px 14px;border-radius:var(--r-sm);font-size:.92rem;color:var(--subtle);transition:background .2s,color .2s;}
     .mob-nav a:hover,.mob-nav a.active{background:var(--surf-3);color:var(--white);}
@@ -174,7 +174,7 @@
       display:flex;flex-direction:column;gap:14px;
     }
     .info-card {
-      background:rgba(13,17,32,.62);
+      background:rgba(23,23,23,.62);
       backdrop-filter:blur(24px) saturate(150%);
       -webkit-backdrop-filter:blur(24px) saturate(150%);
       border:1px solid var(--border);
@@ -243,7 +243,7 @@
       gap:16px;
     }
     .team-card {
-      background:rgba(13,17,32,.62);
+      background:rgba(23,23,23,.62);
       backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
       border:1px solid var(--border);border-radius:var(--r);
       overflow:hidden;
@@ -255,13 +255,20 @@
       box-shadow:0 20px 50px rgba(0,0,0,.45);
     }
     .team-avatar {
-      height:130px;
+      height:160px;
       display:flex;align-items:center;justify-content:center;
-      font-size:3.2rem;
-      background:linear-gradient(135deg,rgba(59,158,255,.08),rgba(0,201,167,.08));
+      background:#1e1e1e;
       border-bottom:1px solid var(--border);
       position:relative;
+      overflow:hidden;
     }
+    .team-avatar img {
+      width:100%; height:100%;
+      object-fit:cover;
+      object-position:center top;
+      transition:transform .3s ease;
+    }
+    .team-card:hover .team-avatar img { transform:scale(1.05); }
     .team-body{padding:16px;}
     .team-name{font-family:'Space Grotesk',sans-serif;font-size:.92rem;font-weight:700;color:var(--white);margin-bottom:3px;}
     .team-role{font-size:.72rem;color:var(--accent);font-weight:500;margin-bottom:9px;}
@@ -276,7 +283,7 @@
     }
     .tech-card {
       padding:20px;border-radius:var(--r);
-      background:rgba(13,17,32,.55);
+      background:rgba(23,23,23,.55);
       border:1px solid var(--border);
       backdrop-filter:blur(20px);
       text-align:center;
@@ -446,7 +453,66 @@
       body::before,.aurora{display:none;}
       nav{position:static;}
     }
-  </style>
+  
+    
+    .script, .hero h1 span, .hero-title span.hl { font-family: 'Dancing Script', cursive !important; }
+
+    /* Block/Princeton — section titles, nav brand */
+    h2, .section-title, .nav-brand, .footer-brand h3 { font-family: 'Bebas Neue', sans-serif !important; letter-spacing: 1px; }
+
+    /* Times Roman — body text, labels, paragraphs */
+    p, label, .footer-col a, .footer-brand p, .faq-a p, .modal-body p, .modal-body li,
+    .job-card p, .perk-card p, .hero p { font-family: 'Playfair Display', serif !important; }
+
+    /* Kill any remaining non-carbon backgrounds */
+    body::before { background-image: radial-gradient(rgba(255,255,255,0.018) 1px, transparent 1px) !important; background-size:30px 30px !important; }
+    .aurora .a-blob { opacity: .05 !important; }
+
+    
+    /* ══════════════════════════════════════
+       PURE CARBON OVERRIDE — #171717 ONLY
+    ══════════════════════════════════════ */
+    html, body {
+      background: #171717 !important;
+    }
+    /* Kill ALL aurora blobs */
+    .aurora, .a-blob { display: none !important; }
+    /* Kill ALL glow overlays on hero/sections */
+    .page-hero::before, .page-hero::after,
+    .hero::before, .hero::after,
+    section::before, section::after { 
+      background: none !important;
+      display: none !important;
+    }
+    /* Kill body gradient overlay, keep only dot grid */
+    body::before {
+      background-image: radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px) !important;
+      background-size: 30px 30px !important;
+      background-color: transparent !important;
+    }
+    body::after { display: none !important; }
+    /* Nav — pure carbon */
+    nav {
+      background: rgba(23,23,23,0.92) !important;
+      border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    }
+    nav.scrolled {
+      background: rgba(23,23,23,0.98) !important;
+    }
+    /* Cards/surfaces */
+    :root {
+      --bg:     #171717 !important;
+      --surf-1: #1e1e1e !important;
+      --surf-2: #242424 !important;
+      --surf-3: rgba(255,255,255,0.03) !important;
+    }
+    /* Login card */
+    .login-card { background: rgba(30,30,30,0.95) !important; }
+    .tab-bar { background: rgba(15,15,15,0.8) !important; }
+    .form-group input, .form-group select { background: rgba(15,15,15,0.8) !important; }
+
+    </style>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Bebas+Neue&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
 
@@ -467,6 +533,7 @@
     <a href="services.html">Services</a>
     <a href="about.html" class="active">About</a>
     <a href="careers.html">Careers</a>
+    <a href="faq.html">FAQ</a>
     <a href="login.html" class="btn-nav">Login →</a>
   </div>
   <button class="hamburger" onclick="document.getElementById('mob').classList.toggle('open')">☰</button>
@@ -476,6 +543,7 @@
   <a href="services.html">Services</a>
   <a href="about.html" class="active">About</a>
   <a href="careers.html">Careers</a>
+  <a href="faq.html">FAQ</a>
   <a href="login.html">Login →</a>
 </div>
 
@@ -578,7 +646,7 @@
   </div>
   <div class="team-grid">
     <div class="team-card reveal">
-      <div class="team-avatar">⚙️</div>
+      <div class="team-avatar"><img src="../images/team/backend.jpg" alt="Backend Developer"></div>
       <div class="team-body">
         <div class="team-name">Thoudam Lanchenba</div>
         <div class="team-role">Backend Developer</div>
@@ -586,7 +654,7 @@
       </div>
     </div>
     <div class="team-card reveal" style="transition-delay:.08s">
-      <div class="team-avatar">🎨</div>
+      <div class="team-avatar"><img src="../images/team/frontend.jpg" alt="Frontend Developer"></div>
       <div class="team-body">
         <div class="team-name">Lakshya</div>
         <div class="team-role">Frontend Developer</div>
@@ -594,7 +662,7 @@
       </div>
     </div>
     <div class="team-card reveal" style="transition-delay:.16s">
-      <div class="team-avatar">🗄️</div>
+      <div class="team-avatar"><img src="../images/team/database.jpg" alt="Database Developer"></div>
       <div class="team-body">
         <div class="team-name">Kowshika</div>
         <div class="team-role">Database Developer</div>
@@ -602,7 +670,7 @@
       </div>
     </div>
     <div class="team-card reveal" style="transition-delay:.24s">
-      <div class="team-avatar">🖌️</div>
+      <div class="team-avatar"><img src="../images/team/uiux.jpg" alt="UI/UX Designer"></div>
       <div class="team-body">
         <div class="team-name">Shreepriyan</div>
         <div class="team-role">UI/UX Designer</div>
@@ -610,7 +678,7 @@
       </div>
     </div>
     <div class="team-card reveal" style="transition-delay:.32s">
-      <div class="team-avatar">🧪</div>
+      <div class="team-avatar"><img src="../images/team/qa.jpg" alt="QA Engineer"></div>
       <div class="team-body">
         <div class="team-name">Naren</div>
         <div class="team-role">QA Engineer</div>

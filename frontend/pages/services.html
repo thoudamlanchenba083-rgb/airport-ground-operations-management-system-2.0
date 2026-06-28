@@ -12,9 +12,9 @@
        TOKENS
     ═══════════════════════════════════════ */
     :root {
-      --bg:         #07090f;
-      --surf-1:     #0d1120;
-      --surf-2:     #111827;
+      --bg:         #171717;
+      --surf-1:     #1e1e1e;
+      --surf-2:     #242424;
       --surf-3:     rgba(255,255,255,0.04);
       --border:     rgba(255,255,255,0.08);
       --border-hi:  rgba(59,158,255,0.28);
@@ -65,7 +65,7 @@
     }
     .a-blob {
       position:absolute; border-radius:50%;
-      filter:blur(120px); opacity:.10;
+      filter:blur(120px); opacity:.06;
       animation: aFloat 20s ease-in-out infinite;
     }
     .a-blob:nth-child(1){ width:600px;height:600px; background:#3b9eff; top:-200px; left:-100px; animation-delay:0s; }
@@ -86,14 +86,14 @@
       display:flex; align-items:center;
       justify-content:space-between;
       padding: 0 var(--px);
-      background: rgba(7,9,15,0.55);
+      background: rgba(23,23,23,0.55);
       backdrop-filter: blur(24px) saturate(160%);
       -webkit-backdrop-filter: blur(24px) saturate(160%);
       border-bottom: 1px solid rgba(255,255,255,0.06);
       transition: background .3s, border-color .3s, box-shadow .3s;
     }
     nav.scrolled {
-      background: rgba(7,9,15,0.92);
+      background: rgba(23,23,23,0.92);
       border-color: rgba(59,158,255,0.14);
       box-shadow: 0 1px 40px rgba(0,0,0,.6);
     }
@@ -142,7 +142,7 @@
       display:none; position:fixed;
       top:72px; left:12px; right:12px; z-index:999;
       flex-direction:column; gap:4px; padding:14px;
-      background:rgba(13,17,32,.97);
+      background:rgba(23,23,23,.97);
       backdrop-filter:blur(24px);
       border:1px solid var(--border);
       border-radius:var(--r);
@@ -216,7 +216,7 @@
     .hero-chip {
       display:flex; align-items:center; gap:7px;
       padding:8px 16px; border-radius:50px;
-      background:rgba(13,17,32,0.65);
+      background:rgba(23,23,23,0.65);
       border:1px solid var(--border);
       backdrop-filter:blur(16px);
       font-size:.78rem; color:var(--subtle);
@@ -266,7 +266,7 @@
     }
     .svc-card {
       position:relative;
-      background:rgba(13,17,32,0.60);
+      background:rgba(23,23,23,0.60);
       backdrop-filter:blur(24px) saturate(150%);
       -webkit-backdrop-filter:blur(24px) saturate(150%);
       border:1px solid var(--border);
@@ -622,7 +622,66 @@
       nav { position:static; }
       .svc-card { box-shadow:none; border:1px solid #ccc; }
     }
-  </style>
+  
+    
+    .script, .hero h1 span, .hero-title span.hl { font-family: 'Dancing Script', cursive !important; }
+
+    /* Block/Princeton — section titles, nav brand */
+    h2, .section-title, .nav-brand, .footer-brand h3 { font-family: 'Bebas Neue', sans-serif !important; letter-spacing: 1px; }
+
+    /* Times Roman — body text, labels, paragraphs */
+    p, label, .footer-col a, .footer-brand p, .faq-a p, .modal-body p, .modal-body li,
+    .job-card p, .perk-card p, .hero p { font-family: 'Playfair Display', serif !important; }
+
+    /* Kill any remaining non-carbon backgrounds */
+    body::before { background-image: radial-gradient(rgba(255,255,255,0.018) 1px, transparent 1px) !important; background-size:30px 30px !important; }
+    .aurora .a-blob { opacity: .05 !important; }
+
+    
+    /* ══════════════════════════════════════
+       PURE CARBON OVERRIDE — #171717 ONLY
+    ══════════════════════════════════════ */
+    html, body {
+      background: #171717 !important;
+    }
+    /* Kill ALL aurora blobs */
+    .aurora, .a-blob { display: none !important; }
+    /* Kill ALL glow overlays on hero/sections */
+    .page-hero::before, .page-hero::after,
+    .hero::before, .hero::after,
+    section::before, section::after { 
+      background: none !important;
+      display: none !important;
+    }
+    /* Kill body gradient overlay, keep only dot grid */
+    body::before {
+      background-image: radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px) !important;
+      background-size: 30px 30px !important;
+      background-color: transparent !important;
+    }
+    body::after { display: none !important; }
+    /* Nav — pure carbon */
+    nav {
+      background: rgba(23,23,23,0.92) !important;
+      border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    }
+    nav.scrolled {
+      background: rgba(23,23,23,0.98) !important;
+    }
+    /* Cards/surfaces */
+    :root {
+      --bg:     #171717 !important;
+      --surf-1: #1e1e1e !important;
+      --surf-2: #242424 !important;
+      --surf-3: rgba(255,255,255,0.03) !important;
+    }
+    /* Login card */
+    .login-card { background: rgba(30,30,30,0.95) !important; }
+    .tab-bar { background: rgba(15,15,15,0.8) !important; }
+    .form-group input, .form-group select { background: rgba(15,15,15,0.8) !important; }
+
+    </style>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Bebas+Neue&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
 
@@ -644,6 +703,7 @@
     <a href="services.html" class="active">Services</a>
     <a href="about.html">About</a>
     <a href="careers.html">Careers</a>
+    <a href="faq.html">FAQ</a>
     <a href="login.html" class="btn-nav">Login →</a>
   </div>
   <button class="hamburger" onclick="document.getElementById('mob').classList.toggle('open')">☰</button>
@@ -653,6 +713,7 @@
   <a href="services.html" class="active">Services</a>
   <a href="about.html">About</a>
   <a href="careers.html">Careers</a>
+  <a href="faq.html">FAQ</a>
   <a href="login.html">Login →</a>
 </div>
 
