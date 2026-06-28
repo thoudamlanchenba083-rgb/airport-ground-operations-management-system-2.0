@@ -1,31 +1,4 @@
-﻿const { useState, useEffect } = React;
-const API_BASE = 'http://127.0.0.1:8000/api';
-
-if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
-
-let redirecting = false;
-
-async function apiFetch(endpoint, options = {}) {
-    if (redirecting) return null;
-    const res = await fetch(API_BASE + endpoint, {
-        ...options,
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        }
-    });
-    if (res.status === 401) {
-        if (!redirecting) {
-            redirecting = true;
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-        return null;
-    }
-    if (res.ok) return res.status === 204 ? true : await res.json();
-    return null;
-}
+const { useState, useEffect } = React;
 function Navbar({ onMenuClick }) {
     const [dark, setDark] = React.useState(localStorage.getItem('theme') !== 'light');
     React.useEffect(() => {
@@ -35,14 +8,14 @@ function Navbar({ onMenuClick }) {
     return (
         <div className="navbar">
             <div className="navbar-left">
-                <button className="hamburger" onClick={onMenuClick}>☰</button>
-                <h1>✈ Airport Ground Operations</h1>
+                <button className="hamburger" onClick={onMenuClick}>?</button>
+                <h1>? Airport Ground Operations</h1>
             </div>
             <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                 <button
                     onClick={() => setDark(d => !d)}
                     style={{background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'white', padding:'7px 14px', borderRadius:'20px', cursor:'pointer', fontSize:'0.85rem'}}>
-                    {dark ? '☀ Light' : '🌙 Dark'}
+                    {dark ? '? Light' : '?? Dark'}
                 </button>
                 <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
             </div>
@@ -55,14 +28,14 @@ function Sidebar({ open, onClose }) {
         <>
             <div className={'sidebar-overlay' + (open ? ' open' : '')} onClick={onClose} />
             <div className={'sidebar' + (open ? ' mobile-open' : '')}>
-                <a href="dashboard.html">📊 Dashboard</a>
-                <a href="flights.html">✈ Flights</a>
-                <a href="gates.html" className="active">🚪 Gates</a>
-                <a href="baggage.html">🧳 Baggage</a>
-                <a href="maintenance.html">🔧 Maintenance</a>
-                <a href="staff.html">👷 Staff</a>
-                <a href="notifications.html">🔔 Notifications</a>
-                <a href="reports.html">📋 Reports</a>
+                <a href="dashboard.html">?? Dashboard</a>
+                <a href="flights.html">? Flights</a>
+                <a href="gates.html" className="active">?? Gates</a>
+                <a href="baggage.html">?? Baggage</a>
+                <a href="maintenance.html">?? Maintenance</a>
+                <a href="staff.html">?? Staff</a>
+                <a href="notifications.html">?? Notifications</a>
+                <a href="reports.html">?? Reports</a>
             </div>
         </>
     );
@@ -166,7 +139,7 @@ function GatesPage() {
             <div className="layout">
                 <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
                 <div className="main">
-                    <p className="page-title">🚪 Gates</p>
+                    <p className="page-title">?? Gates</p>
 
                     <div className="cards">
                         <div className="card" style={{borderTop:'4px solid #27ae60'}}>
@@ -186,7 +159,7 @@ function GatesPage() {
                     <div className="toolbar">
                         <input
                             className="search-input"
-                            placeholder="Search by gate number or terminal…"
+                            placeholder="Search by gate number or terminal�"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
@@ -194,7 +167,7 @@ function GatesPage() {
                     </div>
 
                     <div className="table-container">
-                        {loading ? <p style={{padding:'20px',color:'#888'}}>Loading…</p> : (
+                        {loading ? <p style={{padding:'20px',color:'#888'}}>Loading�</p> : (
                             <table>
                                 <thead>
                                     <tr>
@@ -211,9 +184,9 @@ function GatesPage() {
                                     ) : filtered.map(g => (
                                         <tr key={g.id}>
                                             <td><strong>{g.gate_number}</strong></td>
-                                            <td>{g.terminal || '—'}</td>
+                                            <td>{g.terminal || '�'}</td>
                                             <td><StatusBadge status={g.status} /></td>
-                                            <td>{g.notes || '—'}</td>
+                                            <td>{g.notes || '�'}</td>
                                             <td>
                                                 <button className="btn btn-primary" style={{marginRight:'6px'}} onClick={() => setModal(g)}>Edit</button>
                                                 <button className="btn btn-danger" onClick={() => deleteGate(g.id)}>Delete</button>

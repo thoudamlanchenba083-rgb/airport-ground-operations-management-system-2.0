@@ -1,31 +1,4 @@
-﻿const { useState, useEffect } = React;
-const API_BASE = 'http://127.0.0.1:8000/api';
-
-if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
-
-let redirecting = false;
-
-async function apiFetch(endpoint, options = {}) {
-    if (redirecting) return null;
-    const res = await fetch(API_BASE + endpoint, {
-        ...options,
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        }
-    });
-    if (res.status === 401) {
-        if (!redirecting) {
-            redirecting = true;
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-        return null;
-    }
-    if (res.ok) return res.status === 204 ? true : await res.json();
-    return null;
-}
+const { useState, useEffect } = React;
 
 function Navbar({ onMenuClick }) {
     const [dark, setDark] = React.useState(localStorage.getItem('theme') !== 'light');
@@ -36,14 +9,14 @@ function Navbar({ onMenuClick }) {
     return (
         <div className="navbar">
             <div className="navbar-left">
-                <button className="hamburger" onClick={onMenuClick}>☰</button>
-                <h1>✈ Airport Ground Operations</h1>
+                <button className="hamburger" onClick={onMenuClick}>?</button>
+                <h1>? Airport Ground Operations</h1>
             </div>
             <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                 <button
                     onClick={() => setDark(d => !d)}
                     style={{background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'white', padding:'7px 14px', borderRadius:'20px', cursor:'pointer', fontSize:'0.85rem'}}>
-                    {dark ? '☀ Light' : '🌙 Dark'}
+                    {dark ? '? Light' : '?? Dark'}
                 </button>
                 <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
             </div>
@@ -56,14 +29,14 @@ function Sidebar({ open, onClose }) {
         <>
             <div className={'sidebar-overlay' + (open ? ' open' : '')} onClick={onClose} />
             <div className={'sidebar' + (open ? ' mobile-open' : '')}>
-                <a href="dashboard.html">📊 Dashboard</a>
-                <a href="flights.html">✈ Flights</a>
-                <a href="gates.html">🚪 Gates</a>
-                <a href="baggage.html">🧳 Baggage</a>
-                <a href="maintenance.html">🔧 Maintenance</a>
-                <a href="staff.html">👷 Staff</a>
-                <a href="notifications.html" className="active">🔔 Notifications</a>
-                <a href="reports.html">📋 Reports</a>
+                <a href="dashboard.html">?? Dashboard</a>
+                <a href="flights.html">? Flights</a>
+                <a href="gates.html">?? Gates</a>
+                <a href="baggage.html">?? Baggage</a>
+                <a href="maintenance.html">?? Maintenance</a>
+                <a href="staff.html">?? Staff</a>
+                <a href="notifications.html" className="active">?? Notifications</a>
+                <a href="reports.html">?? Reports</a>
             </div>
         </>
     );
@@ -188,7 +161,7 @@ function NotificationsPage() {
             <div className="layout">
                 <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
                 <div className="main">
-                    <p className="page-title">🔔 Notifications</p>
+                    <p className="page-title">?? Notifications</p>
 
                     <div className="cards">
                         <div className="card" style={{borderTop:'4px solid #3498db'}}>
@@ -217,14 +190,14 @@ function NotificationsPage() {
                         </div>
                         <div style={{display:'flex', gap:'8px', marginLeft:'auto'}}>
                             {unreadCount > 0 && (
-                                <button className="btn btn-success" onClick={markAllRead}>✓ Mark All Read</button>
+                                <button className="btn btn-success" onClick={markAllRead}>? Mark All Read</button>
                             )}
                             <button className="btn btn-primary" onClick={() => setModal('add')}>+ New</button>
                         </div>
                     </div>
 
                     <div className="table-container">
-                        {loading ? <p style={{padding:'20px',color:'#888'}}>Loading…</p> : (
+                        {loading ? <p style={{padding:'20px',color:'#888'}}>Loading�</p> : (
                             <table>
                                 <thead>
                                     <tr>
@@ -247,10 +220,10 @@ function NotificationsPage() {
                                                     ? <span className="badge badge-success">Read</span>
                                                     : <span className="badge badge-warning">Unread</span>}
                                             </td>
-                                            <td>{n.created_at ? new Date(n.created_at).toLocaleString() : '—'}</td>
+                                            <td>{n.created_at ? new Date(n.created_at).toLocaleString() : '�'}</td>
                                             <td style={{whiteSpace:'nowrap'}}>
                                                 {!n.is_read && (
-                                                    <button className="btn btn-success" style={{marginRight:'6px'}} onClick={() => markRead(n)}>✓</button>
+                                                    <button className="btn btn-success" style={{marginRight:'6px'}} onClick={() => markRead(n)}>?</button>
                                                 )}
                                                 <button className="btn btn-primary" style={{marginRight:'6px'}} onClick={() => setModal(n)}>Edit</button>
                                                 <button className="btn btn-danger" onClick={() => deleteItem(n.id)}>Delete</button>

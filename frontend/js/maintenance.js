@@ -1,31 +1,4 @@
-﻿const { useState, useEffect } = React;
-const API_BASE = 'http://127.0.0.1:8000/api';
-
-if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
-
-let redirecting = false;
-
-async function apiFetch(endpoint, options = {}) {
-    if (redirecting) return null;
-    const res = await fetch(API_BASE + endpoint, {
-        ...options,
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        }
-    });
-    if (res.status === 401) {
-        if (!redirecting) {
-            redirecting = true;
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-        return null;
-    }
-    if (res.ok) return res.status === 204 ? true : await res.json();
-    return null;
-}
+const { useState, useEffect } = React;
 
 function Navbar({ onMenuClick }) {
     const [dark, setDark] = React.useState(localStorage.getItem('theme') !== 'light');
@@ -36,14 +9,14 @@ function Navbar({ onMenuClick }) {
     return (
         <div className="navbar">
             <div className="navbar-left">
-                <button className="hamburger" onClick={onMenuClick}>☰</button>
-                <h1>✈ Airport Ground Operations</h1>
+                <button className="hamburger" onClick={onMenuClick}>?</button>
+                <h1>? Airport Ground Operations</h1>
             </div>
             <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                 <button
                     onClick={() => setDark(d => !d)}
                     style={{background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'white', padding:'7px 14px', borderRadius:'20px', cursor:'pointer', fontSize:'0.85rem'}}>
-                    {dark ? '☀ Light' : '🌙 Dark'}
+                    {dark ? '? Light' : '?? Dark'}
                 </button>
                 <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
             </div>
@@ -56,14 +29,14 @@ function Sidebar({ open, onClose }) {
         <>
             <div className={'sidebar-overlay' + (open ? ' open' : '')} onClick={onClose} />
             <div className={'sidebar' + (open ? ' mobile-open' : '')}>
-                <a href="dashboard.html">📊 Dashboard</a>
-                <a href="flights.html">✈ Flights</a>
-                <a href="gates.html">🚪 Gates</a>
-                <a href="baggage.html">🧳 Baggage</a>
-                <a href="maintenance.html" className="active">🔧 Maintenance</a>
-                <a href="staff.html">👷 Staff</a>
-                <a href="notifications.html">🔔 Notifications</a>
-                <a href="reports.html">📋 Reports</a>
+                <a href="dashboard.html">?? Dashboard</a>
+                <a href="flights.html">? Flights</a>
+                <a href="gates.html">?? Gates</a>
+                <a href="baggage.html">?? Baggage</a>
+                <a href="maintenance.html" className="active">?? Maintenance</a>
+                <a href="staff.html">?? Staff</a>
+                <a href="notifications.html">?? Notifications</a>
+                <a href="reports.html">?? Reports</a>
             </div>
         </>
     );
@@ -188,7 +161,7 @@ function LogModal({ request, onClose, onSaved }) {
     return (
         <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onClose()}>
             <div className="modal">
-                <h3>Add Log — Request #{request.id}</h3>
+                <h3>Add Log � Request #{request.id}</h3>
                 <div className="form-group">
                     <label>Action Taken</label>
                     <textarea rows="3" value={actionTaken} onChange={e => setActionTaken(e.target.value)}
@@ -259,7 +232,7 @@ function MaintenancePage() {
             <div className="layout">
                 <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
                 <div className="main">
-                    <p className="page-title">🔧 Maintenance</p>
+                    <p className="page-title">?? Maintenance</p>
 
                     <div className="cards">
                         <div className="card" style={{borderTop:'4px solid #3498db'}}>
@@ -283,7 +256,7 @@ function MaintenancePage() {
                     <div className="toolbar">
                         <input
                             className="search-input"
-                            placeholder="Search by issue or aircraft…"
+                            placeholder="Search by issue or aircraft�"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
@@ -291,7 +264,7 @@ function MaintenancePage() {
                     </div>
 
                     <div className="table-container">
-                        {loading ? <p style={{padding:'20px',color:'#888'}}>Loading…</p> : (
+                        {loading ? <p style={{padding:'20px',color:'#888'}}>Loading�</p> : (
                             <table>
                                 <thead>
                                     <tr>
@@ -308,11 +281,11 @@ function MaintenancePage() {
                                         <tr><td colSpan="6" style={{textAlign:'center',color:'#888',padding:'30px'}}>No maintenance requests found.</td></tr>
                                     ) : filtered.map(i => (
                                         <tr key={i.id}>
-                                            <td><strong>{i.aircraft_detail ? i.aircraft_detail.registration_number : (i.aircraft || '—')}</strong></td>
+                                            <td><strong>{i.aircraft_detail ? i.aircraft_detail.registration_number : (i.aircraft || '�')}</strong></td>
                                             <td style={{maxWidth:'220px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{i.issue_description}</td>
                                             <td><PriorityBadge priority={i.priority} /></td>
                                             <td><StatusBadge completed={isCompleted(i.id)} /></td>
-                                            <td>{i.created_at ? new Date(i.created_at).toLocaleString() : '—'}</td>
+                                            <td>{i.created_at ? new Date(i.created_at).toLocaleString() : '�'}</td>
                                             <td style={{whiteSpace:'nowrap'}}>
                                                 <button className="btn btn-success" style={{marginRight:'6px'}} onClick={() => setLogModal(i)}>Add Log</button>
                                                 <button className="btn btn-primary" style={{marginRight:'6px'}} onClick={() => setModal(i)}>Edit</button>

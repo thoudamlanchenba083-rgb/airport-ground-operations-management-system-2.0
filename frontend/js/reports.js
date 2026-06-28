@@ -1,31 +1,4 @@
-﻿const { useState, useEffect } = React;
-const API_BASE = 'http://127.0.0.1:8000/api';
-
-if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
-
-let redirecting = false;
-
-async function apiFetch(endpoint, options = {}) {
-    if (redirecting) return null;
-    const res = await fetch(API_BASE + endpoint, {
-        ...options,
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        }
-    });
-    if (res.status === 401) {
-        if (!redirecting) {
-            redirecting = true;
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-        return null;
-    }
-    if (res.ok) return res.status === 204 ? true : await res.json();
-    return null;
-}
+const { useState, useEffect } = React;
 
 function Navbar({ onMenuClick }) {
     const [dark, setDark] = React.useState(localStorage.getItem('theme') !== 'light');
@@ -36,14 +9,14 @@ function Navbar({ onMenuClick }) {
     return (
         <div className="navbar">
             <div className="navbar-left">
-                <button className="hamburger" onClick={onMenuClick}>☰</button>
-                <h1>✈ Airport Ground Operations</h1>
+                <button className="hamburger" onClick={onMenuClick}>?</button>
+                <h1>? Airport Ground Operations</h1>
             </div>
             <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                 <button
                     onClick={() => setDark(d => !d)}
                     style={{background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'white', padding:'7px 14px', borderRadius:'20px', cursor:'pointer', fontSize:'0.85rem'}}>
-                    {dark ? '☀ Light' : '🌙 Dark'}
+                    {dark ? '? Light' : '?? Dark'}
                 </button>
                 <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
             </div>
@@ -56,14 +29,14 @@ function Sidebar({ open, onClose }) {
         <>
             <div className={'sidebar-overlay' + (open ? ' open' : '')} onClick={onClose} />
             <div className={'sidebar' + (open ? ' mobile-open' : '')}>
-                <a href="dashboard.html">📊 Dashboard</a>
-                <a href="flights.html">✈ Flights</a>
-                <a href="gates.html">🚪 Gates</a>
-                <a href="baggage.html">🧳 Baggage</a>
-                <a href="maintenance.html">🔧 Maintenance</a>
-                <a href="staff.html">👷 Staff</a>
-                <a href="notifications.html">🔔 Notifications</a>
-                <a href="reports.html" className="active">📋 Reports</a>
+                <a href="dashboard.html">?? Dashboard</a>
+                <a href="flights.html">? Flights</a>
+                <a href="gates.html">?? Gates</a>
+                <a href="baggage.html">?? Baggage</a>
+                <a href="maintenance.html">?? Maintenance</a>
+                <a href="staff.html">?? Staff</a>
+                <a href="notifications.html">?? Notifications</a>
+                <a href="reports.html" className="active">?? Reports</a>
             </div>
         </>
     );
@@ -210,20 +183,20 @@ function ReportsPage() {
                 <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
                 <div className="main">
                     <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px', flexWrap:'wrap', gap:'10px'}}>
-                        <p className="page-title" style={{marginBottom:0}}>📋 Operations Report</p>
+                        <p className="page-title" style={{marginBottom:0}}>?? Operations Report</p>
                         <button className="btn btn-success" onClick={exportCSV} disabled={!data}>
-                            ⬇ Export CSV
+                            ? Export CSV
                         </button>
                     </div>
 
                     {loading ? (
-                        <p style={{padding:'30px', color:'#888', textAlign:'center'}}>Loading report data…</p>
+                        <p style={{padding:'30px', color:'#888', textAlign:'center'}}>Loading report data�</p>
                     ) : !data ? (
                         <p style={{padding:'30px', color:'#e74c3c', textAlign:'center'}}>Failed to load data.</p>
                     ) : (
                         <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'20px'}}>
 
-                            <SectionCard title="✈ Flights">
+                            <SectionCard title="? Flights">
                                 <table>
                                     <tbody>
                                         <StatRow label="Total Flights"  value={data.flights.total} />
@@ -236,7 +209,7 @@ function ReportsPage() {
                                 </table>
                             </SectionCard>
 
-                            <SectionCard title="🚪 Gates">
+                            <SectionCard title="?? Gates">
                                 <table>
                                     <tbody>
                                         <StatRow label="Total Gates"   value={data.gates.total} />
@@ -247,7 +220,7 @@ function ReportsPage() {
                                 </table>
                             </SectionCard>
 
-                            <SectionCard title="🧳 Baggage">
+                            <SectionCard title="?? Baggage">
                                 <table>
                                     <tbody>
                                         <StatRow label="Total Items"  value={data.baggage.total} />
@@ -259,7 +232,7 @@ function ReportsPage() {
                                 </table>
                             </SectionCard>
 
-                            <SectionCard title="🔧 Maintenance">
+                            <SectionCard title="?? Maintenance">
                                 <table>
                                     <tbody>
                                         <StatRow label="Total Requests"  value={data.maintenance.total} />
@@ -271,7 +244,7 @@ function ReportsPage() {
                                 </table>
                             </SectionCard>
 
-                            <SectionCard title="👷 Staff">
+                            <SectionCard title="?? Staff">
                                 <table>
                                     <tbody>
                                         <StatRow label="Total Staff"      value={data.staff.total} />
@@ -282,7 +255,7 @@ function ReportsPage() {
                                 </table>
                             </SectionCard>
 
-                            <SectionCard title="🔔 Notifications">
+                            <SectionCard title="?? Notifications">
                                 <table>
                                     <tbody>
                                         <StatRow label="Total"     value={data.notifications.total} />
