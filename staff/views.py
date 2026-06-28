@@ -7,7 +7,7 @@ from core_app.utils import log_action
 from core_app.permissions import IsAdminUser, IsAuthenticatedReadOnly
 
 class StaffViewSet(viewsets.ModelViewSet):
-    queryset = Staff.objects.all()
+    queryset = Staff.objects.all().order_by('name')
     serializer_class = StaffSerializer
     permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -29,7 +29,7 @@ class ShiftViewSet(viewsets.ModelViewSet):
     serializer_class = ShiftSerializer
     permission_classes = [IsAdminUser]
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['name']
+    search_fields = ['shift_name']
     ordering_fields = ['start_time']
     def perform_create(self, serializer):
         instance = serializer.save()

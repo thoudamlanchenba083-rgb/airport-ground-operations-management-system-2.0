@@ -52,6 +52,16 @@ class Flight(models.Model):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['departure_time']),
+            models.Index(fields=['arrival_time']),
+            models.Index(fields=['flight_number']),
+        ]
 
     def __str__(self):
         return self.flight_number
+
+    

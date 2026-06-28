@@ -3,7 +3,7 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 from django.conf.urls.static import static
 from rest_framework import permissions
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from accounts.views import RateLimitedTokenObtainPairView, RateLimitedTokenRefreshView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 import os
@@ -17,8 +17,8 @@ schema_view = get_schema_view(
         contact=openapi.Contact(email="admin@airport.com"),
         license=openapi.License(name="MIT License"),
     ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
+    public=False,
+    permission_classes=(permissions.IsAuthenticated,),
 )
 
 FRONTEND = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend')
@@ -26,8 +26,9 @@ FRONTEND = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
+    path('api/token/', RateLimitedTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', RateLimitedTokenRefreshView.as_view(), name='token_refresh'),
 
     path('api/accounts/', include('accounts.urls')),
     path('api/', include('core_app.urls')),
