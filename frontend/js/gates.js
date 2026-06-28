@@ -1,213 +1,127 @@
-const { useState, useEffect } = React;
-function Navbar({ onMenuClick }) {
-    const [dark, setDark] = React.useState(localStorage.getItem('theme') !== 'light');
-    React.useEffect(() => {
-        document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
-    }, [dark]);
-    return (
-        <div className="navbar">
-            <div className="navbar-left">
-                <button className="hamburger" onClick={onMenuClick}>?</button>
-                <h1>? Airport Ground Operations</h1>
-            </div>
-            <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                <button
-                    onClick={() => setDark(d => !d)}
-                    style={{background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'white', padding:'7px 14px', borderRadius:'20px', cursor:'pointer', fontSize:'0.85rem'}}>
-                    {dark ? '? Light' : '?? Dark'}
-                </button>
-                <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
-            </div>
-        </div>
+﻿// Theme & sidebar
+(function () {
+    const dark = localStorage.getItem('theme') !== 'light';
+    document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = dark ? '☀ Light' : '🌙 Dark';
+})();
+
+function toggleTheme() {
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeBtn').textContent = isDark ? '🌙 Dark' : '☀ Light';
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('mobile-open');
+    document.getElementById('overlay').classList.toggle('open');
+}
+
+Auth.requireAuth();
+
+let allGates = [];
+let searchQuery = '';
+
+const STATUS_CLASSES = {
+    available: 'badge-success',
+    occupied: 'badge-danger',
+    maintenance: 'badge-warning',
+    closed: 'badge-info',
+};
+
+function badge(status) {
+    return `<span class="badge ${STATUS_CLASSES[status] || 'badge-info'}">${status}</span>`;
+}
+
+async function loadGates() {
+    const tbody = document.getElementById('gatesTbody');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;padding:30px;">Loading…</td></tr>';
+
+    const data = await apiFetch('/gates/');
+    allGates = data ? (data.results || data) : [];
+
+    // Update stat cards
+    document.getElementById('countAvailable').textContent = allGates.filter(g => g.status === 'available').length;
+    document.getElementById('countOccupied').textContent = allGates.filter(g => g.status === 'occupied').length;
+    document.getElementById('countMaintenance').textContent = allGates.filter(g => g.status === 'maintenance').length;
+
+    renderTable();
+}
+
+function renderTable() {
+    const tbody = document.getElementById('gatesTbody');
+    const filtered = allGates.filter(g =>
+        (g.gate_number || '').toLowerCase().includes(searchQuery) ||
+        (g.terminal || '').toLowerCase().includes(searchQuery)
     );
-}
 
-function Sidebar({ open, onClose }) {
-    return (
-        <>
-            <div className={'sidebar-overlay' + (open ? ' open' : '')} onClick={onClose} />
-            <div className={'sidebar' + (open ? ' mobile-open' : '')}>
-                <a href="dashboard.html">?? Dashboard</a>
-                <a href="flights.html">? Flights</a>
-                <a href="gates.html" className="active">?? Gates</a>
-                <a href="baggage.html">?? Baggage</a>
-                <a href="maintenance.html">?? Maintenance</a>
-                <a href="staff.html">?? Staff</a>
-                <a href="notifications.html">?? Notifications</a>
-                <a href="reports.html">?? Reports</a>
-            </div>
-        </>
-    );
-}
-
-function StatusBadge({ status }) {
-    const map = {
-        available:   'badge-success',
-        occupied:    'badge-danger',
-        maintenance: 'badge-warning',
-        closed:      'badge-info',
-    };
-    return <span className={'badge ' + (map[status] || 'badge-info')}>{status}</span>;
-}
-
-function GateModal({ gate, onClose, onSaved }) {
-    const blank = { gate_number:'', terminal:'', status:'available', notes:'' };
-    const [form, setForm] = useState(gate || blank);
-    const [saving, setSaving] = useState(false);
-
-    function set(k, v) { setForm(f => ({...f, [k]: v})); }
-
-    async function save() {
-        setSaving(true);
-        const method = gate ? 'PUT' : 'POST';
-        const url = gate ? `/gates/${gate.id}/` : '/gates/';
-        const result = await apiFetch(url, { method, body: JSON.stringify(form) });
-        setSaving(false);
-        if (result) onSaved();
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;padding:30px;">No gates found.</td></tr>';
+        return;
     }
 
-    return (
-        <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onClose()}>
-            <div className="modal">
-                <h3>{gate ? 'Edit Gate' : 'Add Gate'}</h3>
-                {[
-                    ['gate_number', 'Gate Number', 'text'],
-                    ['terminal',    'Terminal',    'text'],
-                    ['notes',       'Notes',       'text'],
-                ].map(([key, label, type]) => (
-                    <div className="form-group" key={key}>
-                        <label>{label}</label>
-                        <input type={type} value={form[key] || ''} onChange={e => set(key, e.target.value)} />
-                    </div>
-                ))}
-                <div className="form-group">
-                    <label>Status</label>
-                    <select value={form.status} onChange={e => set('status', e.target.value)}>
-                        {['available','occupied','maintenance','closed'].map(s => (
-                            <option key={s} value={s}>{s}</option>
-                        ))}
-                    </select>
-                </div>
-                <div className="modal-footer">
-                    <button className="btn" onClick={onClose}>Cancel</button>
-                    <button className="btn btn-primary" onClick={save} disabled={saving}>
-                        {saving ? 'Saving...' : 'Save'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+    tbody.innerHTML = filtered.map(g => `
+        <tr>
+            <td><strong>${g.gate_number || ''}</strong></td>
+            <td>${g.terminal || '—'}</td>
+            <td>${badge(g.status)}</td>
+            <td>${g.notes || '—'}</td>
+            <td>
+                <button class="btn btn-primary" style="margin-right:6px" onclick='openModal(${JSON.stringify(g)})'>Edit</button>
+                <button class="btn btn-danger" onclick="deleteGate(${g.id})">Delete</button>
+            </td>
+        </tr>
+    `).join('');
 }
 
-function GatesPage() {
-    const [gates, setGates] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [modal, setModal] = useState(null);
-    const [menuOpen, setMenuOpen] = useState(false);
+let searchTimer;
+function onSearch(val) {
+    searchQuery = val.toLowerCase();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(renderTable, 300);
+}
 
-    async function load() {
-        setLoading(true);
-        const data = await apiFetch('/gates/');
-        setGates(data ? (data.results || data) : []);
-        setLoading(false);
-    }
+async function deleteGate(id) {
+    if (!confirm('Delete this gate?')) return;
+    await apiFetch(`/gates/${id}/`, { method: 'DELETE' });
+    loadGates();
+}
 
-    useEffect(() => { load(); }, []);
+// Modal
+function openModal(gate) {
+    document.getElementById('modalTitle').textContent = gate ? 'Edit Gate' : 'Add Gate';
+    document.getElementById('editId').value = gate ? gate.id : '';
+    document.getElementById('f_gate_number').value = gate ? gate.gate_number || '' : '';
+    document.getElementById('f_terminal').value = gate ? gate.terminal || '' : '';
+    document.getElementById('f_notes').value = gate ? gate.notes || '' : '';
+    document.getElementById('f_status').value = gate ? gate.status || 'available' : 'available';
+    document.getElementById('modalOverlay').classList.add('open');
+}
 
-    async function deleteGate(id) {
-        if (!confirm('Delete this gate?')) return;
-        await apiFetch(`/gates/${id}/`, { method: 'DELETE' });
-        load();
-    }
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+}
 
-    const filtered = gates.filter(g =>
-        (g.gate_number || '').toLowerCase().includes(search.toLowerCase()) ||
-        (g.terminal    || '').toLowerCase().includes(search.toLowerCase())
-    );
-
-    const counts = {
-        available:   gates.filter(g => g.status === 'available').length,
-        occupied:    gates.filter(g => g.status === 'occupied').length,
-        maintenance: gates.filter(g => g.status === 'maintenance').length,
+async function saveGate() {
+    const id = document.getElementById('editId').value;
+    const payload = {
+        gate_number: document.getElementById('f_gate_number').value,
+        terminal: document.getElementById('f_terminal').value,
+        notes: document.getElementById('f_notes').value,
+        status: document.getElementById('f_status').value,
     };
 
-    return (
-        <div>
-            <Navbar onMenuClick={() => setMenuOpen(true)} />
-            <div className="layout">
-                <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
-                <div className="main">
-                    <p className="page-title">?? Gates</p>
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
 
-                    <div className="cards">
-                        <div className="card" style={{borderTop:'4px solid #27ae60'}}>
-                            <h3 style={{color:'#27ae60'}}>{counts.available}</h3>
-                            <p>Available</p>
-                        </div>
-                        <div className="card" style={{borderTop:'4px solid #e74c3c'}}>
-                            <h3 style={{color:'#e74c3c'}}>{counts.occupied}</h3>
-                            <p>Occupied</p>
-                        </div>
-                        <div className="card" style={{borderTop:'4px solid #f39c12'}}>
-                            <h3 style={{color:'#f39c12'}}>{counts.maintenance}</h3>
-                            <p>Maintenance</p>
-                        </div>
-                    </div>
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `/gates/${id}/` : '/gates/';
+    const result = await apiFetch(url, { method, body: JSON.stringify(payload) });
 
-                    <div className="toolbar">
-                        <input
-                            className="search-input"
-                            placeholder="Search by gate number or terminal�"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                        />
-                        <button className="btn btn-primary" onClick={() => setModal('add')}>+ Add Gate</button>
-                    </div>
-
-                    <div className="table-container">
-                        {loading ? <p style={{padding:'20px',color:'#888'}}>Loading�</p> : (
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Gate #</th>
-                                        <th>Terminal</th>
-                                        <th>Status</th>
-                                        <th>Notes</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filtered.length === 0 ? (
-                                        <tr><td colSpan="5" style={{textAlign:'center',color:'#888',padding:'30px'}}>No gates found.</td></tr>
-                                    ) : filtered.map(g => (
-                                        <tr key={g.id}>
-                                            <td><strong>{g.gate_number}</strong></td>
-                                            <td>{g.terminal || '�'}</td>
-                                            <td><StatusBadge status={g.status} /></td>
-                                            <td>{g.notes || '�'}</td>
-                                            <td>
-                                                <button className="btn btn-primary" style={{marginRight:'6px'}} onClick={() => setModal(g)}>Edit</button>
-                                                <button className="btn btn-danger" onClick={() => deleteGate(g.id)}>Delete</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                </div>
-            </div>
-            {modal && (
-                <GateModal
-                    gate={modal === 'add' ? null : modal}
-                    onClose={() => setModal(null)}
-                    onSaved={() => { setModal(null); load(); }}
-                />
-            )}
-        </div>
-    );
+    btn.disabled = false; btn.textContent = 'Save';
+    if (result) { closeModal(); loadGates(); }
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<GatesPage />);
+// Init
+loadGates();

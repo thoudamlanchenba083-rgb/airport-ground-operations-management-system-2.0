@@ -6,13 +6,41 @@
     <title>Maintenance - Airport Operations</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/maintenance.css">
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone@7.23.3/babel.min.js"></script>
-    <script type="text/babel" data-presets="react" src="../js/api.js"></script>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel" data-presets="react" src="../js/maintenance.js"></script>
-</body>
-</html>
+<div class="navbar">
+    <div class="navbar-left">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <h1>✈ Airport Ground Operations</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+        <button id="themeBtn" onclick="toggleTheme()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;padding:7px 14px;border-radius:20px;cursor:pointer;font-size:0.85rem;">🌙 Dark</button>
+        <button onclick="Auth.logout()">Logout</button>
+    </div>
+</div>
+
+<div class="layout">
+    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="flights.html">✈ Flights</a>
+        <a href="gates.html">🚪 Gates</a>
+        <a href="baggage.html">🧳 Baggage</a>
+        <a href="maintenance.html" class="active">🔧 Maintenance</a>
+        <a href="staff.html">👷 Staff</a>
+        <a href="notifications.html">🔔 Notifications</a>
+        <a href="reports.html">📋 Reports</a>
+    </div>
+    <div class="main">
+        <p class="page-title">🔧 Maintenance</p>
+
+        <div class="cards">
+            <div class="card" style="border-top:4px solid #3498db;">
+                <h3 id="countTotal" style="color:#3498db;">—</h3><p>Total Requests</p>
+            </div>
+            <div class="card" style="border-top:4px solid #f39c12;">
+                <h3 id="countOpen" style="color:#f39c12;">—</h3><p>Open</p>
+            </div>
+            <div class="card" style="border-top:4px solid #27ae60;">
+                <h3 id="countDone" style="color:#27ae60;">—</h3><p>Completed</p>
+            </div>

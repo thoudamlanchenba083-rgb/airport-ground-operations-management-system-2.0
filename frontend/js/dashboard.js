@@ -1,288 +1,156 @@
-const { useState, useEffect, useRef } = React;
+(function () {
+    const dark = localStorage.getItem('theme') !== 'light';
+    document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = dark ? '☀ Light' : '🌙 Dark';
+})();
 
-function Navbar({ onMenuClick }) {
-    const [dark, setDark] = useState(localStorage.getItem('theme') !== 'light');
-
-    useEffect(() => {
-        document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
-    }, [dark]);
-
-    return (
-        <div className="navbar">
-            <div className="navbar-left">
-                <button className="hamburger" onClick={onMenuClick}>☰</button>
-                <h1>✈ Airport Ground Operations</h1>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button
-                    onClick={() => setDark(d => !d)}
-                    style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '7px 14px', borderRadius: '20px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                    {dark ? '☀ Light' : '🌙 Dark'}
-                </button>
-                <button onClick={() => {
-                    const refresh = localStorage.getItem('refresh_token');
-                    if (refresh) {
-                        fetch(`${API_BASE}/accounts/logout/`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ refresh })
-                        }).finally(() => { localStorage.clear(); window.location.href = 'landing.html'; });
-                    } else {
-                        localStorage.clear(); window.location.href = 'landing.html';
-                    }
-                }}>Logout</button>
-            </div>
-        </div>
-    );
+function toggleTheme() {
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeBtn').textContent = isDark ? '🌙 Dark' : '☀ Light';
 }
 
-function Sidebar({ open, onClose }) {
-    return (
-        <>
-            <div className={'sidebar-overlay' + (open ? ' open' : '')} onClick={onClose} />
-            <div className={'sidebar' + (open ? ' mobile-open' : '')}>
-                <a href="dashboard.html" className="active">📊 Dashboard</a>
-                <a href="flights.html">✈ Flights</a>
-                <a href="gates.html">🚪 Gates</a>
-                <a href="baggage.html">🧳 Baggage</a>
-                <a href="maintenance.html">🔧 Maintenance</a>
-                <a href="staff.html">👷 Staff</a>
-                <a href="notifications.html">🔔 Notifications</a>
-                <a href="reports.html">📋 Reports</a>
-            </div>
-        </>
-    );
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('mobile-open');
+    document.getElementById('overlay').classList.toggle('open');
 }
 
-function StatCard({ title, count, color, link }) {
-    return (
-        <a href={link} style={{ textDecoration: 'none' }}>
-            <div className="card" style={{ borderTop: '4px solid ' + color, cursor: 'pointer' }}>
-                <h3 style={{ color, fontSize: '2rem', margin: '0 0 6px' }}>{count}</h3>
-                <p style={{ margin: 0, color: '#888', fontSize: '0.9rem' }}>{title}</p>
+Auth.requireAuth();
+
+const STAT_CONFIG = [
+    { title: 'Flights',       key: 'flights',       color: '#4e79a7', link: 'flights.html' },
+    { title: 'Gates',         key: 'gates',         color: '#59a14f', link: 'gates.html' },
+    { title: 'Baggage',       key: 'baggage',       color: '#f28e2b', link: 'baggage.html' },
+    { title: 'Maintenance',   key: 'maintenance',   color: '#e15759', link: 'maintenance.html' },
+    { title: 'Staff',         key: 'staff',         color: '#76b7b2', link: 'staff.html' },
+    { title: 'Notifications', key: 'notifications', color: '#b07aa1', link: 'notifications.html' },
+];
+
+function renderStatCards(stats) {
+    document.getElementById('statCards').innerHTML = STAT_CONFIG.map(c => `
+        <a href="${c.link}" style="text-decoration:none;">
+            <div class="card" style="border-top:4px solid ${c.color};cursor:pointer;">
+                <h3 style="color:${c.color};font-size:2rem;margin:0 0 6px;">${stats[c.key] ?? 0}</h3>
+                <p style="margin:0;color:#888;font-size:0.9rem;">${c.title}</p>
             </div>
         </a>
-    );
+    `).join('');
 }
 
-function FlightStatusChart({ data }) {
-    const canvasRef = useRef(null);
-    const chartRef = useRef(null);
+let flightChartInst = null;
+let maintChartInst  = null;
+let staffChartInst  = null;
 
-    useEffect(() => {
-        if (!data || !canvasRef.current) return;
-        if (chartRef.current) chartRef.current.destroy();
-
-        const labels = Object.keys(data);
-        const values = Object.values(data);
-
-        chartRef.current = new Chart(canvasRef.current, {
-            type: 'doughnut',
-            data: {
-                labels,
-                datasets: [{
-                    data: values,
-                    backgroundColor: ['#4e79a7','#f28e2b','#59a14f','#76b7b2','#e15759'],
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } },
-                    title: { display: true, text: 'Flights by Status (Last 7 Days)', font: { size: 14 } }
-                }
-            }
-        });
-
-        return () => { if (chartRef.current) chartRef.current.destroy(); };
-    }, [data]);
-
-    return <canvas ref={canvasRef} style={{ maxHeight: '260px' }} />;
-}
-
-function MaintenanceChart({ data }) {
-    const canvasRef = useRef(null);
-    const chartRef = useRef(null);
-
-    useEffect(() => {
-        if (!data || !canvasRef.current) return;
-        if (chartRef.current) chartRef.current.destroy();
-
-        const labels = Object.keys(data.by_status || {});
-        const values = Object.values(data.by_status || {});
-
-        chartRef.current = new Chart(canvasRef.current, {
-            type: 'bar',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Requests',
-                    data: values,
-                    backgroundColor: ['#59a14f','#f28e2b','#e15759','#4e79a7'],
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false },
-                    title: { display: true, text: 'Maintenance Requests by Status', font: { size: 14 } }
-                },
-                scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
-                }
-            }
-        });
-
-        return () => { if (chartRef.current) chartRef.current.destroy(); };
-    }, [data]);
-
-    return <canvas ref={canvasRef} style={{ maxHeight: '260px' }} />;
-}
-
-function StaffChart({ data }) {
-    const canvasRef = useRef(null);
-    const chartRef = useRef(null);
-
-    useEffect(() => {
-        if (!data || !canvasRef.current) return;
-        if (chartRef.current) chartRef.current.destroy();
-
-        const labels = Object.keys(data.by_type || {});
-        const values = Object.values(data.by_type || {});
-
-        chartRef.current = new Chart(canvasRef.current, {
-            type: 'bar',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Staff Count',
-                    data: values,
-                    backgroundColor: '#4e79a7',
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                plugins: {
-                    legend: { display: false },
-                    title: { display: true, text: 'Active Staff by Type', font: { size: 14 } }
-                },
-                scales: {
-                    x: { beginAtZero: true, ticks: { stepSize: 1 } }
-                }
-            }
-        });
-
-        return () => { if (chartRef.current) chartRef.current.destroy(); };
-    }, [data]);
-
-    return <canvas ref={canvasRef} style={{ maxHeight: '260px' }} />;
-}
-
-function Dashboard() {
-    const [stats, setStats] = useState({
-        flights: 0, gates: 0, baggage: 0,
-        maintenance: 0, staff: 0, notifications: 0
+function renderFlightChart(byStatus) {
+    const canvas = document.getElementById('flightChart');
+    const empty  = document.getElementById('flightChartEmpty');
+    const labels = Object.keys(byStatus);
+    const values = Object.values(byStatus);
+    if (!labels.length) { canvas.style.display = 'none'; empty.style.display = 'block'; return; }
+    if (flightChartInst) flightChartInst.destroy();
+    flightChartInst = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{ data: values, backgroundColor: ['#4e79a7','#f28e2b','#59a14f','#76b7b2','#e15759'], borderWidth: 2, borderColor: '#fff' }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }, title: { display: true, text: 'Flights by Status', font: { size: 14 } } } }
     });
-    const [flightSummary, setFlightSummary] = useState(null);
-    const [maintenanceSummary, setMaintenanceSummary] = useState(null);
-    const [staffSummary, setStaffSummary] = useState(null);
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        async function loadAll() {
-            setLoading(true);
-            const [flights, gates, baggage, maintenance, staff, notifications,
-                   flightRep, maintRep, staffRep] = await Promise.all([
-                apiFetch('/flights/'),
-                apiFetch('/gates/'),
-                apiFetch('/baggage/'),
-                apiFetch('/maintenance/'),
-                apiFetch('/staff/'),
-                apiFetch('/notifications/'),
-                apiFetch('/reports/summary/flights'),
-                apiFetch('/reports/summary/maintenance'),
-                apiFetch('/reports/summary/staff'),
-            ]);
-
-            setStats({
-                flights:       flights?.count       ?? 0,
-                gates:         gates?.count         ?? 0,
-                baggage:       baggage?.count        ?? 0,
-                maintenance:   maintenance?.count    ?? 0,
-                staff:         staff?.count          ?? 0,
-                notifications: notifications?.count  ?? 0,
-            });
-
-            if (flightRep?.by_status)      setFlightSummary(flightRep.by_status);
-            if (maintRep)                  setMaintenanceSummary(maintRep);
-            if (staffRep)                  setStaffSummary(staffRep);
-            setLoading(false);
-        }
-        loadAll();
-    }, []);
-
-    return (
-        <div>
-            <Navbar onMenuClick={() => setMenuOpen(true)} />
-            <div className="layout">
-                <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
-                <div className="main">
-                    <p className="page-title">📊 Dashboard</p>
-
-                    {loading ? (
-                        <p style={{ color: '#888', padding: '20px' }}>Loading dashboard...</p>
-                    ) : (
-                        <>
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                                gap: '16px', marginBottom: '2rem'
-                            }}>
-                                <StatCard title="Flights"       count={stats.flights}       color="#4e79a7" link="flights.html" />
-                                <StatCard title="Gates"         count={stats.gates}         color="#59a14f" link="gates.html" />
-                                <StatCard title="Baggage"       count={stats.baggage}       color="#f28e2b" link="baggage.html" />
-                                <StatCard title="Maintenance"   count={stats.maintenance}   color="#e15759" link="maintenance.html" />
-                                <StatCard title="Staff"         count={stats.staff}         color="#76b7b2" link="staff.html" />
-                                <StatCard title="Notifications" count={stats.notifications} color="#b07aa1" link="notifications.html" />
-                            </div>
-
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                                gap: '20px'
-                            }}>
-                                <div className="card">
-                                    {flightSummary
-                                        ? <FlightStatusChart data={flightSummary} />
-                                        : <p style={{ color: '#aaa', textAlign: 'center', padding: '20px' }}>No flight data available</p>
-                                    }
-                                </div>
-                                <div className="card">
-                                    {maintenanceSummary
-                                        ? <MaintenanceChart data={maintenanceSummary} />
-                                        : <p style={{ color: '#aaa', textAlign: 'center', padding: '20px' }}>No maintenance data available</p>
-                                    }
-                                </div>
-                                <div className="card">
-                                    {staffSummary
-                                        ? <StaffChart data={staffSummary} />
-                                        : <p style={{ color: '#aaa', textAlign: 'center', padding: '20px' }}>No staff data available</p>
-                                    }
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<Dashboard />);
+function renderMaintChart(byStatus) {
+    const canvas = document.getElementById('maintChart');
+    const empty  = document.getElementById('maintChartEmpty');
+    const labels = Object.keys(byStatus);
+    const values = Object.values(byStatus);
+    if (!labels.length) { canvas.style.display = 'none'; empty.style.display = 'block'; return; }
+    if (maintChartInst) maintChartInst.destroy();
+    maintChartInst = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{ label: 'Requests', data: values, backgroundColor: ['#59a14f','#f28e2b','#e15759','#4e79a7'], borderRadius: 6 }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false }, title: { display: true, text: 'Maintenance Requests by Status', font: { size: 14 } } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
+}
+
+function renderStaffChart(byType) {
+    const canvas = document.getElementById('staffChart');
+    const empty  = document.getElementById('staffChartEmpty');
+    const labels = Object.keys(byType);
+    const values = Object.values(byType);
+    if (!labels.length) { canvas.style.display = 'none'; empty.style.display = 'block'; return; }
+    if (staffChartInst) staffChartInst.destroy();
+    staffChartInst = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{ label: 'Staff Count', data: values, backgroundColor: '#4e79a7', borderRadius: 6 }]
+        },
+        options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false }, title: { display: true, text: 'Active Staff by Type', font: { size: 14 } } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
+}
+
+async function loadDashboard() {
+    const [flights, gates, baggage, maintenance, staff, notifications,
+           flightRep, maintRep, staffRep] = await Promise.all([
+        apiFetch('/flights/'),
+        apiFetch('/gates/'),
+        apiFetch('/baggage/'),
+        apiFetch('/maintenance/'),
+        apiFetch('/staff/'),
+        apiFetch('/notifications/'),
+        apiFetch('/reports/summary/flights'),
+        apiFetch('/reports/summary/maintenance'),
+        apiFetch('/reports/summary/staff'),
+    ]);
+
+    const count = d => d?.count ?? (Array.isArray(d) ? d.length : (d?.results?.length ?? 0));
+
+    renderStatCards({
+        flights:       count(flights),
+        gates:         count(gates),
+        baggage:       count(baggage),
+        maintenance:   count(maintenance),
+        staff:         count(staff),
+        notifications: count(notifications),
+    });
+
+    // Flight chart — from summary API or fallback to raw data
+    if (flightRep?.by_status) {
+        renderFlightChart(flightRep.by_status);
+    } else if (flights) {
+        const arr = flights.results || flights;
+        const byStatus = {};
+        arr.forEach(f => { byStatus[f.status] = (byStatus[f.status] || 0) + 1; });
+        renderFlightChart(byStatus);
+    }
+
+    // Maintenance chart
+    if (maintRep?.by_status) {
+        renderMaintChart(maintRep.by_status);
+    } else if (maintenance) {
+        const arr = maintenance.results || maintenance;
+        const byStatus = {};
+        arr.forEach(m => { byStatus[m.priority] = (byStatus[m.priority] || 0) + 1; });
+        renderMaintChart(byStatus);
+    }
+
+    // Staff chart
+    if (staffRep?.by_type) {
+        renderStaffChart(staffRep.by_type);
+    } else if (staff) {
+        const arr = staff.results || staff;
+        const byType = {};
+        arr.forEach(s => { byType[s.staff_type] = (byType[s.staff_type] || 0) + 1; });
+        renderStaffChart(byType);
+    }
+
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('dashContent').style.display = 'block';
+}
+
+loadDashboard();
