@@ -12,18 +12,18 @@
        CARBON DESIGN TOKENS  — base: #171717
     ═══════════════════════════════════════════ */
     :root {
-      /* Carbon palette */
-      --bg:         #111111;
+      /* Carbon palette — true #171717 carbon, darker overall */
+      --bg:         #080808;
       --carbon:     #171717;
-      --surf-1:     #1c1c1c;
-      --surf-2:     #222222;
-      --surf-3:     rgba(255,255,255,0.035);
+      --surf-1:     #121212;
+      --surf-2:     #161616;
+      --surf-3:     rgba(255,255,255,0.025);
 
-      /* Glass */
-      --glass:      rgba(23,23,23,0.60);
-      --glass-hi:   rgba(255,255,255,0.055);
-      --border:     rgba(255,255,255,0.08);
-      --border-hi:  rgba(255,255,255,0.16);
+      /* Glass — darker, denser, more contrast against carbon */
+      --glass:      rgba(10,10,10,0.72);
+      --glass-hi:   rgba(255,255,255,0.045);
+      --border:     rgba(255,255,255,0.06);
+      --border-hi:  rgba(255,255,255,0.13);
 
       /* Accent — warm white-gold on carbon */
       --accent:     #e8e0d0;
@@ -46,9 +46,9 @@
       --violet:     #a78bfa;
 
       /* Text */
-      --text:       #d4d0cb;
-      --muted:      #555550;
-      --subtle:     #888880;
+      --text:       #c8c4be;
+      --muted:      #4a4a45;
+      --subtle:     #7a7a74;
       --white:      #f5f4f0;
 
       /* Layout */
@@ -58,8 +58,8 @@
       --r-lg:       20px;
       --r-xl:       28px;
 
-      /* Type scale */
-      --h1: clamp(3rem,7vw,6.8rem);
+      /* Type scale — hero title scaled up */
+      --h1: clamp(3.6rem,9vw,8.6rem);
       --h2: clamp(1.75rem,3.5vw,2.8rem);
     }
 
@@ -94,7 +94,7 @@
     #aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
     .ab{
       position:absolute;border-radius:50%;
-      filter:blur(140px);opacity:.07;
+      filter:blur(150px);opacity:.045;
       animation:abFloat 22s ease-in-out infinite;
     }
     .ab:nth-child(1){width:700px;height:700px;background:#e8e0d0;top:-200px;left:-150px;animation-delay:0s;}
@@ -111,23 +111,24 @@
     ═══════════════════════════════════════════ */
     .glass{
       background:var(--glass);
-      backdrop-filter:blur(28px) saturate(140%);
-      -webkit-backdrop-filter:blur(28px) saturate(140%);
+      backdrop-filter:blur(34px) saturate(150%);
+      -webkit-backdrop-filter:blur(34px) saturate(150%);
       border:1px solid var(--border);
     }
     .glass-card{
-      background:rgba(23,23,23,0.65);
-      backdrop-filter:blur(32px) saturate(150%);
-      -webkit-backdrop-filter:blur(32px) saturate(150%);
+      background:rgba(8,8,8,0.74);
+      backdrop-filter:blur(38px) saturate(160%);
+      -webkit-backdrop-filter:blur(38px) saturate(160%);
       border:1px solid var(--border);
       border-top:1px solid var(--border-hi);
       border-radius:var(--r-xl);
       position:relative;overflow:hidden;
+      box-shadow:0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
     }
     .glass-card::before{
       content:'';
       position:absolute;top:0;left:20%;right:20%;height:1px;
-      background:linear-gradient(90deg,transparent,rgba(255,255,255,0.14),transparent);
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);
     }
 
     /* ═══════════════════════════════════════════
@@ -144,16 +145,16 @@
       height:68px;
       display:flex;align-items:center;justify-content:space-between;
       padding:0 var(--px);
-      background:rgba(17,17,17,0.55);
-      backdrop-filter:blur(24px) saturate(150%);
-      -webkit-backdrop-filter:blur(24px) saturate(150%);
-      border-bottom:1px solid rgba(255,255,255,0.06);
+      background:rgba(8,8,8,0.5);
+      backdrop-filter:blur(28px) saturate(160%);
+      -webkit-backdrop-filter:blur(28px) saturate(160%);
+      border-bottom:1px solid rgba(255,255,255,0.05);
       transition:background .35s,border-color .35s,box-shadow .35s;
     }
     #nav.scrolled{
-      background:rgba(17,17,17,0.94);
-      border-color:rgba(255,255,255,0.10);
-      box-shadow:0 1px 40px rgba(0,0,0,.8);
+      background:rgba(8,8,8,0.96);
+      border-color:rgba(255,255,255,0.09);
+      box-shadow:0 1px 50px rgba(0,0,0,.9);
     }
     .nav-brand{
       display:flex;align-items:center;gap:11px;
@@ -272,9 +273,9 @@
       font-family:'Bebas Neue','Space Grotesk',sans-serif;
       font-size:var(--h1);
       font-weight:400;
-      line-height:.9;
+      line-height:.88;
       color:var(--white);
-      letter-spacing:2px;
+      letter-spacing:1px;
       text-transform:uppercase;
       margin-bottom:20px;
     }
@@ -284,10 +285,10 @@
     }
     .hero-title .outline{
       display:block;
-      -webkit-text-stroke:1.5px rgba(255,255,255,0.22);
+      -webkit-text-stroke:1.5px rgba(255,255,255,0.20);
       color:transparent;
-      font-size:clamp(2rem,4.5vw,3.8rem);
-      letter-spacing:7px;
+      font-size:clamp(2.1rem,5vw,4.3rem);
+      letter-spacing:6px;
     }
     .hero-tag-row{
       display:flex;align-items:center;gap:10px;
@@ -354,6 +355,59 @@
       background:radial-gradient(ellipse,rgba(232,224,208,0.05) 0%,transparent 70%);
       pointer-events:none;
     }
+
+    /* ── Plane card stack (glassmorphism photo cards) ── */
+    .plane-stack{
+      position:relative;
+      height:148px;
+      margin-bottom:22px;
+      perspective:1000px;
+    }
+    .plane-card{
+      position:absolute;
+      width:118px;height:148px;
+      border-radius:var(--r-lg);
+      overflow:hidden;
+      border:1px solid var(--border-hi);
+      background:rgba(10,10,10,0.6);
+      backdrop-filter:blur(20px) saturate(140%);
+      -webkit-backdrop-filter:blur(20px) saturate(140%);
+      box-shadow:0 24px 50px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06);
+      cursor:pointer;
+      transition:box-shadow .4s, border-color .4s;
+      animation:planeDrift 7s ease-in-out infinite;
+    }
+    .plane-card img{
+      width:100%;height:100%;object-fit:cover;
+      filter:grayscale(.08) contrast(1.08) brightness(.92);
+      opacity:.94;
+    }
+    .plane-card::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(180deg,rgba(255,255,255,0.06) 0%,transparent 28%,rgba(0,0,0,0.35) 100%);
+      pointer-events:none;
+    }
+    .plane-card:hover{
+      border-color:rgba(255,255,255,0.28);
+      box-shadow:0 32px 64px rgba(0,0,0,0.75), 0 0 0 1px rgba(232,224,208,0.12);
+      z-index:10;
+    }
+    .plane-card.pc1{left:0;   top:14px;  z-index:3; transform:rotate(-7deg);  animation-delay:0s;}
+    .plane-card.pc2{left:96px;top:0;     z-index:2; transform:rotate(3deg);   animation-delay:-2.3s;}
+    .plane-card.pc3{left:192px;top:18px; z-index:1; transform:rotate(9deg);   animation-delay:-4.6s;}
+    @keyframes planeDrift{
+      0%,100%{transform:translateY(0) rotate(var(--r,0deg));}
+      50%{transform:translateY(-9px) rotate(var(--r,0deg));}
+    }
+    .plane-card.pc1{--r:-7deg;}
+    .plane-card.pc2{--r:3deg;}
+    .plane-card.pc3{--r:9deg;}
+    .plane-stack-label{
+      position:absolute;left:215px;bottom:-6px;
+      font-size:.62rem;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;
+      color:var(--muted);
+      writing-mode:vertical-rl;
+    }
     .dash-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
     .dash-title{font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:700;color:var(--white);}
     .live-badge{
@@ -405,14 +459,14 @@
       font-size:.7rem;font-weight:600;
       display:flex;align-items:center;gap:6px;
       animation:fbFloat 4.5s ease-in-out infinite;
-      z-index:3;white-space:nowrap;
-      background:rgba(23,23,23,.90);
-      backdrop-filter:blur(12px);
+      z-index:8;white-space:nowrap;
+      background:rgba(8,8,8,.92);
+      backdrop-filter:blur(14px);
     }
     @keyframes fbFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
-    .fb1{top:-18px;left:-22px;border:1px solid rgba(167,139,250,.3);color:#c4b5fd;animation-delay:.5s;}
+    .fb1{top:108px;left:-22px;border:1px solid rgba(167,139,250,.3);color:#c4b5fd;animation-delay:.5s;}
     .fb2{bottom:8px;right:-20px;border:1px solid rgba(91,155,213,.28);color:#7eb8e8;animation-delay:1.5s;}
-    .fb3{top:48%;right:-26px;border:1px solid rgba(74,222,128,.28);color:var(--green);animation-delay:1s;transform:translateY(-50%);}
+    .fb3{top:58%;right:-26px;border:1px solid rgba(74,222,128,.28);color:var(--green);animation-delay:1s;transform:translateY(-50%);}
 
     /* ═══════════════════════════════════════════
        STATS BAR
@@ -1010,8 +1064,13 @@
       </div>
     </div>
 
-    <!-- Right: dashboard card -->
+    <!-- Right: plane card stack + dashboard card -->
     <div class="hero-visual">
+      <div class="plane-stack">
+        <div class="plane-card pc1"><img src="../images/landing/cards/card-runway-fog.jpg" alt="Aircraft on foggy runway"></div>
+        <div class="plane-card pc2"><img src="../images/landing/cards/card-jet-contrail.jpg" alt="Jet climbing with contrails"></div>
+        <div class="plane-card pc3"><img src="../images/landing/cards/card-bw-reflection.jpg" alt="Aircraft reflection on tarmac"></div>
+      </div>
       <span class="fb fb1">🛫 Gate B12 — Boarding</span>
       <span class="fb fb2">✅ 98.2% On-Time</span>
       <span class="fb fb3">🟢 45 Active Gates</span>

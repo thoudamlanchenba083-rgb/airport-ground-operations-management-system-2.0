@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login — Airport Ground Operations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../css/login.css" />
+</head>
+<body>
+
+<div class="login-container">
+    <div class="login-card">
+
+        <!-- Logo / Header -->
+        <div class="login-logo">
+            <div class="icon">✈</div>
+            <h1>Airport Ops</h1>
+            <p>Ground Operations Management System</p>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="login" onclick="switchTab('login')">Sign In</button>
+            <button class="tab-btn" data-tab="register" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- ── LOGIN PANEL ── -->
+        <div class="form-panel active" id="loginPanel">
+            <div class="error-msg"></div>
+
+            <form id="loginForm" autocomplete="on">
+                <div class="form-group">
+                    <label for="loginUsername">Username</label>
+                    <input id="loginUsername" type="text" placeholder="Enter your username"
+                           autocomplete="username" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <div class="password-wrap">
+                        <input id="loginPassword" type="password" placeholder="Enter your password"
+                               autocomplete="current-password" required />
+                        <button type="button" class="toggle-pw" onclick="togglePassword(this)">👁</button>
+                    </div>
+                </div>
+
+                <div class="forgot-link">
+                    <a href="#">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-submit" id="loginBtn">Sign In</button>
+            </form>
+        </div>
+
+        <!-- ── REGISTER PANEL ── -->
+        <div class="form-panel" id="registerPanel">
+            <div class="error-msg"></div>
+            <div class="success-msg"></div>
+
+            <form id="registerForm" autocomplete="off">
+                <div class="form-group">
+                    <label for="regUsername">Username <span style="color:#e74c3c">*</span></label>
+                    <input id="regUsername" type="text" placeholder="Choose a username"
+                           autocomplete="off" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail">Email <span style="color:#e74c3c">*</span></label>
+                    <input id="regEmail" type="email" placeholder="your@email.com"
+                           autocomplete="off" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="regRole">Role <span style="color:#e74c3c">*</span></label>
+                    <select id="regRole" required>
+                        <option value="" disabled selected>Select your role</option>
+                        <option value="GROUND_STAFF">Ground Staff</option>
+                        <option value="SUPERVISOR">Supervisor</option>
+                        <option value="MAINTENANCE">Maintenance</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPhone">Phone (optional)</label>
+                    <input id="regPhone" type="tel" placeholder="+91 98765 43210" autocomplete="off" />
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword">Password <span style="color:#e74c3c">*</span></label>
+                    <div class="password-wrap">
+                        <input id="regPassword" type="password" placeholder="Min 8 characters"
+                               autocomplete="new-password" required />
+                        <button type="button" class="toggle-pw" onclick="togglePassword(this)">👁</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword2">Confirm Password <span style="color:#e74c3c">*</span></label>
+                    <div class="password-wrap">
+                        <input id="regPassword2" type="password" placeholder="Re-enter password"
+                               autocomplete="new-password" required />
+                        <button type="button" class="toggle-pw" onclick="togglePassword(this)">👁</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="registerBtn">Create Account</button>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            © 2024 Airport Ground Operations Management System
+        </div>
+    </div>
+</div>
+
+<script src="../js/login.js"></script>
+</body>
+</html>
