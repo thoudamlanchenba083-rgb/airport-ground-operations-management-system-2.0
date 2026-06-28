@@ -31,6 +31,10 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
+    def perform_create(self, serializer):
+        user = serializer.save()
+        from core_app.email_utils import send_welcome_email
+        send_welcome_email(user)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
