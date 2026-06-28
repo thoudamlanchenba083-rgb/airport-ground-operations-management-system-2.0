@@ -6,13 +6,113 @@
     <title>Staff - Airport Operations</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/staff.css">
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone@7.23.3/babel.min.js"></script>
-    <script type="text/babel" data-presets="react" src="../js/api.js"></script>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel" data-presets="react" src="../js/staff.js"></script>
+<div class="navbar">
+    <div class="navbar-left">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <h1>✈ Airport Ground Operations</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+        <button id="themeBtn" onclick="toggleTheme()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;padding:7px 14px;border-radius:20px;cursor:pointer;font-size:0.85rem;">🌙 Dark</button>
+        <button onclick="Auth.logout()">Logout</button>
+    </div>
+</div>
+
+<div class="layout">
+    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="flights.html">✈ Flights</a>
+        <a href="gates.html">🚪 Gates</a>
+        <a href="baggage.html">🧳 Baggage</a>
+        <a href="maintenance.html">🔧 Maintenance</a>
+        <a href="staff.html" class="active">👷 Staff</a>
+        <a href="notifications.html">🔔 Notifications</a>
+        <a href="reports.html">📋 Reports</a>
+    </div>
+    <div class="main">
+        <p class="page-title">👷 Staff</p>
+
+        <div class="cards">
+            <div class="card" style="border-top:4px solid #9b59b6;">
+                <h3 id="countTotal" style="color:#9b59b6;">—</h3><p>Total Staff</p>
+            </div>
+            <div class="card" style="border-top:4px solid #3498db;">
+                <h3 id="countGround" style="color:#3498db;">—</h3><p>Ground Staff</p>
+            </div>
+            <div class="card" style="border-top:4px solid #f39c12;">
+                <h3 id="countSecurity" style="color:#f39c12;">—</h3><p>Security</p>
+            </div>
+            <div class="card" style="border-top:4px solid #e74c3c;">
+                <h3 id="countSupervisor" style="color:#e74c3c;">—</h3><p>Supervisors</p>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <input class="search-input" id="searchInput" placeholder="Search by name, employee ID or type…" oninput="onSearch(this.value)">
+            <button class="btn btn-primary" onclick="openModal(null)">+ Add Staff</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th><th>Employee ID</th><th>Email</th>
+                        <th>Phone</th><th>Type</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="staffTbody">
+                    <tr><td colspan="6" style="text-align:center;color:#888;padding:30px;">Loading…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Staff Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+        <h3 id="modalTitle">Add Staff Member</h3>
+        <input type="hidden" id="editId">
+        <div class="form-group"><label>Name</label><input type="text" id="f_name"></div>
+        <div class="form-group"><label>Employee ID</label><input type="text" id="f_employee_id"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="f_email"></div>
+        <div class="form-group"><label>Phone</label><input type="text" id="f_phone"></div>
+        <div class="form-group"><label>Staff Type</label>
+            <select id="f_staff_type">
+                <option value="GROUND">GROUND</option>
+                <option value="SECURITY">SECURITY</option>
+                <option value="MAINTENANCE">MAINTENANCE</option>
+                <option value="SUPERVISOR">SUPERVISOR</option>
+            </select>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" id="saveBtn" onclick="saveStaff()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Modal -->
+<div class="modal-overlay" id="scheduleOverlay" onclick="if(event.target===this)closeScheduleModal()">
+    <div class="modal">
+        <h3 id="scheduleTitle">Assign Shift</h3>
+        <input type="hidden" id="scheduleStaffId">
+        <div class="form-group"><label>Shift</label>
+            <select id="f_shift"><option value="">-- Select Shift --</option></select>
+        </div>
+        <div class="form-group"><label>Date</label><input type="date" id="f_date"></div>
+        <p id="noShiftsMsg" style="color:#888;font-size:0.85rem;display:none;">No shifts exist yet. Create one in Django Admin first.</p>
+        <p id="scheduleError" style="color:#e74c3c;font-size:0.85rem;display:none;"></p>
+        <div class="modal-footer">
+            <button class="btn" onclick="closeScheduleModal()">Cancel</button>
+            <button class="btn btn-primary" id="assignBtn" onclick="saveSchedule()">Assign</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/staff.js"></script>
 </body>
 </html>

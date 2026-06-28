@@ -1,307 +1,187 @@
-const { useState, useEffect } = React;
+﻿(function () {
+    const dark = localStorage.getItem('theme') !== 'light';
+    document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = dark ? '☀ Light' : '🌙 Dark';
+})();
 
-function Navbar({ onMenuClick }) {
-    const [dark, setDark] = React.useState(localStorage.getItem('theme') !== 'light');
-    React.useEffect(() => {
-        document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
-    }, [dark]);
-    return (
-        <div className="navbar">
-            <div className="navbar-left">
-                <button className="hamburger" onClick={onMenuClick}>?</button>
-                <h1>? Airport Ground Operations</h1>
-            </div>
-            <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                <button
-                    onClick={() => setDark(d => !d)}
-                    style={{background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'white', padding:'7px 14px', borderRadius:'20px', cursor:'pointer', fontSize:'0.85rem'}}>
-                    {dark ? '? Light' : '?? Dark'}
-                </button>
-                <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
-            </div>
-        </div>
+function toggleTheme() {
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeBtn').textContent = isDark ? '🌙 Dark' : '☀ Light';
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('mobile-open');
+    document.getElementById('overlay').classList.toggle('open');
+}
+
+Auth.requireAuth();
+
+let allStaff = [];
+let shiftsList = [];
+let searchQuery = '';
+
+const ROLE_CLASSES = {
+    SUPERVISOR: 'badge-danger', GROUND: 'badge-info',
+    SECURITY: 'badge-warning', MAINTENANCE: 'badge-warning',
+};
+
+function roleBadge(type) {
+    return `<span class="badge ${ROLE_CLASSES[type] || 'badge-info'}">${type}</span>`;
+}
+
+async function loadStaff() {
+    const tbody = document.getElementById('staffTbody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:30px;">Loading…</td></tr>';
+
+    const data = await apiFetch('/staff/');
+    allStaff = data ? (data.results || data) : [];
+
+    document.getElementById('countTotal').textContent     = allStaff.length;
+    document.getElementById('countGround').textContent    = allStaff.filter(s => s.staff_type === 'GROUND').length;
+    document.getElementById('countSecurity').textContent  = allStaff.filter(s => s.staff_type === 'SECURITY').length;
+    document.getElementById('countSupervisor').textContent = allStaff.filter(s => s.staff_type === 'SUPERVISOR').length;
+
+    renderTable();
+}
+
+function renderTable() {
+    const tbody = document.getElementById('staffTbody');
+    const filtered = allStaff.filter(s =>
+        (s.name || '').toLowerCase().includes(searchQuery) ||
+        (s.employee_id || '').toLowerCase().includes(searchQuery) ||
+        (s.staff_type || '').toLowerCase().includes(searchQuery)
     );
-}
 
-function Sidebar({ open, onClose }) {
-    return (
-        <>
-            <div className={'sidebar-overlay' + (open ? ' open' : '')} onClick={onClose} />
-            <div className={'sidebar' + (open ? ' mobile-open' : '')}>
-                <a href="dashboard.html">?? Dashboard</a>
-                <a href="flights.html">? Flights</a>
-                <a href="gates.html">?? Gates</a>
-                <a href="baggage.html">?? Baggage</a>
-                <a href="maintenance.html">?? Maintenance</a>
-                <a href="staff.html" className="active">?? Staff</a>
-                <a href="notifications.html">?? Notifications</a>
-                <a href="reports.html">?? Reports</a>
-            </div>
-        </>
-    );
-}
-
-function RoleBadge({ staffType }) {
-    const map = {
-        SUPERVISOR:  'badge-danger',
-        GROUND:      'badge-info',
-        SECURITY:    'badge-warning',
-        MAINTENANCE: 'badge-warning',
-    };
-    return <span className={'badge ' + (map[staffType] || 'badge-info')}>{staffType}</span>;
-}
-function StaffModal({ member, onClose, onSaved }) {
-    const blank = { name:'', employee_id:'', staff_type:'GROUND', phone:'', email:'' };
-    const [form, setForm] = useState(member || blank);
-    const [saving, setSaving] = useState(false);
-
-    function set(k, v) { setForm(f => ({...f, [k]: v})); }
-
-    async function save() {
-        setSaving(true);
-        const method = member ? 'PUT' : 'POST';
-        const url = member ? `/staff/${member.id}/` : '/staff/';
-        const result = await apiFetch(url, { method, body: JSON.stringify(form) });
-        setSaving(false);
-        if (result) onSaved();
+    if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:30px;">No staff found.</td></tr>';
+        return;
     }
 
-    return (
-        <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onClose()}>
-            <div className="modal">
-                <h3>{member ? 'Edit Staff Member' : 'Add Staff Member'}</h3>
-
-                <div className="form-group">
-                    <label>Name</label>
-                    <input type="text" value={form.name || ''} onChange={e => set('name', e.target.value)} />
-                </div>
-
-                <div className="form-group">
-                    <label>Employee ID</label>
-                    <input type="text" value={form.employee_id || ''} onChange={e => set('employee_id', e.target.value)} />
-                </div>
-
-                <div className="form-group">
-                    <label>Email</label>
-                    <input type="email" value={form.email || ''} onChange={e => set('email', e.target.value)} />
-                </div>
-
-                <div className="form-group">
-                    <label>Phone</label>
-                    <input type="text" value={form.phone || ''} onChange={e => set('phone', e.target.value)} />
-                </div>
-
-                <div className="form-group">
-                    <label>Staff Type</label>
-                    <select value={form.staff_type} onChange={e => set('staff_type', e.target.value)}>
-                        {['GROUND','SECURITY','MAINTENANCE','SUPERVISOR'].map(t => (
-                            <option key={t} value={t}>{t}</option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="modal-footer">
-                    <button className="btn" onClick={onClose}>Cancel</button>
-                    <button className="btn btn-primary" onClick={save} disabled={saving}>
-                        {saving ? 'Saving...' : 'Save'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+    tbody.innerHTML = filtered.map(s => `
+        <tr>
+            <td><strong>${s.name || ''}</strong></td>
+            <td>${s.employee_id || '—'}</td>
+            <td>${s.email || '—'}</td>
+            <td>${s.phone || '—'}</td>
+            <td>${roleBadge(s.staff_type)}</td>
+            <td style="white-space:nowrap;">
+                <button class="btn btn-success" style="margin-right:6px" onclick='openScheduleModal(${JSON.stringify(s)})'>Assign Shift</button>
+                <button class="btn btn-primary" style="margin-right:6px" onclick='openModal(${JSON.stringify(s)})'>Edit</button>
+                <button class="btn btn-danger" onclick="deleteMember(${s.id})">Delete</button>
+            </td>
+        </tr>
+    `).join('');
 }
 
-function ScheduleModal({ staffMember, onClose, onSaved }) {
-    const [shifts, setShifts] = useState([]);
-    const [shiftId, setShiftId] = useState('');
-    const [date, setDate] = useState('');
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState('');
+let searchTimer;
+function onSearch(val) {
+    searchQuery = val.toLowerCase();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(renderTable, 300);
+}
 
-    useEffect(() => {
-        async function loadShifts() {
-            const s = await apiFetch('/shifts/');
-            setShifts(s ? (s.results || s) : []);
-        }
-        loadShifts();
-    }, []);
+async function deleteMember(id) {
+    if (!confirm('Delete this staff member?')) return;
+    await apiFetch(`/staff/${id}/`, { method: 'DELETE' });
+    loadStaff();
+}
 
-    async function save() {
-        setSaving(true);
-        setError('');
-        const result = await apiFetch('/schedules/', {
-            method: 'POST',
-            body: JSON.stringify({ staff: staffMember.id, shift: Number(shiftId), date })
-        });
-        setSaving(false);
-        if (result) {
-            onSaved();
+function openModal(member) {
+    document.getElementById('modalTitle').textContent = member ? 'Edit Staff Member' : 'Add Staff Member';
+    document.getElementById('editId').value = member ? member.id : '';
+    document.getElementById('f_name').value = member ? member.name || '' : '';
+    document.getElementById('f_employee_id').value = member ? member.employee_id || '' : '';
+    document.getElementById('f_email').value = member ? member.email || '' : '';
+    document.getElementById('f_phone').value = member ? member.phone || '' : '';
+    document.getElementById('f_staff_type').value = member ? member.staff_type || 'GROUND' : 'GROUND';
+    document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+}
+
+async function saveStaff() {
+    const id = document.getElementById('editId').value;
+    const payload = {
+        name: document.getElementById('f_name').value,
+        employee_id: document.getElementById('f_employee_id').value,
+        email: document.getElementById('f_email').value,
+        phone: document.getElementById('f_phone').value,
+        staff_type: document.getElementById('f_staff_type').value,
+    };
+
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `/staff/${id}/` : '/staff/';
+    const result = await apiFetch(url, { method, body: JSON.stringify(payload) });
+
+    btn.disabled = false; btn.textContent = 'Save';
+    if (result) { closeModal(); loadStaff(); }
+}
+
+async function openScheduleModal(member) {
+    document.getElementById('scheduleTitle').textContent = `Assign Shift — ${member.name}`;
+    document.getElementById('scheduleStaffId').value = member.id;
+    document.getElementById('f_date').value = '';
+    document.getElementById('scheduleError').style.display = 'none';
+
+    if (!shiftsList.length) {
+        const s = await apiFetch('/shifts/');
+        shiftsList = s ? (s.results || s) : [];
+        const sel = document.getElementById('f_shift');
+        if (shiftsList.length) {
+            sel.innerHTML = '<option value="">-- Select Shift --</option>' +
+                shiftsList.map(s => `<option value="${s.id}">${s.shift_name} (${s.start_time} – ${s.end_time})</option>`).join('');
+            document.getElementById('noShiftsMsg').style.display = 'none';
         } else {
-            setError('Failed to assign shift. Make sure a shift and date are selected.');
+            sel.innerHTML = '<option value="">-- No shifts available --</option>';
+            document.getElementById('noShiftsMsg').style.display = 'block';
         }
     }
 
-    return (
-        <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onClose()}>
-            <div className="modal">
-                <h3>Assign Shift � {staffMember.name}</h3>
-
-                <div className="form-group">
-                    <label>Shift</label>
-                    <select value={shiftId} onChange={e => setShiftId(e.target.value)}>
-                        <option value="">-- Select Shift --</option>
-                        {shifts.map(s => (
-                            <option key={s.id} value={s.id}>{s.shift_name} ({s.start_time}�{s.end_time})</option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="form-group">
-                    <label>Date</label>
-                    <input type="date" value={date} onChange={e => setDate(e.target.value)} />
-                </div>
-
-                {shifts.length === 0 && (
-                    <p style={{color:'#888', fontSize:'0.85rem'}}>No shifts exist yet. Create one in Django Admin first.</p>
-                )}
-                {error && <p className="error-msg">{error}</p>}
-
-                <div className="modal-footer">
-                    <button className="btn" onClick={onClose}>Cancel</button>
-                    <button className="btn btn-primary" onClick={save} disabled={saving || !shiftId || !date}>
-                        {saving ? 'Saving...' : 'Assign'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+    document.getElementById('f_shift').value = '';
+    document.getElementById('scheduleOverlay').classList.add('open');
 }
-function StaffPage() {
-    const [staff, setStaff] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [modal, setModal] = useState(null);
-    const [scheduleModal, setScheduleModal] = useState(null);
-    const [menuOpen, setMenuOpen] = useState(false);
 
-    async function load() {
-        setLoading(true);
-        const data = await apiFetch('/staff/');
-        setStaff(data ? (data.results || data) : []);
-        setLoading(false);
+function closeScheduleModal() {
+    document.getElementById('scheduleOverlay').classList.remove('open');
+}
+
+async function saveSchedule() {
+    const staffId = document.getElementById('scheduleStaffId').value;
+    const shiftId = document.getElementById('f_shift').value;
+    const date    = document.getElementById('f_date').value;
+    const errEl   = document.getElementById('scheduleError');
+    const btn     = document.getElementById('assignBtn');
+
+    if (!shiftId || !date) {
+        errEl.textContent = 'Please select a shift and date.';
+        errEl.style.display = 'block';
+        return;
     }
 
-    useEffect(() => { load(); }, []);
+    btn.disabled = true; btn.textContent = 'Saving…';
+    errEl.style.display = 'none';
 
-    async function deleteMember(id) {
-        if (!confirm('Delete this staff member?')) return;
-        await apiFetch(`/staff/${id}/`, { method: 'DELETE' });
-        load();
+    const result = await apiFetch('/schedules/', {
+        method: 'POST',
+        body: JSON.stringify({ staff: Number(staffId), shift: Number(shiftId), date }),
+    });
+
+    btn.disabled = false; btn.textContent = 'Assign';
+
+    if (result) {
+        closeScheduleModal();
+    } else {
+        errEl.textContent = 'Failed to assign shift. Make sure a shift and date are selected.';
+        errEl.style.display = 'block';
     }
-
-    const filtered = staff.filter(s =>
-        (s.name        || '').toLowerCase().includes(search.toLowerCase()) ||
-        (s.employee_id || '').toLowerCase().includes(search.toLowerCase()) ||
-        (s.staff_type  || '').toLowerCase().includes(search.toLowerCase())
-    );
-
-    const counts = {
-        total:       staff.length,
-        ground:      staff.filter(s => s.staff_type === 'GROUND').length,
-        security:    staff.filter(s => s.staff_type === 'SECURITY').length,
-        maintenance: staff.filter(s => s.staff_type === 'MAINTENANCE').length,
-        supervisor:  staff.filter(s => s.staff_type === 'SUPERVISOR').length,
-    };
-
-    return (
-        <div>
-            <Navbar onMenuClick={() => setMenuOpen(true)} />
-            <div className="layout">
-                <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
-                <div className="main">
-                    <p className="page-title">?? Staff</p>
-
-                    <div className="cards">
-                        <div className="card" style={{borderTop:'4px solid #9b59b6'}}>
-                            <h3 style={{color:'#9b59b6'}}>{counts.total}</h3>
-                            <p>Total Staff</p>
-                        </div>
-                        <div className="card" style={{borderTop:'4px solid #3498db'}}>
-                            <h3 style={{color:'#3498db'}}>{counts.ground}</h3>
-                            <p>Ground Staff</p>
-                        </div>
-                        <div className="card" style={{borderTop:'4px solid #f39c12'}}>
-                            <h3 style={{color:'#f39c12'}}>{counts.security}</h3>
-                            <p>Security</p>
-                        </div>
-                        <div className="card" style={{borderTop:'4px solid #e74c3c'}}>
-                            <h3 style={{color:'#e74c3c'}}>{counts.supervisor}</h3>
-                            <p>Supervisors</p>
-                        </div>
-                    </div>
-
-                    <div className="toolbar">
-                        <input
-                            className="search-input"
-                            placeholder="Search by name, employee ID or type�"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                        />
-                        <button className="btn btn-primary" onClick={() => setModal('add')}>+ Add Staff</button>
-                    </div>
-
-                    <div className="table-container">
-                        {loading ? <p style={{padding:'20px',color:'#888'}}>Loading�</p> : (
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Employee ID</th>
-                                        <th>Email</th>
-                                        <th>Phone</th>
-                                        <th>Type</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filtered.length === 0 ? (
-                                        <tr><td colSpan="6" style={{textAlign:'center',color:'#888',padding:'30px'}}>No staff found.</td></tr>
-                                    ) : filtered.map(s => (
-                                        <tr key={s.id}>
-                                            <td><strong>{s.name}</strong></td>
-                                            <td>{s.employee_id}</td>
-                                            <td>{s.email || '�'}</td>
-                                            <td>{s.phone || '�'}</td>
-                                            <td><RoleBadge staffType={s.staff_type} /></td>
-                                            <td style={{whiteSpace:'nowrap'}}>
-                                                <button className="btn btn-success" style={{marginRight:'6px'}} onClick={() => setScheduleModal(s)}>Assign Shift</button>
-                                                <button className="btn btn-primary" style={{marginRight:'6px'}} onClick={() => setModal(s)}>Edit</button>
-                                                <button className="btn btn-danger" onClick={() => deleteMember(s.id)}>Delete</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                </div>
-            </div>
-            {modal && (
-                <StaffModal
-                    member={modal === 'add' ? null : modal}
-                    onClose={() => setModal(null)}
-                    onSaved={() => { setModal(null); load(); }}
-                />
-            )}
-            {scheduleModal && (
-                <ScheduleModal
-                    staffMember={scheduleModal}
-                    onClose={() => setScheduleModal(null)}
-                    onSaved={() => setScheduleModal(null)}
-                />
-            )}
-        </div>
-    );
 }
-ReactDOM.createRoot(document.getElementById('root')).render(<StaffPage />);
+
+loadStaff();

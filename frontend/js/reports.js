@@ -1,277 +1,159 @@
-const { useState, useEffect } = React;
+﻿(function () {
+    const dark = localStorage.getItem('theme') !== 'light';
+    document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = dark ? '☀ Light' : '🌙 Dark';
+})();
 
-function Navbar({ onMenuClick }) {
-    const [dark, setDark] = React.useState(localStorage.getItem('theme') !== 'light');
-    React.useEffect(() => {
-        document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
-    }, [dark]);
-    return (
-        <div className="navbar">
-            <div className="navbar-left">
-                <button className="hamburger" onClick={onMenuClick}>?</button>
-                <h1>? Airport Ground Operations</h1>
-            </div>
-            <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                <button
-                    onClick={() => setDark(d => !d)}
-                    style={{background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'white', padding:'7px 14px', borderRadius:'20px', cursor:'pointer', fontSize:'0.85rem'}}>
-                    {dark ? '? Light' : '?? Dark'}
-                </button>
-                <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
-            </div>
-        </div>
-    );
+function toggleTheme() {
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeBtn').textContent = isDark ? '🌙 Dark' : '☀ Light';
 }
 
-function Sidebar({ open, onClose }) {
-    return (
-        <>
-            <div className={'sidebar-overlay' + (open ? ' open' : '')} onClick={onClose} />
-            <div className={'sidebar' + (open ? ' mobile-open' : '')}>
-                <a href="dashboard.html">?? Dashboard</a>
-                <a href="flights.html">? Flights</a>
-                <a href="gates.html">?? Gates</a>
-                <a href="baggage.html">?? Baggage</a>
-                <a href="maintenance.html">?? Maintenance</a>
-                <a href="staff.html">?? Staff</a>
-                <a href="notifications.html">?? Notifications</a>
-                <a href="reports.html" className="active">?? Reports</a>
-            </div>
-        </>
-    );
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('mobile-open');
+    document.getElementById('overlay').classList.toggle('open');
 }
 
-function StatRow({ label, value, color }) {
-    return (
-        <tr>
-            <td>{label}</td>
-            <td><strong style={{color: color || '#1a1a2e'}}>{value}</strong></td>
-        </tr>
-    );
+Auth.requireAuth();
+
+let reportData = null;
+
+function arr(d) { return d ? (d.results || d) : []; }
+
+function sectionCard(title, rows) {
+    const rowsHtml = rows.map(([label, value, color]) =>
+        `<tr>
+            <td>${label}</td>
+            <td><strong style="color:${color || 'inherit'}">${value}</strong></td>
+        </tr>`
+    ).join('');
+    return `
+        <div class="table-container" style="margin-bottom:0;">
+            <h3 style="margin-bottom:16px;font-size:1rem;">${title}</h3>
+            <table><tbody>${rowsHtml}</tbody></table>
+        </div>`;
 }
 
-function SectionCard({ title, children }) {
-    return (
-        <div className="table-container" style={{marginBottom:'24px'}}>
-            <h3 style={{marginBottom:'16px', color:'#1a1a2e', fontSize:'1rem'}}>{title}</h3>
-            {children}
-        </div>
-    );
-}
+async function loadReport() {
+    const [flights, gates, baggage, maintenance, staff, notifications] = await Promise.all([
+        apiFetch('/flights/'),
+        apiFetch('/gates/'),
+        apiFetch('/baggage/'),
+        apiFetch('/maintenance/'),
+        apiFetch('/staff/'),
+        apiFetch('/notifications/'),
+    ]);
 
-function ReportsPage() {
-    const [data, setData]       = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [menuOpen, setMenuOpen] = useState(false);
+    const f = arr(flights);
+    const g = arr(gates);
+    const b = arr(baggage);
+    const m = arr(maintenance);
+    const s = arr(staff);
+    const n = arr(notifications);
 
-    useEffect(() => {
-        async function loadAll() {
-            setLoading(true);
-            const [flights, gates, baggage, maintenance, staff, notifications] = await Promise.all([
-                apiFetch('/flights/'),
-                apiFetch('/gates/'),
-                apiFetch('/baggage/'),
-                apiFetch('/maintenance/'),
-                apiFetch('/staff/'),
-                apiFetch('/notifications/'),
-            ]);
-
-            const arr = d => d ? (d.results || d) : [];
-
-            const f = arr(flights);
-            const g = arr(gates);
-            const b = arr(baggage);
-            const m = arr(maintenance);
-            const s = arr(staff);
-            const n = arr(notifications);
-
-            setData({
-                flights: {
-                    total:     f.length,
-                    scheduled: f.filter(x => x.status === 'scheduled').length,
-                    departed:  f.filter(x => x.status === 'departed').length,
-                    delayed:   f.filter(x => x.status === 'delayed').length,
-                    cancelled: f.filter(x => x.status === 'cancelled').length,
-                    arrived:   f.filter(x => x.status === 'arrived').length,
-                },
-                gates: {
-                    total:       g.length,
-                    available:   g.filter(x => x.status === 'available').length,
-                    occupied:    g.filter(x => x.status === 'occupied').length,
-                    maintenance: g.filter(x => x.status === 'maintenance').length,
-                },
-                baggage: {
-                    total:      b.length,
-                    delivered:  b.filter(x => x.status === 'delivered').length,
-                    missing:    b.filter(x => x.status === 'missing').length,
-                    damaged:    b.filter(x => x.status === 'damaged').length,
-                    in_transit: b.filter(x => x.status === 'in_transit').length,
-                },
-                maintenance: {
-                    total:       m.length,
-                    pending:     m.filter(x => x.status === 'pending').length,
-                    in_progress: m.filter(x => x.status === 'in_progress').length,
-                    completed:   m.filter(x => x.status === 'completed').length,
-                    critical:    m.filter(x => x.priority === 'critical').length,
-                },
-                staff: {
-                    total:     s.length,
-                    morning:   s.filter(x => x.shift === 'morning').length,
-                    afternoon: s.filter(x => x.shift === 'afternoon').length,
-                    night:     s.filter(x => x.shift === 'night').length,
-                },
-                notifications: {
-                    total:   n.length,
-                    unread:  n.filter(x => !x.is_read).length,
-                    warning: n.filter(x => x.type === 'warning').length,
-                    error:   n.filter(x => x.type === 'error').length,
-                }
-            });
-            setLoading(false);
-        }
-        loadAll();
-    }, []);
-
-    function exportCSV() {
-        if (!data) return;
-        const rows = [
-            ['Module', 'Metric', 'Count'],
-            ['Flights','Total', data.flights.total],
-            ['Flights','Scheduled', data.flights.scheduled],
-            ['Flights','Departed', data.flights.departed],
-            ['Flights','Arrived', data.flights.arrived],
-            ['Flights','Delayed', data.flights.delayed],
-            ['Flights','Cancelled', data.flights.cancelled],
-            ['Gates','Total', data.gates.total],
-            ['Gates','Available', data.gates.available],
-            ['Gates','Occupied', data.gates.occupied],
-            ['Gates','Maintenance', data.gates.maintenance],
-            ['Baggage','Total', data.baggage.total],
-            ['Baggage','Delivered', data.baggage.delivered],
-            ['Baggage','In Transit', data.baggage.in_transit],
-            ['Baggage','Missing', data.baggage.missing],
-            ['Baggage','Damaged', data.baggage.damaged],
-            ['Maintenance','Total', data.maintenance.total],
-            ['Maintenance','Pending', data.maintenance.pending],
-            ['Maintenance','In Progress', data.maintenance.in_progress],
-            ['Maintenance','Completed', data.maintenance.completed],
-            ['Maintenance','Critical', data.maintenance.critical],
-            ['Staff','Total', data.staff.total],
-            ['Staff','Morning Shift', data.staff.morning],
-            ['Staff','Afternoon Shift', data.staff.afternoon],
-            ['Staff','Night Shift', data.staff.night],
-            ['Notifications','Total', data.notifications.total],
-            ['Notifications','Unread', data.notifications.unread],
-            ['Notifications','Warnings', data.notifications.warning],
-            ['Notifications','Errors', data.notifications.error],
-        ];
-        const csv = rows.map(r => r.join(',')).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href     = url;
-        a.download = 'airport_operations_report.csv';
-        a.click();
-        URL.revokeObjectURL(url);
+    if (!f && !g && !b) {
+        document.getElementById('loadingMsg').style.display = 'none';
+        document.getElementById('errorMsg').style.display = 'block';
+        return;
     }
 
-    return (
-        <div>
-            <Navbar onMenuClick={() => setMenuOpen(true)} />
-            <div className="layout">
-                <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
-                <div className="main">
-                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px', flexWrap:'wrap', gap:'10px'}}>
-                        <p className="page-title" style={{marginBottom:0}}>?? Operations Report</p>
-                        <button className="btn btn-success" onClick={exportCSV} disabled={!data}>
-                            ? Export CSV
-                        </button>
-                    </div>
+    reportData = {
+        flights:       { total: f.length, scheduled: f.filter(x=>x.status==='SCHEDULED').length, departed: f.filter(x=>x.status==='DEPARTED').length, arrived: f.filter(x=>x.status==='ARRIVED').length, cancelled: f.filter(x=>x.status==='CANCELLED').length },
+        gates:         { total: g.length, available: g.filter(x=>x.status==='available').length, occupied: g.filter(x=>x.status==='occupied').length, maintenance: g.filter(x=>x.status==='maintenance').length },
+        baggage:       { total: b.length, in_transit: b.filter(x=>x.status==='IN_TRANSIT').length, arrived: b.filter(x=>x.status==='ARRIVED').length, claimed: b.filter(x=>x.status==='CLAIMED').length },
+        maintenance:   { total: m.length, open: m.filter(x=>x.priority!=='completed').length, high: m.filter(x=>x.priority==='HIGH').length, medium: m.filter(x=>x.priority==='MEDIUM').length, low: m.filter(x=>x.priority==='LOW').length },
+        staff:         { total: s.length, ground: s.filter(x=>x.staff_type==='GROUND').length, security: s.filter(x=>x.staff_type==='SECURITY').length, maintenance: s.filter(x=>x.staff_type==='MAINTENANCE').length, supervisor: s.filter(x=>x.staff_type==='SUPERVISOR').length },
+        notifications: { total: n.length, unread: n.filter(x=>!x.is_read).length, flight: n.filter(x=>x.type==='FLIGHT').length, maintenance: n.filter(x=>x.type==='MAINTENANCE').length },
+    };
 
-                    {loading ? (
-                        <p style={{padding:'30px', color:'#888', textAlign:'center'}}>Loading report data�</p>
-                    ) : !data ? (
-                        <p style={{padding:'30px', color:'#e74c3c', textAlign:'center'}}>Failed to load data.</p>
-                    ) : (
-                        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'20px'}}>
+    const grid = document.getElementById('reportGrid');
+    grid.innerHTML = [
+        sectionCard('✈ Flights', [
+            ['Total Flights',  reportData.flights.total,     ''],
+            ['Scheduled',      reportData.flights.scheduled,  '#3498db'],
+            ['Departed',       reportData.flights.departed,   '#27ae60'],
+            ['Arrived',        reportData.flights.arrived,    '#27ae60'],
+            ['Cancelled',      reportData.flights.cancelled,  '#e74c3c'],
+        ]),
+        sectionCard('🚪 Gates', [
+            ['Total Gates',  reportData.gates.total,       ''],
+            ['Available',    reportData.gates.available,   '#27ae60'],
+            ['Occupied',     reportData.gates.occupied,    '#e74c3c'],
+            ['Maintenance',  reportData.gates.maintenance, '#f39c12'],
+        ]),
+        sectionCard('🧳 Baggage', [
+            ['Total Items',  reportData.baggage.total,      ''],
+            ['In Transit',   reportData.baggage.in_transit, '#f39c12'],
+            ['Arrived',      reportData.baggage.arrived,    '#27ae60'],
+            ['Claimed',      reportData.baggage.claimed,    '#9b59b6'],
+        ]),
+        sectionCard('🔧 Maintenance', [
+            ['Total Requests', reportData.maintenance.total,  ''],
+            ['High Priority',  reportData.maintenance.high,   '#e74c3c'],
+            ['Medium Priority',reportData.maintenance.medium, '#f39c12'],
+            ['Low Priority',   reportData.maintenance.low,    '#3498db'],
+        ]),
+        sectionCard('👷 Staff', [
+            ['Total Staff',  reportData.staff.total,       ''],
+            ['Ground',       reportData.staff.ground,      '#3498db'],
+            ['Security',     reportData.staff.security,    '#f39c12'],
+            ['Maintenance',  reportData.staff.maintenance, '#e74c3c'],
+            ['Supervisors',  reportData.staff.supervisor,  '#9b59b6'],
+        ]),
+        sectionCard('🔔 Notifications', [
+            ['Total',       reportData.notifications.total,       ''],
+            ['Unread',      reportData.notifications.unread,      '#e74c3c'],
+            ['Flight',      reportData.notifications.flight,      '#3498db'],
+            ['Maintenance', reportData.notifications.maintenance,  '#f39c12'],
+        ]),
+    ].join('');
 
-                            <SectionCard title="? Flights">
-                                <table>
-                                    <tbody>
-                                        <StatRow label="Total Flights"  value={data.flights.total} />
-                                        <StatRow label="Scheduled"      value={data.flights.scheduled}  color="#3498db" />
-                                        <StatRow label="Departed"       value={data.flights.departed}   color="#27ae60" />
-                                        <StatRow label="Arrived"        value={data.flights.arrived}    color="#27ae60" />
-                                        <StatRow label="Delayed"        value={data.flights.delayed}    color="#e74c3c" />
-                                        <StatRow label="Cancelled"      value={data.flights.cancelled}  color="#e74c3c" />
-                                    </tbody>
-                                </table>
-                            </SectionCard>
-
-                            <SectionCard title="?? Gates">
-                                <table>
-                                    <tbody>
-                                        <StatRow label="Total Gates"   value={data.gates.total} />
-                                        <StatRow label="Available"     value={data.gates.available}    color="#27ae60" />
-                                        <StatRow label="Occupied"      value={data.gates.occupied}     color="#e74c3c" />
-                                        <StatRow label="Maintenance"   value={data.gates.maintenance}  color="#f39c12" />
-                                    </tbody>
-                                </table>
-                            </SectionCard>
-
-                            <SectionCard title="?? Baggage">
-                                <table>
-                                    <tbody>
-                                        <StatRow label="Total Items"  value={data.baggage.total} />
-                                        <StatRow label="Delivered"    value={data.baggage.delivered}   color="#27ae60" />
-                                        <StatRow label="In Transit"   value={data.baggage.in_transit}  color="#f39c12" />
-                                        <StatRow label="Missing"      value={data.baggage.missing}     color="#e74c3c" />
-                                        <StatRow label="Damaged"      value={data.baggage.damaged}     color="#e74c3c" />
-                                    </tbody>
-                                </table>
-                            </SectionCard>
-
-                            <SectionCard title="?? Maintenance">
-                                <table>
-                                    <tbody>
-                                        <StatRow label="Total Requests"  value={data.maintenance.total} />
-                                        <StatRow label="Pending"         value={data.maintenance.pending}      color="#f39c12" />
-                                        <StatRow label="In Progress"     value={data.maintenance.in_progress}  color="#3498db" />
-                                        <StatRow label="Completed"       value={data.maintenance.completed}    color="#27ae60" />
-                                        <StatRow label="Critical"        value={data.maintenance.critical}     color="#e74c3c" />
-                                    </tbody>
-                                </table>
-                            </SectionCard>
-
-                            <SectionCard title="?? Staff">
-                                <table>
-                                    <tbody>
-                                        <StatRow label="Total Staff"      value={data.staff.total} />
-                                        <StatRow label="Morning Shift"    value={data.staff.morning}    color="#f39c12" />
-                                        <StatRow label="Afternoon Shift"  value={data.staff.afternoon}  color="#3498db" />
-                                        <StatRow label="Night Shift"      value={data.staff.night}      color="#9b59b6" />
-                                    </tbody>
-                                </table>
-                            </SectionCard>
-
-                            <SectionCard title="?? Notifications">
-                                <table>
-                                    <tbody>
-                                        <StatRow label="Total"     value={data.notifications.total} />
-                                        <StatRow label="Unread"    value={data.notifications.unread}    color="#e74c3c" />
-                                        <StatRow label="Warnings"  value={data.notifications.warning}   color="#f39c12" />
-                                        <StatRow label="Errors"    value={data.notifications.error}     color="#e74c3c" />
-                                    </tbody>
-                                </table>
-                            </SectionCard>
-
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
+    document.getElementById('loadingMsg').style.display = 'none';
+    grid.style.display = 'grid';
+    document.getElementById('exportBtn').disabled = false;
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<ReportsPage />);
+function exportCSV() {
+    if (!reportData) return;
+    const d = reportData;
+    const rows = [
+        ['Module','Metric','Count'],
+        ['Flights','Total',d.flights.total],
+        ['Flights','Scheduled',d.flights.scheduled],
+        ['Flights','Departed',d.flights.departed],
+        ['Flights','Arrived',d.flights.arrived],
+        ['Flights','Cancelled',d.flights.cancelled],
+        ['Gates','Total',d.gates.total],
+        ['Gates','Available',d.gates.available],
+        ['Gates','Occupied',d.gates.occupied],
+        ['Gates','Maintenance',d.gates.maintenance],
+        ['Baggage','Total',d.baggage.total],
+        ['Baggage','In Transit',d.baggage.in_transit],
+        ['Baggage','Arrived',d.baggage.arrived],
+        ['Baggage','Claimed',d.baggage.claimed],
+        ['Maintenance','Total',d.maintenance.total],
+        ['Maintenance','High Priority',d.maintenance.high],
+        ['Maintenance','Medium Priority',d.maintenance.medium],
+        ['Maintenance','Low Priority',d.maintenance.low],
+        ['Staff','Total',d.staff.total],
+        ['Staff','Ground',d.staff.ground],
+        ['Staff','Security',d.staff.security],
+        ['Staff','Maintenance',d.staff.maintenance],
+        ['Staff','Supervisors',d.staff.supervisor],
+        ['Notifications','Total',d.notifications.total],
+        ['Notifications','Unread',d.notifications.unread],
+        ['Notifications','Flight',d.notifications.flight],
+        ['Notifications','Maintenance',d.notifications.maintenance],
+    ];
+    const csv  = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'airport_operations_report.csv'; a.click();
+    URL.revokeObjectURL(url);
+}
+
+loadReport();
