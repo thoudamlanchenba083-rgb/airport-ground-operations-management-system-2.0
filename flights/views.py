@@ -41,7 +41,7 @@ class AircraftViewSet(viewsets.ModelViewSet):
         instance.delete()
 
 class FlightViewSet(viewsets.ModelViewSet):
-    queryset = Flight.objects.all()
+    queryset = Flight.objects.all().order_by('-departure_time')
     serializer_class = FlightSerializer
     permission_classes = [IsAuthenticatedReadOnly]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

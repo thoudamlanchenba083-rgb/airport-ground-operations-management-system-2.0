@@ -8,6 +8,23 @@ from .models import User
 from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
 from core_app.permissions import IsAdminUser
 
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.response import Response
+from rest_framework import status
+
+
+@method_decorator(ratelimit(key='ip', rate='5/m', method='POST', block=True), name='post')
+class RateLimitedTokenObtainPairView(TokenObtainPairView):
+    """Login endpoint — max 5 attempts per minute per IP."""
+    pass
+
+
+@method_decorator(ratelimit(key='ip', rate='10/m', method='POST', block=True), name='post')
+class RateLimitedTokenRefreshView(TokenRefreshView):
+    """Token refresh — max 10 per minute per IP."""
+    pass
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()

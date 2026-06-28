@@ -20,11 +20,19 @@ class Staff(models.Model):
     employee_id = models.CharField(max_length=20, unique=True)
     staff_type = models.CharField(max_length=20, choices=STAFF_TYPES)
     phone = models.CharField(max_length=20)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
     is_active = models.BooleanField(default=True)
+    class Meta:
+        indexes = [
+            models.Index(fields=['staff_type']),
+            models.Index(fields=['is_active']),
+            models.Index(fields=['employee_id']),
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.employee_id})"
+
+    
 
 
 class Shift(models.Model):
