@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     path('api/accounts/', include('accounts.urls')),
+    path('api/', include('core_app.urls')),
     path('api/', include('flights.urls')),
     path('api/', include('gates.urls')),
     path('api/', include('baggage.urls')),

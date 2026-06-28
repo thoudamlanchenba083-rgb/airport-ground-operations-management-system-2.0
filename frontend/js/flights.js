@@ -1,32 +1,32 @@
-﻿const { useState, useEffect } = React;
-const API_BASE = 'http://127.0.0.1:8000/api';
-
-if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
-
-let redirecting = false;
-
-async function apiFetch(endpoint, options = {}) {
-    if (redirecting) return null;
-    const res = await fetch(API_BASE + endpoint, {
-        ...options,
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        }
-    });
-    if (res.status === 401) {
-        if (!redirecting) {
-            redirecting = true;
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-        return null;
-    }
-    if (res.ok) return res.status === 204 ? true : await res.json();
-    return null;
+﻿const { useState, useEffect, useCallback } = React;
+function Pagination({ next, previous, onNext, onPrev, page, total }) {
+    const totalPages = Math.ceil(total / 10) || 1;
+    return (
+        <div style={{
+            display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 0', marginTop: '8px'
+        }}>
+            <button
+                className="btn"
+                onClick={onPrev}
+                disabled={!previous}
+                style={{ opacity: previous ? 1 : 0.4, cursor: previous ? 'pointer' : 'not-allowed' }}>
+                ← Prev
+            </button>
+            <span style={{ fontSize: '0.85rem', color: '#888' }}>
+                Page {page} of {totalPages} · {total} total
+            </span>
+            <button
+                className="btn"
+                onClick={onNext}
+                disabled={!next}
+                style={{ opacity: next ? 1 : 0.4, cursor: next ? 'pointer' : 'not-allowed' }}>
+                Next →
+            </button>
+        </div>
+    );
 }
-
 function Navbar({ onMenuClick }) {
     const [dark, setDark] = React.useState(localStorage.getItem('theme') !== 'light');
 
@@ -198,15 +198,27 @@ function FlightsPage() {
     const [search, setSearch] = useState('');
     const [modal, setModal] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [page, setPage] = useState(1);
+    const [next, setNext] = useState(null);
+    const [previous, setPrevious] = useState(null);
+    const [total, setTotal] = useState(0);
 
-    async function load() {
+    async function load(url = null) {
         setLoading(true);
-        const data = await apiFetch('/flights/');
-        setFlights(data ? (data.results || data) : []);
+        const endpoint = url
+            ? url.replace(API_BASE, '')
+            : `/flights/?page=${page}&search=${search}`;
+        const data = await apiFetch(endpoint);
+        if (data) {
+            setFlights(data.results || data);
+            setNext(data.next || null);
+            setPrevious(data.previous || null);
+            setTotal(data.count || 0);
+        }
         setLoading(false);
     }
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => { load(); }, [page, search]);
 
     async function deleteFlight(id) {
         if (!confirm('Delete this flight?')) return;
@@ -273,6 +285,12 @@ function FlightsPage() {
                             </table>
                         )}
                     </div>
+                    <Pagination
+                        next={next} previous={previous}
+                        page={page} total={total}
+                        onNext={() => { setPage(p => p + 1); load(next); }}
+                        onPrev={() => { setPage(p => p - 1); load(previous); }}
+                    />
                 </div>
             </div>
             {modal && (

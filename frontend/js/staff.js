@@ -1,31 +1,4 @@
-﻿const { useState, useEffect } = React;
-const API_BASE = 'http://127.0.0.1:8000/api';
-
-if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
-
-let redirecting = false;
-
-async function apiFetch(endpoint, options = {}) {
-    if (redirecting) return null;
-    const res = await fetch(API_BASE + endpoint, {
-        ...options,
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        }
-    });
-    if (res.status === 401) {
-        if (!redirecting) {
-            redirecting = true;
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-        return null;
-    }
-    if (res.ok) return res.status === 204 ? true : await res.json();
-    return null;
-}
+const { useState, useEffect } = React;
 
 function Navbar({ onMenuClick }) {
     const [dark, setDark] = React.useState(localStorage.getItem('theme') !== 'light');
@@ -36,14 +9,14 @@ function Navbar({ onMenuClick }) {
     return (
         <div className="navbar">
             <div className="navbar-left">
-                <button className="hamburger" onClick={onMenuClick}>☰</button>
-                <h1>✈ Airport Ground Operations</h1>
+                <button className="hamburger" onClick={onMenuClick}>?</button>
+                <h1>? Airport Ground Operations</h1>
             </div>
             <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                 <button
                     onClick={() => setDark(d => !d)}
                     style={{background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'white', padding:'7px 14px', borderRadius:'20px', cursor:'pointer', fontSize:'0.85rem'}}>
-                    {dark ? '☀ Light' : '🌙 Dark'}
+                    {dark ? '? Light' : '?? Dark'}
                 </button>
                 <button onClick={() => { localStorage.clear(); window.location.href = 'landing.html'; }}>Logout</button>
             </div>
@@ -56,14 +29,14 @@ function Sidebar({ open, onClose }) {
         <>
             <div className={'sidebar-overlay' + (open ? ' open' : '')} onClick={onClose} />
             <div className={'sidebar' + (open ? ' mobile-open' : '')}>
-                <a href="dashboard.html">📊 Dashboard</a>
-                <a href="flights.html">✈ Flights</a>
-                <a href="gates.html">🚪 Gates</a>
-                <a href="baggage.html">🧳 Baggage</a>
-                <a href="maintenance.html">🔧 Maintenance</a>
-                <a href="staff.html" className="active">👷 Staff</a>
-                <a href="notifications.html">🔔 Notifications</a>
-                <a href="reports.html">📋 Reports</a>
+                <a href="dashboard.html">?? Dashboard</a>
+                <a href="flights.html">? Flights</a>
+                <a href="gates.html">?? Gates</a>
+                <a href="baggage.html">?? Baggage</a>
+                <a href="maintenance.html">?? Maintenance</a>
+                <a href="staff.html" className="active">?? Staff</a>
+                <a href="notifications.html">?? Notifications</a>
+                <a href="reports.html">?? Reports</a>
             </div>
         </>
     );
@@ -172,14 +145,14 @@ function ScheduleModal({ staffMember, onClose, onSaved }) {
     return (
         <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onClose()}>
             <div className="modal">
-                <h3>Assign Shift — {staffMember.name}</h3>
+                <h3>Assign Shift � {staffMember.name}</h3>
 
                 <div className="form-group">
                     <label>Shift</label>
                     <select value={shiftId} onChange={e => setShiftId(e.target.value)}>
                         <option value="">-- Select Shift --</option>
                         {shifts.map(s => (
-                            <option key={s.id} value={s.id}>{s.shift_name} ({s.start_time}–{s.end_time})</option>
+                            <option key={s.id} value={s.id}>{s.shift_name} ({s.start_time}�{s.end_time})</option>
                         ))}
                     </select>
                 </div>
@@ -247,7 +220,7 @@ function StaffPage() {
             <div className="layout">
                 <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
                 <div className="main">
-                    <p className="page-title">👷 Staff</p>
+                    <p className="page-title">?? Staff</p>
 
                     <div className="cards">
                         <div className="card" style={{borderTop:'4px solid #9b59b6'}}>
@@ -271,7 +244,7 @@ function StaffPage() {
                     <div className="toolbar">
                         <input
                             className="search-input"
-                            placeholder="Search by name, employee ID or type…"
+                            placeholder="Search by name, employee ID or type�"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
@@ -279,7 +252,7 @@ function StaffPage() {
                     </div>
 
                     <div className="table-container">
-                        {loading ? <p style={{padding:'20px',color:'#888'}}>Loading…</p> : (
+                        {loading ? <p style={{padding:'20px',color:'#888'}}>Loading�</p> : (
                             <table>
                                 <thead>
                                     <tr>
@@ -298,8 +271,8 @@ function StaffPage() {
                                         <tr key={s.id}>
                                             <td><strong>{s.name}</strong></td>
                                             <td>{s.employee_id}</td>
-                                            <td>{s.email || '—'}</td>
-                                            <td>{s.phone || '—'}</td>
+                                            <td>{s.email || '�'}</td>
+                                            <td>{s.phone || '�'}</td>
                                             <td><RoleBadge staffType={s.staff_type} /></td>
                                             <td style={{whiteSpace:'nowrap'}}>
                                                 <button className="btn btn-success" style={{marginRight:'6px'}} onClick={() => setScheduleModal(s)}>Assign Shift</button>

@@ -12,17 +12,12 @@ class Gate(models.Model):
 
 
 class GateAssignment(models.Model):
-    flight = models.ForeignKey(
-        Flight,
-        on_delete=models.CASCADE
-    )
-
-    gate = models.ForeignKey(
-        Gate,
-        on_delete=models.CASCADE
-    )
-
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
+    gate = models.ForeignKey(Gate, on_delete=models.CASCADE)
     assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [['flight', 'gate']]
 
     def __str__(self):
         return f"{self.flight.flight_number} -> {self.gate.gate_number}"
