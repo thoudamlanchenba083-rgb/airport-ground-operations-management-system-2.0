@@ -1,0 +1,291 @@
+import { useEffect, useState } from 'react'
+import axiosClient from '../../api/axiosClient'
+
+const PRIORITY_COLORS = {
+  LOW:    'bg-gray-100 text-gray-600',
+  MEDIUM: 'bg-yellow-100 text-yellow-700',
+  HIGH:   'bg-red-100 text-red-700',
+}
+
+const STATUS_COLORS = {
+  OPEN:             'bg-blue-100 text-blue-700',
+  PENDING_APPROVAL: 'bg-orange-100 text-orange-700',
+  APPROVED:         'bg-green-100 text-green-700',
+  REJECTED:         'bg-red-100 text-red-700',
+  IN_PROGRESS:      'bg-purple-100 text-purple-700',
+  RESOLVED:         'bg-teal-100 text-teal-700',
+  CLOSED:           'bg-gray-100 text-gray-500',
+}
+
+const STATUSES   = ['OPEN','PENDING_APPROVAL','APPROVED','REJECTED','IN_PROGRESS','RESOLVED','CLOSED']
+const PRIORITIES = ['LOW','MEDIUM','HIGH']
+
+export default function MaintenanceTab() {
+  const [requests,  setRequests]  = useState([])
+  const [aircraft,  setAircraft]  = useState([])
+  const [loading,   setLoading]   = useState(true)
+  const [error,     setError]     = useState('')
+  const [search,    setSearch]    = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
+  const [showForm,  setShowForm]  = useState(false)
+  const [saving,    setSaving]    = useState(false)
+  const [selected,  setSelected]  = useState(null)
+  const [logs,      setLogs]      = useState([])
+  const [logForm,   setLogForm]   = useState({ action_taken: '', completed_at: '' })
+  const [form, setForm] = useState({
+    aircraft: '', issue_description: '', priority: 'LOW', assigned_to: ''
+  })
+
+  const load = () => {
+    setLoading(true)
+    Promise.all([
+      axiosClient.get('/maintenance/'),
+      axiosClient.get('/aircraft/'),
+    ])
+      .then(([m, a]) => {
+        setRequests(m.data.results ?? m.data)
+        setAircraft(a.data.results ?? a.data)
+      })
+      .catch(() => setError('Failed to load maintenance data.'))
+      .finally(() => setLoading(false))
+  }
+
+  const loadLogs = (req) => {
+    setSelected(req)
+    axiosClient.get(`/maintenance-logs/?request=${req.id}`)
+      .then(r => setLogs(r.data.results ?? r.data))
+      .catch(() => setError('Failed to load logs.'))
+  }
+
+  useEffect(() => { load() }, [])
+
+  const filtered = requests.filter(r => {
+    const matchSearch = r.issue_description.toLowerCase().includes(search.toLowerCase())
+    const matchStatus = filterStatus ? r.status === filterStatus : true
+    return matchSearch && matchStatus
+  })
+
+  const handleSubmit = () => {
+    setSaving(true)
+    axiosClient.post('/maintenance/', form)
+      .then(() => {
+        load()
+        setShowForm(false)
+        setForm({ aircraft: '', issue_description: '', priority: 'LOW', assigned_to: '' })
+      })
+      .catch(() => setError('Failed to create request.'))
+      .finally(() => setSaving(false))
+  }
+
+  const updateStatus = (req, status) => {
+    axiosClient.patch(`/maintenance/${req.id}/`, { status })
+      .then(load)
+      .catch(() => setError('Failed to update status.'))
+  }
+
+  const addLog = () => {
+    axiosClient.post('/maintenance-logs/', { ...logForm, request: selected.id })
+      .then(() => {
+        loadLogs(selected)
+        setLogForm({ action_taken: '', completed_at: '' })
+      })
+      .catch(() => setError('Failed to add log.'))
+  }
+
+  const deleteRequest = (id) => {
+    if (!window.confirm('Delete this maintenance request?')) return
+    axiosClient.delete(`/maintenance/${id}/`).then(load).catch(() => setError('Failed to delete.'))
+  }
+
+  if (loading) return <p className="text-gray-500 p-4">Loading maintenance...</p>
+
+  return (
+    <div>
+      {error && <p className="text-red-500 mb-3 text-sm">{error}</p>}
+
+      {/* Log drawer */}
+      {selected && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex justify-end">
+          <div className="bg-white w-full max-w-md h-full overflow-y-auto shadow-xl p-5">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold text-gray-800">Logs — Request #{selected.id}</h3>
+              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <p className="text-xs text-gray-500 mb-4 bg-gray-50 rounded p-2">{selected.issue_description}</p>
+
+            {/* Status quick-change */}
+            <div className="mb-4">
+              <p className="text-xs text-gray-500 mb-1 font-medium">Change Status</p>
+              <div className="flex flex-wrap gap-1">
+                {STATUSES.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => { updateStatus(selected, s); setSelected(prev => ({ ...prev, status: s })) }}
+                    className={`text-xs px-2 py-1 rounded border ${selected.status === s ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}
+                  >
+                    {s.replace('_', ' ')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Add log */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4 space-y-2">
+              <textarea
+                placeholder="Action taken..."
+                value={logForm.action_taken}
+                onChange={e => setLogForm(f => ({ ...f, action_taken: e.target.value }))}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                rows={3}
+              />
+              <input
+                type="datetime-local"
+                value={logForm.completed_at}
+                onChange={e => setLogForm(f => ({ ...f, completed_at: e.target.value }))}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              />
+              <button
+                onClick={addLog}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-lg"
+              >
+                Add Log Entry
+              </button>
+            </div>
+
+            {/* Log history */}
+            <div className="space-y-3">
+              {logs.length === 0 ? (
+                <p className="text-gray-400 text-sm text-center py-4">No logs yet.</p>
+              ) : logs.map(l => (
+                <div key={l.id} className="border border-gray-100 rounded-lg p-3">
+                  <p className="text-sm text-gray-700">{l.action_taken}</p>
+                  {l.completed_at && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Completed: {new Date(l.completed_at).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="flex gap-3 mb-4 flex-wrap">
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search by issue..."
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[180px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <select
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+        >
+          <option value="">All Statuses</option>
+          {STATUSES.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
+        </select>
+        <button
+          onClick={() => setShowForm(v => !v)}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg"
+        >
+          {showForm ? 'Cancel' : '+ New Request'}
+        </button>
+      </div>
+
+      {/* Add form */}
+      {showForm && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 grid grid-cols-2 gap-3">
+          <select
+            value={form.aircraft}
+            onChange={e => setForm(f => ({ ...f, aircraft: e.target.value }))}
+            className="border border-gray-300 rounded px-3 py-2 text-sm"
+          >
+            <option value="">Select Aircraft</option>
+            {aircraft.map(a => (
+              <option key={a.id} value={a.id}>{a.registration_number} — {a.model}</option>
+            ))}
+          </select>
+          <select
+            value={form.priority}
+            onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
+            className="border border-gray-300 rounded px-3 py-2 text-sm"
+          >
+            {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <textarea
+            placeholder="Issue description..."
+            value={form.issue_description}
+            onChange={e => setForm(f => ({ ...f, issue_description: e.target.value }))}
+            className="col-span-2 border border-gray-300 rounded px-3 py-2 text-sm"
+            rows={2}
+          />
+          <div className="col-span-2 flex justify-end">
+            <button
+              onClick={handleSubmit}
+              disabled={saving}
+              className="bg-green-600 hover:bg-green-700 text-white text-sm px-5 py-2 rounded-lg"
+            >
+              {saving ? 'Saving...' : 'Submit Request'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+            <tr>
+              <th className="px-4 py-3 text-left">#</th>
+              <th className="px-4 py-3 text-left">Aircraft</th>
+              <th className="px-4 py-3 text-left">Issue</th>
+              <th className="px-4 py-3 text-left">Priority</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 bg-white">
+            {filtered.length === 0 ? (
+              <tr><td colSpan={6} className="text-center text-gray-400 py-6">No maintenance requests found.</td></tr>
+            ) : filtered.map(r => (
+              <tr key={r.id} className="hover:bg-gray-50">
+                <td className="px-4 py-3 text-gray-400 text-xs">#{r.id}</td>
+                <td className="px-4 py-3 font-medium text-gray-800">
+                  {aircraft.find(a => a.id === r.aircraft)?.registration_number ?? r.aircraft}
+                </td>
+                <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{r.issue_description}</td>
+                <td className="px-4 py-3">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${PRIORITY_COLORS[r.priority]}`}>
+                    {r.priority}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[r.status] ?? 'bg-gray-100 text-gray-500'}`}>
+                    {r.status.replace('_', ' ')}
+                  </span>
+                </td>
+                <td className="px-4 py-3 flex gap-2">
+                  <button
+                    onClick={() => loadLogs(r)}
+                    className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded"
+                  >
+                    Logs
+                  </button>
+                  <button
+                    onClick={() => deleteRequest(r.id)}
+                    className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
