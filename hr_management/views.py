@@ -36,9 +36,9 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser or user.staff.role in ['manager', 'admin']:
+        if user.is_superuser or user.role in ['ADMIN', 'HR', 'OPERATIONS_MANAGER', 'SUPERVISOR']:
             return LeaveRequest.objects.all()
-        return LeaveRequest.objects.filter(staff=user.staff)
+        return LeaveRequest.objects.filter(staff=user.staff_profile)
     
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
@@ -52,7 +52,7 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
             )
         
         leave.status = 'approved'
-        leave.approved_by = request.user.staff
+        leave.approved_by = request.user.staff_profile
         leave.approval_date = timezone.now()
         leave.save()
         
@@ -88,14 +88,14 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser or user.staff.role in ['manager', 'admin']:
+        if user.is_superuser or user.role in ['ADMIN', 'HR', 'OPERATIONS_MANAGER', 'SUPERVISOR']:
             return Attendance.objects.all()
-        return Attendance.objects.filter(staff=user.staff)
+        return Attendance.objects.filter(staff=user.staff_profile)
     
     @action(detail=False, methods=['post'])
     def check_in(self, request):
         """Mark check-in for today"""
-        staff = request.user.staff
+        staff = request.user.staff_profile
         today = timezone.now().date()
         
         attendance, created = Attendance.objects.get_or_create(
@@ -116,7 +116,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def check_out(self, request):
         """Mark check-out for today"""
-        staff = request.user.staff
+        staff = request.user.staff_profile
         today = timezone.now().date()
         
         try:
@@ -140,9 +140,9 @@ class PayrollViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser or user.staff.role in ['manager', 'admin']:
+        if user.is_superuser or user.role in ['ADMIN', 'HR', 'OPERATIONS_MANAGER', 'SUPERVISOR']:
             return Payroll.objects.all()
-        return Payroll.objects.filter(staff=user.staff)
+        return Payroll.objects.filter(staff=user.staff_profile)
     
     @action(detail=False, methods=['post'])
     def generate_payroll(self, request):

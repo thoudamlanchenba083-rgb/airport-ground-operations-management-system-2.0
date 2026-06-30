@@ -2,6 +2,6 @@
 
 
 class GroundEquipmentConfig(AppConfig):
-    default_auto_field = 'django.db.BigAutoField'
+    default_auto_field = 'django.db.models.BigAutoField'
     name = 'ground_equipment'
     verbose_name = 'Ground Equipment Management'

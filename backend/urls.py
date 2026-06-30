@@ -1,4 +1,4 @@
-from django.contrib import admin
+﻿from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
 from django.conf.urls.static import static
@@ -24,6 +24,8 @@ schema_view = get_schema_view(
 FRONTEND = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend')
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/token/', RateLimitedTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', RateLimitedTokenRefreshView.as_view(), name='token_refresh'),
     path('api/accounts/', include('accounts.urls')),
     path('api/flights/', include('flights.urls')),
     path('api/gates/', include('gates.urls')),
