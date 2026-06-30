@@ -34,21 +34,24 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-linear-to-br from-neutral-950 via-neutral-900 to-neutral-950 flex items-center justify-center px-4 relative overflow-hidden">
+
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-neutral-600/20 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neutral-500/10 rounded-full blur-3xl"></div>
 
       {/* Card */}
-      <div className="w-full max-w-md bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8">
+      <div className="relative z-10 w-full max-w-md bg-white/5 border border-white/15 backdrop-blur-2xl rounded-3xl shadow-2xl shadow-black/50 p-8">
 
         {/* Logo / Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center mb-3 shadow-lg">
+          <div className="w-14 h-14 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center mb-3 shadow-lg">
             {/* Plane icon */}
             <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
               <path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2a1.5 1.5 0 0 0-1.5 1.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-white tracking-wide">AeroGround</h1>
-          <p className="text-blue-300 text-sm mt-1">Ground Operations Management System</p>
+          <p className="text-neutral-400 text-sm mt-1">Ground Operations Management System</p>
         </div>
 
         {/* Error banner */}
@@ -65,9 +68,9 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Username */}
           <div>
-            <label className="block text-sm text-blue-200 mb-1 font-medium">Username</label>
+            <label className="block text-sm text-neutral-300 mb-1 font-medium">Username</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
@@ -78,16 +81,16 @@ export default function Login() {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
                 autoComplete="username"
-                className="w-full pl-9 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition"
+                className="w-full pl-9 pr-4 py-2.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent text-sm transition"
               />
             </div>
           </div>
 
           {/* Password */}
           <div>
-            <label className="block text-sm text-blue-200 mb-1 font-medium">Password</label>
+            <label className="block text-sm text-neutral-300 mb-1 font-medium">Password</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -98,12 +101,12 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 autoComplete="current-password"
-                className="w-full pl-9 pr-10 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition"
+                className="w-full pl-9 pr-10 py-2.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent text-sm transition"
               />
               <button
                 type="button"
                 onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 hover:text-white transition"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white transition"
                 tabIndex={-1}
               >
                 {showPw ? (
@@ -124,7 +127,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg transition shadow-lg shadow-blue-900/40 flex items-center justify-center gap-2"
+            className="w-full mt-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl transition shadow-lg shadow-black/60 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -138,6 +141,12 @@ export default function Login() {
           </button>
         </form>
 
+        {/* Sign Up Link */}
+        <p className="text-center text-neutral-400 text-sm mt-5">
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-white hover:underline font-medium">Sign up</Link>
+        </p>
+
         {/* Footer */}
         <p className="text-center text-white/30 text-xs mt-6">
           © {new Date().getFullYear()} AeroGround Ops · All rights reserved
@@ -146,4 +155,14 @@ export default function Login() {
     </div>
   )
 }
+
+
+
+
+
+
+
+
+
+
 

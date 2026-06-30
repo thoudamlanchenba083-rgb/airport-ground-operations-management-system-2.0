@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+﻿import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Login from './pages/Login'
+import Signup from './pages/Signup'
 import LandingPage from './pages/LandingPage'
 import Dashboard from './pages/Dashboard'
 import Flights from './pages/Flights'
@@ -30,6 +31,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={withLayout(Dashboard)} />
           <Route path="/flights" element={withLayout(Flights)} />
           <Route path="/gates" element={withLayout(Gates)} />
@@ -45,3 +47,4 @@ function App() {
 }
 
 export default App
+
