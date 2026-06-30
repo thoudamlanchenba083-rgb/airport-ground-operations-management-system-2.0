@@ -3,40 +3,17 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Avg, Count
-import random
-
 from .models import AIPrediction, AIChatMessage
 from .serializers import AIPredictionSerializer, AIChatMessageSerializer
 from flights.models import Flight
 from gates.models import Gate
-
-
-def predict_delay(flight):
-    hour = flight.departure_time.hour
-    risk = 0.1
-    if 7 <= hour <= 9 or 17 <= hour <= 19:
-        risk += 0.3
-    if flight.status == 'DELAYED':
-        risk += 0.4
-    risk = min(round(risk + random.uniform(-0.05, 0.05), 2), 1.0)
-    return {
-        'delay_probability': risk,
-        'estimated_delay_minutes': int(risk * 90),
-        'risk_level': 'HIGH' if risk > 0.6 else 'MEDIUM' if risk > 0.3 else 'LOW',
-        'reason': 'Peak hour congestion' if (7 <= hour <= 9 or 17 <= hour <= 19) else 'Normal conditions',
-    }, round(1 - risk, 2)
-
-
-def predict_maintenance(flight):
-    score = random.uniform(0.1, 0.9)
-    return {
-        'maintenance_required': score > 0.6,
-        'urgency': 'IMMEDIATE' if score > 0.8 else 'SOON' if score > 0.6 else 'ROUTINE',
-        'estimated_hours': round(score * 10, 1),
-        'components_at_risk': ['Engine Oil', 'Landing Gear'] if score > 0.6 else ['Tires'],
-    }, round(score, 2)
-
-
+from .ml.predictor import (
+    predict_delay,
+    predict_maintenance,
+    predict_passenger_rush,
+    predict_weather_risk,
+    predict_staff,
+)
 def recommend_gate(flight):
     gates = list(Gate.objects.filter(status='AVAILABLE')[:5])
     if not gates:
@@ -49,41 +26,6 @@ def recommend_gate(flight):
         'alternatives': [g.gate_number for g in gates[1:3]],
     }, 0.92
 
-
-def predict_staff(flight):
-    passenger_count = flight.aircraft.capacity if flight.aircraft else 150
-    ground_crew = max(4, passenger_count // 30)
-    security = max(2, passenger_count // 50)
-    return {
-        'ground_crew_required': ground_crew,
-        'security_staff_required': security,
-        'baggage_handlers_required': max(3, passenger_count // 40),
-        'total_staff_required': ground_crew + security,
-    }, 0.88
-
-
-def predict_passenger_rush(flight):
-    hour = flight.departure_time.hour
-    is_peak = 7 <= hour <= 9 or 17 <= hour <= 19
-    capacity = flight.aircraft.capacity if flight.aircraft else 150
-    rush_factor = random.uniform(0.7, 1.0) if is_peak else random.uniform(0.3, 0.6)
-    return {
-        'expected_passengers': int(capacity * rush_factor),
-        'rush_level': 'HIGH' if rush_factor > 0.7 else 'MEDIUM' if rush_factor > 0.4 else 'LOW',
-        'peak_boarding_time': str(hour) + ':30',
-        'recommended_open_counters': max(2, int(rush_factor * 6)),
-    }, round(rush_factor, 2)
-
-
-def predict_weather_risk(flight):
-    risk = random.uniform(0.0, 0.8)
-    return {
-        'weather_risk_score': round(risk, 2),
-        'risk_level': 'HIGH' if risk > 0.6 else 'MEDIUM' if risk > 0.3 else 'LOW',
-        'conditions': random.choice(['Clear', 'Light Rain', 'Fog', 'Strong Winds', 'Thunderstorm']),
-        'visibility_km': round(random.uniform(1, 10), 1),
-        'delay_likely': risk > 0.5,
-    }, round(1 - risk, 2)
 
 
 def optimize_resources():
