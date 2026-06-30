@@ -1,13 +1,13 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import AirlinesTab  from '../components/flights/AirlinesTab'
 import AircraftTab  from '../components/flights/AircraftTab'
 import FlightsTab   from '../components/flights/FlightsTab'
 import usePageMeta  from '../hooks/usePageMeta'
 
 const tabs = [
-  { key: 'flights',  label: 'Flights',  icon: '??' },
-  { key: 'airlines', label: 'Airlines', icon: '??' },
-  { key: 'aircraft', label: 'Aircraft', icon: '???' },
+  { key: 'flights',  label: 'Flights',  },
+  { key: 'airlines', label: 'Airlines', },
+  { key: 'aircraft', label: 'Aircraft', },
 ]
 
 export default function Flights() {
@@ -28,7 +28,6 @@ export default function Flights() {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <span>{tab.icon}</span>
             {tab.label}
           </button>
         ))}
@@ -41,3 +40,6 @@ export default function Flights() {
     </div>
   )
 }
+
+
+

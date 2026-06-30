@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+ï»¿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axiosClient from '../api/axiosClient'
 import { useAuth } from '../context/AuthContext'
@@ -15,17 +15,16 @@ const STATUS_STYLES = {
 function StatCard({ label, value, color, icon }) {
   return (
     <div className={`rounded-xl p-5 flex items-center gap-4 shadow-sm border ${color}`}>
-      <div className="text-3xl">{icon}</div>
       <div>
         <p className="text-sm font-medium opacity-70">{label}</p>
-        <p className="text-2xl font-bold">{value ?? '—'}</p>
+        <p className="text-2xl font-bold">{value ?? '-'}</p>
       </div>
     </div>
   )
 }
 
 export default function Dashboard() {
-  usePageMeta('Dashboard', 'Airport Ground Operations live dashboard — flights, gates, baggage and staff overview.')
+  usePageMeta('Dashboard', 'Airport Ground Operations live dashboard â€” flights, gates, baggage and staff overview.')
   const { user } = useAuth()
   const [flights,  setFlights]  = useState([])
   const [loading,  setLoading]  = useState(true)
@@ -62,26 +61,26 @@ export default function Dashboard() {
           </h2>
           <p className="text-sm text-gray-500 mt-0.5">
             {now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            {' · '}
+            {' Â· '}
             {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
         <Link to="/flights" className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-          View All Flights ?
+          View All Flights {'->'}
         </Link>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Flights"  value={stats.total}     color="bg-white border-gray-200 text-gray-800"      icon="??" />
-        <StatCard label="On Time"        value={stats.onTime}    color="bg-green-50 border-green-200 text-green-800"  icon="?" />
-        <StatCard label="Delayed"        value={stats.delayed}   color="bg-yellow-50 border-yellow-200 text-yellow-800" icon="?" />
-        <StatCard label="Cancelled"      value={stats.cancelled} color="bg-red-50 border-red-200 text-red-800"        icon="?" />
+        <StatCard label="Total Flights"  value={stats.total}     color="bg-white border-gray-200 text-gray-800"      icon="" />
+        <StatCard label="On Time"        value={stats.onTime}    color="bg-green-50 border-green-200 text-green-800"  icon="" />
+        <StatCard label="Delayed"        value={stats.delayed}   color="bg-yellow-50 border-yellow-200 text-yellow-800" icon="" />
+        <StatCard label="Cancelled"      value={stats.cancelled} color="bg-red-50 border-red-200 text-red-800"        icon="" />
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h3 className="font-semibold text-gray-800">Recent Flights</h3>
-          {loading && <span className="text-xs text-gray-400 animate-pulse">Loading…</span>}
+          {loading && <span className="text-xs text-gray-400 animate-pulse">Loadingâ€¦</span>}
         </div>
         {error && <p className="text-red-500 text-sm px-5 py-4">{error}</p>}
         {!loading && !error && (
@@ -104,8 +103,8 @@ export default function Dashboard() {
                   <tr key={f.id} className="hover:bg-gray-50 transition">
                     <td className="px-5 py-3 font-mono font-semibold text-blue-700">{f.flight_number}</td>
                     <td className="px-5 py-3 text-gray-700">{f.airline_name || f.airline}</td>
-                    <td className="px-5 py-3 text-gray-600">{f.origin || '—'}</td>
-                    <td className="px-5 py-3 text-gray-600">{f.destination || '—'}</td>
+                    <td className="px-5 py-3 text-gray-600">{f.origin || 'â€”'}</td>
+                    <td className="px-5 py-3 text-gray-600">{f.destination || 'â€”'}</td>
                     <td className="px-5 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[f.status] || 'bg-gray-100 text-gray-600'}`}>
                         {f.status}
@@ -121,19 +120,18 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { to: '/flights',       label: 'Flights',       icon: '??' },
-          { to: '/gates',         label: 'Gates',         icon: '??' },
-          { to: '/baggage',       label: 'Baggage',       icon: '??' },
-          { to: '/maintenance',   label: 'Maintenance',   icon: '??' },
-          { to: '/staff',         label: 'Staff',         icon: '??' },
-          { to: '/notifications', label: 'Notifications', icon: '??' },
+          { to: '/flights',       label: 'Flights',       icon: '' },
+          { to: '/gates',         label: 'Gates',         icon: '' },
+          { to: '/baggage',       label: 'Baggage',       icon: '' },
+          { to: '/maintenance',   label: 'Maintenance',   icon: '' },
+          { to: '/staff',         label: 'Staff',         icon: '' },
+          { to: '/notifications', label: 'Notifications', icon: '' },
         ].map((item) => (
           <Link
             key={item.to}
             to={item.to}
             className="flex flex-col items-center justify-center gap-1 bg-white border border-gray-200 rounded-xl py-4 hover:border-blue-400 hover:shadow transition text-center"
           >
-            <span className="text-2xl">{item.icon}</span>
             <span className="text-xs font-medium text-gray-600">{item.label}</span>
           </Link>
         ))}
@@ -141,3 +139,6 @@ export default function Dashboard() {
     </div>
   )
 }
+
+
+
