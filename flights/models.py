@@ -136,3 +136,30 @@ class FlightWorkflowStep(models.Model):
 
     def __str__(self):
         return f"{self.flight.flight_number} - {self.step}"
+
+
+class FlightService(models.Model):
+    SERVICE_TYPES = [
+        ('fueling', 'Fueling'),
+        ('cleaning', 'Cleaning'),
+        ('catering', 'Catering'),
+        ('baggage', 'Baggage Handling'),
+        ('deicing', 'De-icing'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+    ]
+
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='services')
+    service_type = models.CharField(max_length=20, choices=SERVICE_TYPES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = [['flight', 'service_type']]
+
+    def __str__(self):
+        return f"{self.flight} - {self.service_type} ({self.status})"

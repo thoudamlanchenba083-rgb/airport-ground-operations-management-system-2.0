@@ -2,6 +2,6 @@
 
 
 class HrManagementConfig(AppConfig):
-    default_auto_field = 'django.db.BigAutoField'
+    default_auto_field = 'django.db.models.BigAutoField'
     name = 'hr_management'
     verbose_name = 'HR Management System'

@@ -24,3 +24,5 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.action} - {self.model_name} - {self.timestamp}"
+
+from .approval_workflow import *  # noqa
