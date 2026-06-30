@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 
 export default function AircraftTab() {
@@ -12,7 +12,7 @@ export default function AircraftTab() {
 
   const load = () => {
     setLoading(true)
-    axiosClient.get('/aircraft/')
+    axiosClient.get('/flights/aircraft/')
       .then(res => setAircraft(res.data.results ?? res.data))
       .catch(() => setError('Failed to load aircraft.'))
       .finally(() => setLoading(false))
@@ -27,7 +27,7 @@ export default function AircraftTab() {
     setFormError('')
     setSaving(true)
     try {
-      await axiosClient.post('/aircraft/', { ...form, capacity: Number(form.capacity) })
+      await axiosClient.post('/flights/aircraft/', { ...form, capacity: Number(form.capacity) })
       setShowForm(false)
       setForm({ registration_number: '', aircraft_type: '', capacity: '' })
       load()
@@ -42,7 +42,7 @@ export default function AircraftTab() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this aircraft?')) return
     try {
-      await axiosClient.delete(`/aircraft/${id}/`)
+      await axiosClient.delete(`/flights/aircraft/${id}/`)
       load()
     } catch {
       alert('Failed to delete aircraft.')
@@ -56,7 +56,7 @@ export default function AircraftTab() {
           onClick={() => setShowForm(!showForm)}
           className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
         >
-          {showForm ? '✕ Cancel' : '+ Add Aircraft'}
+          {showForm ? '? Cancel' : '+ Add Aircraft'}
         </button>
       </div>
 
@@ -80,13 +80,13 @@ export default function AircraftTab() {
           {formError && <p className="text-red-500 text-xs mt-3">{formError}</p>}
           <div className="mt-4">
             <button type="submit" disabled={saving} className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition">
-              {saving ? 'Saving…' : 'Save Aircraft'}
+              {saving ? 'Saving�' : 'Save Aircraft'}
             </button>
           </div>
         </form>
       )}
 
-      {loading && <p className="text-sm text-gray-400 animate-pulse">Loading aircraft…</p>}
+      {loading && <p className="text-sm text-gray-400 animate-pulse">Loading aircraft�</p>}
       {error   && <p className="text-sm text-red-500">{error}</p>}
 
       {!loading && !error && (

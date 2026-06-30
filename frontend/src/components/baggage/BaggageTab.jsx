@@ -30,8 +30,8 @@ export default function BaggageTab() {
   const load = () => {
     setLoading(true)
     Promise.all([
-      axiosClient.get('/baggage/'),
-      axiosClient.get('/flights/'),
+      axiosClient.get('/baggage/baggage/'),
+      axiosClient.get('/flights/flights/'),
     ])
       .then(([b, f]) => {
         setBaggage(b.data.results ?? b.data)
@@ -43,7 +43,7 @@ export default function BaggageTab() {
 
   const loadTracking = (bag) => {
     setSelected(bag)
-    axiosClient.get(`/baggage-tracking/?baggage=${bag.id}`)
+    axiosClient.get(`/baggage/baggage-tracking/?baggage=${bag.id}`)
       .then(r => setTracking(r.data.results ?? r.data))
       .catch(() => setError('Failed to load tracking.'))
   }
@@ -57,14 +57,14 @@ export default function BaggageTab() {
 
   const handleSubmit = () => {
     setSaving(true)
-    axiosClient.post('/baggage/', { ...form, weight: parseFloat(form.weight) })
+    axiosClient.post('/baggage/baggage/', { ...form, weight: parseFloat(form.weight) })
       .then(() => { load(); setShowForm(false); setForm({ baggage_tag: '', passenger_name: '', weight: '', flight: '' }) })
       .catch(() => setError('Failed to save baggage.'))
       .finally(() => setSaving(false))
   }
 
   const addTracking = () => {
-    axiosClient.post('/baggage-tracking/', { ...trackForm, baggage: selected.id })
+    axiosClient.post('/baggage/baggage-tracking/', { ...trackForm, baggage: selected.id })
       .then(() => {
         loadTracking(selected)
         setTrackForm({ status: 'CHECKED_IN', location: '', notes: '' })
@@ -74,7 +74,7 @@ export default function BaggageTab() {
 
   const deleteBaggage = (id) => {
     if (!window.confirm('Delete this baggage record?')) return
-    axiosClient.delete(`/baggage/${id}/`).then(load).catch(() => setError('Failed to delete.'))
+    axiosClient.delete(`/baggage/baggage/${id}/`).then(load).catch(() => setError('Failed to delete.'))
   }
 
   if (loading) return <p className="text-gray-500 p-4">Loading baggage...</p>

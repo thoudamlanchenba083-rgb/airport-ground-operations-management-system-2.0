@@ -26,7 +26,7 @@ export default function NotificationsTab() {
   async function fetchNotifications() {
     try {
       setLoading(true)
-      const res = await axiosClient.get('/notifications/')
+      const res = await axiosClient.get('/notifications/notifications/')
       setNotifications(res.data.results ?? res.data)
     } catch (e) {
       setError('Failed to load notifications.')
@@ -37,7 +37,7 @@ export default function NotificationsTab() {
 
   async function markRead(id) {
     try {
-      await axiosClient.patch(`/notifications/${id}/`, { is_read: true })
+      await axiosClient.patch(`/notifications/notifications/${id}/`, { is_read: true })
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
     } catch (e) {
       alert('Failed to mark as read.')
@@ -46,13 +46,13 @@ export default function NotificationsTab() {
 
   async function markAllRead() {
     const unread = notifications.filter(n => !n.is_read)
-    await Promise.all(unread.map(n => axiosClient.patch(`/notifications/${n.id}/`, { is_read: true })))
+    await Promise.all(unread.map(n => axiosClient.patch(`/notifications/notifications/${n.id}/`, { is_read: true })))
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
   }
 
   async function handleDelete(id) {
     if (!confirm('Delete this notification?')) return
-    await axiosClient.delete(`/notifications/${id}/`)
+    await axiosClient.delete(`/notifications/notifications/${id}/`)
     setNotifications(prev => prev.filter(n => n.id !== id))
   }
 

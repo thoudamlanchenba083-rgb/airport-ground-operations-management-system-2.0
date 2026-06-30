@@ -1,4 +1,4 @@
-ï»¿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axiosClient from '../api/axiosClient'
 import { useAuth } from '../context/AuthContext'
@@ -24,7 +24,7 @@ function StatCard({ label, value, color, icon }) {
 }
 
 export default function Dashboard() {
-  usePageMeta('Dashboard', 'Airport Ground Operations live dashboard â€” flights, gates, baggage and staff overview.')
+  usePageMeta('Dashboard', 'Airport Ground Operations live dashboard — flights, gates, baggage and staff overview.')
   const { user } = useAuth()
   const [flights,  setFlights]  = useState([])
   const [loading,  setLoading]  = useState(true)
@@ -37,8 +37,12 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    axiosClient.get('/flights/')
-      .then((res) => setFlights(res.data.results ?? res.data))
+    axiosClient.get('/flights/flights/')
+      .then((res) => {
+        const data = res.data
+        const list = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
+        setFlights(list)
+      })
       .catch(() => setError('Failed to load flight data.'))
       .finally(() => setLoading(false))
   }, [])
@@ -61,7 +65,7 @@ export default function Dashboard() {
           </h2>
           <p className="text-sm text-gray-500 mt-0.5">
             {now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            {' Â· '}
+            {' · '}
             {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
@@ -80,7 +84,7 @@ export default function Dashboard() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h3 className="font-semibold text-gray-800">Recent Flights</h3>
-          {loading && <span className="text-xs text-gray-400 animate-pulse">Loadingâ€¦</span>}
+          {loading && <span className="text-xs text-gray-400 animate-pulse">Loading…</span>}
         </div>
         {error && <p className="text-red-500 text-sm px-5 py-4">{error}</p>}
         {!loading && !error && (
@@ -103,8 +107,8 @@ export default function Dashboard() {
                   <tr key={f.id} className="hover:bg-gray-50 transition">
                     <td className="px-5 py-3 font-mono font-semibold text-blue-700">{f.flight_number}</td>
                     <td className="px-5 py-3 text-gray-700">{f.airline_name || f.airline}</td>
-                    <td className="px-5 py-3 text-gray-600">{f.origin || 'â€”'}</td>
-                    <td className="px-5 py-3 text-gray-600">{f.destination || 'â€”'}</td>
+                    <td className="px-5 py-3 text-gray-600">{f.origin || '—'}</td>
+                    <td className="px-5 py-3 text-gray-600">{f.destination || '—'}</td>
                     <td className="px-5 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[f.status] || 'bg-gray-100 text-gray-600'}`}>
                         {f.status}

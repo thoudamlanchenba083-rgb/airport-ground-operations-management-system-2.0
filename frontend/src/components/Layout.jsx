@@ -10,6 +10,8 @@ const navItems = [
   { to: '/staff',           label: 'Staff',         icon: '👷' },
   { to: '/notifications',   label: 'Notifications', icon: '🔔' },
   { to: '/reports',         label: 'Reports',       icon: '📊' },
+  { to: '/chatbot',         label: 'AI Assistant',  icon: '🤖' },
+
 ]
 
 export default function Layout({ children }) {
