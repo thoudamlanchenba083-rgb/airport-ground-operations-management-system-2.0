@@ -1,4 +1,4 @@
-ï»¿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 
 const STATUS_COLORS = {
@@ -12,7 +12,7 @@ const STATUS_COLORS = {
 const STATUSES = ['SCHEDULED','BOARDING','DEPARTED','ARRIVED','CANCELLED']
 
 function fmt(dt) {
-  if (!dt) return 'â€”'
+  if (!dt) return '—'
   return new Date(dt).toLocaleString('en-US', {
     month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
@@ -38,9 +38,9 @@ export default function FlightsTab() {
   const load = () => {
     setLoading(true)
     Promise.all([
-      axiosClient.get('/flights/'),
-      axiosClient.get('/airlines/'),
-      axiosClient.get('/aircraft/'),
+      axiosClient.get('/flights/flights/'),
+      axiosClient.get('/flights/airlines/'),
+      axiosClient.get('/flights/aircraft/'),
     ])
       .then(([f, a, ac]) => {
         setFlights(f.data.results  ?? f.data)
@@ -60,7 +60,7 @@ export default function FlightsTab() {
     setFormError('')
     setSaving(true)
     try {
-      await axiosClient.post('/flights/', form)
+      await axiosClient.post('/flights/flights/', form)
       setShowForm(false)
       setForm({ flight_number: '', airline: '', aircraft: '', origin: '', destination: '', departure_time: '', arrival_time: '', status: 'SCHEDULED' })
       load()
@@ -75,7 +75,7 @@ export default function FlightsTab() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this flight?')) return
     try {
-      await axiosClient.delete(`/flights/${id}/`)
+      await axiosClient.delete(`/flights/flights/${id}/`)
       load()
     } catch {
       alert('Failed to delete flight.')
@@ -97,14 +97,14 @@ export default function FlightsTab() {
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search flights, airline, routeâ€¦"
+          placeholder="Search flights, airline, route…"
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
         >
-          {showForm ? 'âœ• Cancel' : '+ Add Flight'}
+          {showForm ? '? Cancel' : '+ Add Flight'}
         </button>
       </div>
 
@@ -128,7 +128,7 @@ export default function FlightsTab() {
               <label className="block text-xs text-gray-500 mb-1">Aircraft</label>
               <select name="aircraft" value={form.aircraft} onChange={handleChange} required className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option value="">Select aircraft</option>
-                {aircraft.map(a => <option key={a.id} value={a.id}>{a.registration_number} â€” {a.aircraft_type}</option>)}
+                {aircraft.map(a => <option key={a.id} value={a.id}>{a.registration_number} — {a.aircraft_type}</option>)}
               </select>
             </div>
             <div>
@@ -157,14 +157,14 @@ export default function FlightsTab() {
           {formError && <p className="text-red-500 text-xs mt-3">{formError}</p>}
           <div className="mt-4 flex gap-2">
             <button type="submit" disabled={saving} className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition">
-              {saving ? 'Savingâ€¦' : 'Save Flight'}
+              {saving ? 'Saving…' : 'Save Flight'}
             </button>
           </div>
         </form>
       )}
 
       {/* Table */}
-      {loading && <p className="text-sm text-gray-400 animate-pulse">Loading flightsâ€¦</p>}
+      {loading && <p className="text-sm text-gray-400 animate-pulse">Loading flights…</p>}
       {error   && <p className="text-sm text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -190,7 +190,7 @@ export default function FlightsTab() {
                   <tr key={f.id} className="hover:bg-gray-50 transition">
                     <td className="px-5 py-3 font-mono font-semibold text-blue-700">{f.flight_number}</td>
                     <td className="px-5 py-3 text-gray-700">{f.airline_name || f.airline}</td>
-                    <td className="px-5 py-3 text-gray-600">{f.origin} â†’ {f.destination}</td>
+                    <td className="px-5 py-3 text-gray-600">{f.origin} ? {f.destination}</td>
                     <td className="px-5 py-3 text-gray-600">{fmt(f.departure_time)}</td>
                     <td className="px-5 py-3 text-gray-600">{fmt(f.arrival_time)}</td>
                     <td className="px-5 py-3">

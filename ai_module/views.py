@@ -14,6 +14,7 @@ from .ml.predictor import (
     predict_weather_risk,
     predict_staff,
 )
+from .chatbot import ChatbotEngine
 def recommend_gate(flight):
     gates = list(Gate.objects.filter(status='AVAILABLE')[:5])
     if not gates:
@@ -106,29 +107,18 @@ class AIChatViewSet(viewsets.ViewSet):
             user=request.user, role='user',
             content=content, session_id=session_id
         )
-        reply = self._generate_reply(content)
+        reply = self._generate_reply(content, user=request.user)
         bot_msg = AIChatMessage.objects.create(
             user=request.user, role='assistant',
             content=reply, session_id=session_id
         )
         return Response(AIChatMessageSerializer(bot_msg).data, status=201)
 
-    def _generate_reply(self, message):
-        msg = message.lower()
-        if 'delay' in msg:
-            return 'Flights during peak hours have a 40 percent higher delay risk. Consider adding buffer time.'
-        if 'gate' in msg:
-            gates = Gate.objects.filter(status='AVAILABLE').count()
-            return 'Currently ' + str(gates) + ' gates are available. Provide a flight number for a specific recommendation.'
-        if 'weather' in msg:
-            return 'Current risk model shows moderate conditions. Always check METAR before departure.'
-        if 'maintenance' in msg:
-            return 'Aircraft with more than 500 cycles since last check should be flagged for inspection.'
-        if 'flight' in msg:
-            count = Flight.objects.exclude(status__in=['DEPARTED', 'CANCELLED']).count()
-            return 'There are currently ' + str(count) + ' active flights in the system.'
-        return 'I am the AGOMS AI Assistant. I can help with delay predictions, gate recommendations, maintenance alerts, and weather risk.'
-
+    def _generate_reply(self, message, user=None):
+        try:
+            return ChatbotEngine.respond(message, user=user)
+        except Exception as e:
+            return f"Sorry, I hit an error answering that: {str(e)}"
     @action(detail=False, methods=['delete'])
     def clear(self, request):
         session_id = request.data.get('session_id', '')

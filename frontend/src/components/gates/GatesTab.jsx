@@ -12,7 +12,7 @@ export default function GatesTab() {
 
   const load = () => {
     setLoading(true)
-    axiosClient.get('/gates/')
+    axiosClient.get('/gates/gates/')
       .then(r => setGates(r.data.results ?? r.data))
       .catch(() => setError('Failed to load gates.'))
       .finally(() => setLoading(false))
@@ -27,21 +27,21 @@ export default function GatesTab() {
 
   const handleSubmit = () => {
     setSaving(true)
-    axiosClient.post('/gates/', form)
+    axiosClient.post('/gates/gates/', form)
       .then(() => { load(); setShowForm(false); setForm({ gate_number: '', terminal: '', is_available: true }) })
       .catch(() => setError('Failed to save gate.'))
       .finally(() => setSaving(false))
   }
 
   const toggleAvailability = (gate) => {
-    axiosClient.patch(`/gates/${gate.id}/`, { is_available: !gate.is_available })
+    axiosClient.patch(`/gates/gates/${gate.id}/`, { is_available: !gate.is_available })
       .then(load)
       .catch(() => setError('Failed to update gate.'))
   }
 
   const deleteGate = (id) => {
     if (!window.confirm('Delete this gate?')) return
-    axiosClient.delete(`/gates/${id}/`).then(load).catch(() => setError('Failed to delete.'))
+    axiosClient.delete(`/gates/gates/${id}/`).then(load).catch(() => setError('Failed to delete.'))
   }
 
   if (loading) return <p className="text-gray-500 p-4">Loading gates...</p>

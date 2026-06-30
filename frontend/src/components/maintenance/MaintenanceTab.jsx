@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 
 const PRIORITY_COLORS = {
@@ -39,8 +39,8 @@ export default function MaintenanceTab() {
   const load = () => {
     setLoading(true)
     Promise.all([
-      axiosClient.get('/maintenance/'),
-      axiosClient.get('/aircraft/'),
+      axiosClient.get('/maintenance/maintenance/'),
+      axiosClient.get('/flights/aircraft/'),
     ])
       .then(([m, a]) => {
         setRequests(m.data.results ?? m.data)
@@ -52,7 +52,7 @@ export default function MaintenanceTab() {
 
   const loadLogs = (req) => {
     setSelected(req)
-    axiosClient.get(`/maintenance-logs/?request=${req.id}`)
+    axiosClient.get(`/maintenance/maintenance-logs/?request=${req.id}`)
       .then(r => setLogs(r.data.results ?? r.data))
       .catch(() => setError('Failed to load logs.'))
   }
@@ -67,7 +67,7 @@ export default function MaintenanceTab() {
 
   const handleSubmit = () => {
     setSaving(true)
-    axiosClient.post('/maintenance/', form)
+    axiosClient.post('/maintenance/maintenance/', form)
       .then(() => {
         load()
         setShowForm(false)
@@ -78,13 +78,13 @@ export default function MaintenanceTab() {
   }
 
   const updateStatus = (req, status) => {
-    axiosClient.patch(`/maintenance/${req.id}/`, { status })
+    axiosClient.patch(`/maintenance/maintenance/${req.id}/`, { status })
       .then(load)
       .catch(() => setError('Failed to update status.'))
   }
 
   const addLog = () => {
-    axiosClient.post('/maintenance-logs/', { ...logForm, request: selected.id })
+    axiosClient.post('/maintenance/maintenance-logs/', { ...logForm, request: selected.id })
       .then(() => {
         loadLogs(selected)
         setLogForm({ action_taken: '', completed_at: '' })
@@ -94,7 +94,7 @@ export default function MaintenanceTab() {
 
   const deleteRequest = (id) => {
     if (!window.confirm('Delete this maintenance request?')) return
-    axiosClient.delete(`/maintenance/${id}/`).then(load).catch(() => setError('Failed to delete.'))
+    axiosClient.delete(`/maintenance/maintenance/${id}/`).then(load).catch(() => setError('Failed to delete.'))
   }
 
   if (loading) return <p className="text-gray-500 p-4">Loading maintenance...</p>
@@ -108,8 +108,8 @@ export default function MaintenanceTab() {
         <div className="fixed inset-0 bg-black/40 z-50 flex justify-end">
           <div className="bg-white w-full max-w-md h-full overflow-y-auto shadow-xl p-5">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="font-bold text-gray-800">Logs â€” Request #{selected.id}</h3>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-700 text-xl">âœ•</button>
+              <h3 className="font-bold text-gray-800">Logs — Request #{selected.id}</h3>
+              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-700 text-xl">✕</button>
             </div>
             <p className="text-xs text-gray-500 mb-4 bg-gray-50 rounded p-2">{selected.issue_description}</p>
 
@@ -205,7 +205,7 @@ export default function MaintenanceTab() {
           >
             <option value="">Select Aircraft</option>
             {aircraft.map(a => (
-              <option key={a.id} value={a.id}>{a.registration_number} â€” {a.model}</option>
+              <option key={a.id} value={a.id}>{a.registration_number} — {a.model}</option>
             ))}
           </select>
           <select

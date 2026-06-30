@@ -21,7 +21,7 @@ export default function StaffTab() {
   async function fetchStaff() {
     try {
       setLoading(true)
-      const res = await axiosClient.get('/staff/')
+      const res = await axiosClient.get('/staff/staff/')
       setStaff(res.data.results ?? res.data)
     } catch (e) {
       setError('Failed to load staff.')
@@ -46,9 +46,9 @@ export default function StaffTab() {
     e.preventDefault()
     try {
       if (editItem) {
-        await axiosClient.put(`/staff/${editItem.id}/`, form)
+        await axiosClient.put(`/staff/staff/${editItem.id}/`, form)
       } else {
-        await axiosClient.post('/staff/', form)
+        await axiosClient.post('/staff/staff/', form)
       }
       setShowForm(false)
       fetchStaff()
@@ -59,7 +59,7 @@ export default function StaffTab() {
 
   async function handleDelete(id) {
     if (!confirm('Delete this staff member?')) return
-    await axiosClient.delete(`/staff/${id}/`)
+    await axiosClient.delete(`/staff/staff/${id}/`)
     fetchStaff()
   }
 

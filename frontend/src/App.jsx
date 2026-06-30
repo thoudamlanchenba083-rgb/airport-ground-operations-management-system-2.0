@@ -13,6 +13,7 @@ import Maintenance from './pages/Maintenance'
 import Staff from './pages/Staff'
 import Notifications from './pages/Notifications'
 import Reports from './pages/Reports'
+import Chatbot from './pages/Chatbot'
 
 function withLayout(Component) {
   return (
@@ -40,6 +41,7 @@ function App() {
           <Route path="/staff" element={withLayout(Staff)} />
           <Route path="/notifications" element={withLayout(Notifications)} />
           <Route path="/reports" element={withLayout(Reports)} />
+          <Route path="/chatbot" element={withLayout(Chatbot)} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

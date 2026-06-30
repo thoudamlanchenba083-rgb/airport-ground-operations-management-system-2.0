@@ -30,7 +30,7 @@ export default function ReportsTab() {
   async function fetchReports() {
     try {
       setLoading(true)
-      const res = await axiosClient.get('/reports/')
+      const res = await axiosClient.get('/reports/reports/')
       setReports(res.data.results ?? res.data)
     } catch (e) {
       setError('Failed to load reports.')
@@ -44,7 +44,7 @@ export default function ReportsTab() {
     setLoadingSummary(true)
     setSummary(null)
     try {
-      const res = await axiosClient.get(`/reports/summary/${type.toLowerCase()}/`)
+      const res = await axiosClient.get(`/reports/reports/summary/${type.toLowerCase()}/`)
       setSummary(res.data)
     } catch (e) {
       setSummary({ error: 'Failed to load summary.' })
@@ -56,7 +56,7 @@ export default function ReportsTab() {
   async function handleSubmit(e) {
     e.preventDefault()
     try {
-      await axiosClient.post('/reports/', form)
+      await axiosClient.post('/reports/reports/', form)
       setShowForm(false)
       setForm({ title: '', report_type: 'FLIGHT', content: '' })
       fetchReports()
@@ -67,7 +67,7 @@ export default function ReportsTab() {
 
   async function handleDelete(id) {
     if (!confirm('Delete this report?')) return
-    await axiosClient.delete(`/reports/${id}/`)
+    await axiosClient.delete(`/reports/reports/${id}/`)
     fetchReports()
   }
 

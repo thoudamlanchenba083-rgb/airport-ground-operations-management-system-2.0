@@ -11,7 +11,7 @@ export default function AirlinesTab() {
 
   const loadAirlines = () => {
     setLoading(true)
-    axiosClient.get('/airlines/')
+    axiosClient.get('/flights/airlines/')
       .then((res) => setAirlines(res.data.results || res.data))
       .catch(() => setError('Failed to load airlines'))
       .finally(() => setLoading(false))
@@ -25,7 +25,7 @@ export default function AirlinesTab() {
     e.preventDefault()
     setFormError('')
     try {
-      await axiosClient.post('/airlines/', { name, code })
+      await axiosClient.post('/flights/airlines/', { name, code })
       setName('')
       setCode('')
       loadAirlines()
@@ -38,7 +38,7 @@ export default function AirlinesTab() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this airline?')) return
     try {
-      await axiosClient.delete(`/airlines/${id}/`)
+      await axiosClient.delete(`/flights/airlines/${id}/`)
       loadAirlines()
     } catch {
       alert('Failed to delete airline')
