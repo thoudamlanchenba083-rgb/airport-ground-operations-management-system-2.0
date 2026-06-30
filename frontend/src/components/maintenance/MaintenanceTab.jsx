@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 
 const PRIORITY_COLORS = {
@@ -108,8 +108,8 @@ export default function MaintenanceTab() {
         <div className="fixed inset-0 bg-black/40 z-50 flex justify-end">
           <div className="bg-white w-full max-w-md h-full overflow-y-auto shadow-xl p-5">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="font-bold text-gray-800">Logs — Request #{selected.id}</h3>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-700 text-xl">✕</button>
+              <h3 className="font-bold text-gray-800">Logs â€” Request #{selected.id}</h3>
+              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-700 text-xl">âœ•</button>
             </div>
             <p className="text-xs text-gray-500 mb-4 bg-gray-50 rounded p-2">{selected.issue_description}</p>
 
@@ -177,7 +177,7 @@ export default function MaintenanceTab() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by issue..."
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[180px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-45 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <select
           value={filterStatus}
@@ -205,7 +205,7 @@ export default function MaintenanceTab() {
           >
             <option value="">Select Aircraft</option>
             {aircraft.map(a => (
-              <option key={a.id} value={a.id}>{a.registration_number} — {a.model}</option>
+              <option key={a.id} value={a.id}>{a.registration_number} â€” {a.model}</option>
             ))}
           </select>
           <select
