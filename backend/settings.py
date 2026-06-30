@@ -30,7 +30,8 @@ INSTALLED_APPS = [
     'reports',
     'core_app',
     'ground_equipment',  # ADD THIS
-    'hr_management',     # ADD THIS
+    'hr_management',  
+    'ai_module'
 ]
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',

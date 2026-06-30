@@ -35,6 +35,7 @@ urlpatterns = [
     path('api/notifications/', include('notifications.urls')),
     path('api/reports/', include('reports.urls')),
     path('api/core/', include('core_app.urls')),
-    path('api/ground-equipment/', include('ground_equipment.urls')),  # ADD THIS
-    path('api/hr/', include('hr_management.urls')),  # ADD THIS
+    path('api/ground-equipment/', include('ground_equipment.urls')),
+    path('api/hr/', include('hr_management.urls')),  
+    path('api/ai/', include('ai_module.urls')),
 ]
