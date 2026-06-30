@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+﻿from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -14,7 +14,7 @@ from core_app.permissions import IsAdminUser, IsMaintenanceStaff
 
 
 def is_supervisor_or_admin(user):
-    return user.role in ('ADMIN', 'SUPERVISOR') or user.is_staff
+    return user.role in ('ADMIN', 'SUPERVISOR', 'OPERATIONS_MANAGER') or user.is_staff
 
 
 class MaintenanceRequestViewSet(viewsets.ModelViewSet):
@@ -50,10 +50,10 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='approve')
     def approve(self, request, pk=None):
-        """SUPERVISOR or ADMIN can approve a pending request."""
+        """SUPERVISOR, OPERATIONS_MANAGER or ADMIN can approve a pending request."""
         if not is_supervisor_or_admin(request.user):
             return Response(
-                {'detail': 'Only supervisors or admins can approve requests.'},
+                {'detail': 'Only supervisors, operations managers or admins can approve requests.'},
                 status=status.HTTP_403_FORBIDDEN
             )
         instance = self.get_object()
@@ -74,10 +74,10 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='reject')
     def reject(self, request, pk=None):
-        """SUPERVISOR or ADMIN can reject a pending request."""
+        """SUPERVISOR, OPERATIONS_MANAGER or ADMIN can reject a pending request."""
         if not is_supervisor_or_admin(request.user):
             return Response(
-                {'detail': 'Only supervisors or admins can reject requests.'},
+                {'detail': 'Only supervisors, operations managers or admins can reject requests.'},
                 status=status.HTTP_403_FORBIDDEN
             )
         instance = self.get_object()
@@ -102,7 +102,7 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
         """Move an APPROVED request to IN_PROGRESS."""
         if not is_supervisor_or_admin(request.user):
             return Response(
-                {'detail': 'Only supervisors or admins can start requests.'},
+                {'detail': 'Only supervisors, operations managers or admins can start requests.'},
                 status=status.HTTP_403_FORBIDDEN
             )
         instance = self.get_object()

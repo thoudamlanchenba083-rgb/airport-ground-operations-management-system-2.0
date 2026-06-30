@@ -1,15 +1,15 @@
-from rest_framework import viewsets
+﻿from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Staff, Shift, Schedule
 from .serializers import StaffSerializer, ShiftSerializer, ScheduleSerializer
 from core_app.utils import log_action
-from core_app.permissions import IsAdminUser, IsAuthenticatedReadOnly
+from core_app.permissions import IsHR
 
 class StaffViewSet(viewsets.ModelViewSet):
     queryset = Staff.objects.all().order_by('name')
     serializer_class = StaffSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsHR]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['staff_type']
     search_fields = ['name', 'email']
@@ -27,7 +27,7 @@ class StaffViewSet(viewsets.ModelViewSet):
 class ShiftViewSet(viewsets.ModelViewSet):
     queryset = Shift.objects.all()
     serializer_class = ShiftSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsHR]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['shift_name']
     ordering_fields = ['start_time']
@@ -41,7 +41,7 @@ class ShiftViewSet(viewsets.ModelViewSet):
 class ScheduleViewSet(viewsets.ModelViewSet):
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsHR]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['staff', 'shift']
     ordering_fields = ['date']

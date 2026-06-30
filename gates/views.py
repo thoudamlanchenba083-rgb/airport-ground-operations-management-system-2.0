@@ -1,17 +1,17 @@
-from rest_framework import viewsets
+﻿from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.exceptions import ValidationError
 from .models import Gate, GateAssignment
 from .serializers import GateSerializer, GateAssignmentSerializer
 from core_app.utils import log_action
-from core_app.permissions import IsAdminUser, IsAuthenticatedReadOnly
+from core_app.permissions import IsGateManager
 
 
 class GateViewSet(viewsets.ModelViewSet):
     queryset = Gate.objects.all()
     serializer_class = GateSerializer
-    permission_classes = [IsAuthenticatedReadOnly]
+    permission_classes = [IsGateManager]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['is_available', 'terminal']
     search_fields = ['gate_number', 'terminal']
@@ -36,7 +36,7 @@ class GateViewSet(viewsets.ModelViewSet):
 class GateAssignmentViewSet(viewsets.ModelViewSet):
     queryset = GateAssignment.objects.all()
     serializer_class = GateAssignmentSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsGateManager]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['flight', 'gate']
     ordering_fields = ['assigned_at']

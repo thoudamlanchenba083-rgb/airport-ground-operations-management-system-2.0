@@ -1,16 +1,16 @@
-from rest_framework import viewsets
+﻿from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Baggage, BaggageTracking
 from .serializers import BaggageSerializer, BaggageTrackingSerializer
 from core_app.utils import log_action
-from core_app.permissions import IsAdminUser, IsAuthenticatedReadOnly
+from core_app.permissions import IsBaggageSupervisor
 
 
 class BaggageViewSet(viewsets.ModelViewSet):
     queryset = Baggage.objects.all()
     serializer_class = BaggageSerializer
-    permission_classes = [IsAuthenticatedReadOnly]
+    permission_classes = [IsBaggageSupervisor]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['flight']
     search_fields = ['baggage_tag', 'passenger_name']
@@ -35,7 +35,7 @@ class BaggageViewSet(viewsets.ModelViewSet):
 class BaggageTrackingViewSet(viewsets.ModelViewSet):
     queryset = BaggageTracking.objects.all()
     serializer_class = BaggageTrackingSerializer
-    permission_classes = [IsAuthenticatedReadOnly]
+    permission_classes = [IsBaggageSupervisor]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['baggage', 'status']
     search_fields = ['status', 'location']

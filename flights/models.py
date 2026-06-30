@@ -1,4 +1,4 @@
-from django.db import models
+﻿from django.db import models
 
 
 class Airline(models.Model):
@@ -21,10 +21,40 @@ class Aircraft(models.Model):
 class Flight(models.Model):
     STATUS_CHOICES = [
         ('SCHEDULED', 'Scheduled'),
+        ('GATE_ASSIGNED', 'Gate Assigned'),
+        ('CREW_ASSIGNED', 'Ground Crew Assigned'),
+        ('FUELING', 'Fuel Assigned'),
+        ('CLEANING', 'Cleaning Started'),
+        ('MAINTENANCE_CHECK', 'Maintenance Check'),
+        ('BAGGAGE_LOADING', 'Baggage Loading'),
         ('BOARDING', 'Boarding'),
+        ('GATE_CLOSED', 'Gate Closed'),
+        ('PUSHBACK', 'Pushback'),
+        ('TAXIING', 'Taxiing'),
         ('DEPARTED', 'Departed'),
+        ('AIRBORNE', 'Airborne'),
+        ('LANDING', 'Landing'),
+        ('TAXI_TO_GATE', 'Taxi to Gate'),
         ('ARRIVED', 'Arrived'),
+        ('DELAYED', 'Delayed'),
         ('CANCELLED', 'Cancelled'),
+        ('EMERGENCY', 'Emergency'),
+    ]
+
+    # Ordered sequence used to enforce valid forward transitions for a normal departure flow
+    WORKFLOW_ORDER = [
+        'SCHEDULED',
+        'GATE_ASSIGNED',
+        'CREW_ASSIGNED',
+        'FUELING',
+        'CLEANING',
+        'MAINTENANCE_CHECK',
+        'BAGGAGE_LOADING',
+        'BOARDING',
+        'GATE_CLOSED',
+        'PUSHBACK',
+        'TAXIING',
+        'DEPARTED',
     ]
 
     flight_number = models.CharField(max_length=20, unique=True)
@@ -53,6 +83,7 @@ class Flight(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         indexes = [
             models.Index(fields=['status']),
@@ -64,4 +95,44 @@ class Flight(models.Model):
     def __str__(self):
         return self.flight_number
 
-    
+
+class FlightWorkflowStep(models.Model):
+    """
+    Tracks each ground-operations stage a flight passes through.
+    One row per (flight, step) combination, recording who completed it and when.
+    """
+    STEP_CHOICES = [
+        ('GATE_ASSIGNED', 'Gate Assigned'),
+        ('CREW_ASSIGNED', 'Ground Crew Assigned'),
+        ('FUELING', 'Fuel Assigned'),
+        ('CLEANING', 'Cleaning Started'),
+        ('MAINTENANCE_CHECK', 'Maintenance Check'),
+        ('BAGGAGE_LOADING', 'Baggage Loading'),
+        ('BOARDING', 'Boarding'),
+        ('GATE_CLOSED', 'Gate Closed'),
+        ('PUSHBACK', 'Pushback'),
+        ('TAXIING', 'Taxiing'),
+        ('DEPARTED', 'Departed/Takeoff'),
+    ]
+
+    flight = models.ForeignKey(
+        Flight,
+        on_delete=models.CASCADE,
+        related_name='workflow_steps'
+    )
+    step = models.CharField(max_length=30, choices=STEP_CHOICES)
+    completed_by = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    completed_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        unique_together = [['flight', 'step']]
+        ordering = ['completed_at']
+
+    def __str__(self):
+        return f"{self.flight.flight_number} - {self.step}"
