@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Login from './pages/Login'
+import LandingPage from './pages/LandingPage'
 import Dashboard from './pages/Dashboard'
 import Flights from './pages/Flights'
 import Gates from './pages/Gates'
@@ -27,6 +28,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={withLayout(Dashboard)} />
           <Route path="/flights" element={withLayout(Flights)} />
@@ -36,7 +38,6 @@ function App() {
           <Route path="/staff" element={withLayout(Staff)} />
           <Route path="/notifications" element={withLayout(Notifications)} />
           <Route path="/reports" element={withLayout(Reports)} />
-          <Route path="/" element={<Login />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
