@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import usePageMeta from '../hooks/usePageMeta'
 
 const profiles = [
   { img: '/images/team/backend.jpg', name: 'Thoudam Lanchenba', role: 'Backend Developer', bio: 'Develops the Django backend, creates REST APIs, implements authentication and authorization, configures URL routing.' },
@@ -101,6 +102,7 @@ function Reveal({ children, style, className = '' }) {
 }
 
 export default function LandingPage() {
+  usePageMeta('Home', 'AeroGround — Comprehensive airport ground operations management for flights, gates, baggage, maintenance, and staff.')
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
   const [mobOpen, setMobOpen] = useState(false)
@@ -164,18 +166,18 @@ export default function LandingPage() {
         .nav-wrap.scrolled{background:rgba(4,4,4,0.97);border-color:rgba(255,255,255,0.09);box-shadow:0 2px 60px rgba(0,0,0,.95);}
         .nav-brand{display:flex;align-items:center;gap:12px;font-family:var(--font-display);font-size:.85rem;font-weight:700;letter-spacing:2px;color:var(--white);text-transform:uppercase;}
         .nav-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,rgba(255,255,255,0.14),rgba(255,255,255,0.05));border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;animation:planeBob 3.5s ease-in-out infinite;}
-        .nav-links{display:flex;align-items:center;gap:32px;}
-        .nav-links a{font-family:var(--font-data);font-size:.82rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--subtle);transition:color .2s;position:relative;}
-        .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--accent);border-radius:2px;transform:scaleX(0);transition:transform .25s;}
-        .nav-links a:hover,.nav-links a.active{color:var(--white);}
-        .nav-links a:hover::after,.nav-links a.active::after{transform:scaleX(1);}
+        .nav-links-desktop{display:none;align-items:center;gap:32px;}
+        .nav-links-desktop a{font-family:var(--font-data);font-size:.82rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--subtle);transition:color .2s;position:relative;}
+        .nav-links-desktop a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--accent);border-radius:2px;transform:scaleX(0);transition:transform .25s;}
+        .nav-links-desktop a:hover,.nav-links-desktop a.active{color:var(--white);}
+        .nav-links-desktop a:hover::after,.nav-links-desktop a.active::after{transform:scaleX(1);}
         .btn-nav{padding:9px 24px;border-radius:50px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.18);color:var(--white);font-family:var(--font-data);font-size:.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;cursor:pointer;}
         .btn-nav:hover{background:rgba(255,255,255,0.16);transform:translateY(-2px);}
-        .hamburger{display:none;background:none;border:1px solid var(--border);color:var(--text-main);padding:8px 11px;border-radius:9px;font-size:1.1rem;cursor:pointer;}
-        .mob-nav{display:none;position:fixed;top:78px;left:12px;right:12px;z-index:999;flex-direction:column;gap:4px;padding:14px;background:rgba(10,10,10,.98);backdrop-filter:blur(28px);border:1px solid var(--border);border-radius:var(--r-lg);}
-        .mob-nav.open{display:flex;}
+        .hamburger{display:flex;flex-shrink:0;width:42px;height:42px;min-width:42px;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border:1px solid var(--border-hi);color:var(--white);padding:0;border-radius:10px;font-size:1.2rem;cursor:pointer;z-index:1001;position:relative;}
+        .mob-nav{position:fixed;top:78px;left:12px;right:12px;z-index:999;display:flex;flex-direction:column;gap:4px;padding:14px;background:rgba(10,10,10,.98);backdrop-filter:blur(28px);border:1px solid var(--border);border-radius:var(--r-lg);}
         .mob-nav a,.mob-nav button{padding:12px 15px;border-radius:var(--r);font-family:var(--font-data);font-size:.82rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--subtle);transition:all .2s;background:none;border:none;cursor:pointer;text-align:left;}
         .mob-nav a:hover,.mob-nav button:hover{background:var(--surf);color:var(--white);}
+        @media(min-width:768px){.nav-links-desktop{display:flex;}.hamburger{display:none;}}
         .hero-banner{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;overflow:hidden;}
         .banner-img-strip{position:absolute;inset:0;z-index:0;display:grid;grid-template-columns:1fr 1fr 1fr;}
         .banner-panel{position:relative;overflow:hidden;}
@@ -345,7 +347,7 @@ export default function LandingPage() {
         .deco-rule span{font-size:.8rem;color:var(--muted);}
         @media(max-width:1199px){.profile-grid{grid-template-columns:repeat(3,1fr);}.footer-grid{grid-template-columns:1.5fr 1fr 1fr;gap:28px;}.foot-contact{grid-column:1/-1;}.hero-board{display:none;}.metrics-grid{grid-template-columns:1fr 1fr;}.metric-big{grid-row:span 1;}}
         @media(max-width:959px){.stats-grid{grid-template-columns:repeat(2,1fr);}.profile-grid{grid-template-columns:repeat(2,1fr);}.footer-grid{grid-template-columns:1fr 1fr;}.capability-grid{grid-template-columns:repeat(2,1fr);}.alerts-grid{grid-template-columns:1fr;}.banner-img-strip{grid-template-columns:1fr;}}
-        @media(max-width:767px){.nav-links{display:none;}.hamburger{display:flex;align-items:center;justify-content:center;}.section,.cta-section,.metrics-section,.alerts-section{padding:68px var(--px);}.stats-bar{padding:38px var(--px);}.footer-grid{grid-template-columns:1fr 1fr;}.profile-grid{grid-template-columns:repeat(2,1fr);}.capability-grid{grid-template-columns:1fr;}}
+        @media(max-width:767px){.section,.cta-section,.metrics-section,.alerts-section{padding:68px var(--px);}.stats-bar{padding:38px var(--px);}.footer-grid{grid-template-columns:1fr 1fr;}.profile-grid{grid-template-columns:repeat(2,1fr);}.capability-grid{grid-template-columns:1fr;}}
         @media(max-width:599px){.hero-content{padding-top:108px;padding-bottom:64px;}.hero-actions{flex-direction:column;}.stats-grid{grid-template-columns:1fr 1fr;}.profile-grid{grid-template-columns:1fr;}.cta-btns{flex-direction:column;align-items:center;}.footer-grid{grid-template-columns:1fr;}.tl-item,.tl-item:nth-child(even){flex-direction:column;padding-left:38px;position:relative;}.tl-dot{position:absolute;left:8px;}}
       `}</style>
 
@@ -357,26 +359,35 @@ export default function LandingPage() {
         </div>
 
         {/* NAV */}
-        <nav className={`nav-wrap${scrolled ? ' scrolled' : ''}`}>
-          <div className="nav-brand">
+        <nav className={`nav-wrap${scrolled ? ' scrolled' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <div className="nav-brand" style={{ flexShrink: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             <div className="nav-icon">✈</div>Airport Ops
           </div>
-          <div className="nav-links">
+          <div className="nav-links nav-links-desktop">
             <a href="#" className="active">Home</a>
             <a href="#services">Services</a>
             <a href="#about">About</a>
             <a href="#team">Team</a>
             <button className="btn-nav" onClick={() => navigate('/login')}>Launch →</button>
           </div>
-          <button className="hamburger" onClick={() => setMobOpen(o => !o)}>☰</button>
+          <button
+            className="hamburger"
+            onClick={() => setMobOpen(o => !o)}
+            aria-label="Toggle menu"
+            aria-expanded={mobOpen}
+          >
+            {mobOpen ? '✕' : '☰'}
+          </button>
         </nav>
-        <div className={`mob-nav${mobOpen ? ' open' : ''}`}>
-          <a href="#">Home</a>
-          <a href="#services">Services</a>
-          <a href="#about">About</a>
-          <a href="#team">Team</a>
-          <button onClick={() => navigate('/login')}>Launch Dashboard →</button>
-        </div>
+        {mobOpen && (
+          <div className="mob-nav open">
+            <a href="#" onClick={() => setMobOpen(false)}>Home</a>
+            <a href="#services" onClick={() => setMobOpen(false)}>Services</a>
+            <a href="#about" onClick={() => setMobOpen(false)}>About</a>
+            <a href="#team" onClick={() => setMobOpen(false)}>Team</a>
+            <button onClick={() => { setMobOpen(false); navigate('/login') }}>Launch Dashboard →</button>
+          </div>
+        )}
 
         {/* HERO */}
         <section className="hero-banner">
