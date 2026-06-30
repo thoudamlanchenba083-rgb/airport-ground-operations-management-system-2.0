@@ -18,7 +18,7 @@ export default function Layout({ children }) {
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    navigate('/')
   }
 
   return (
@@ -78,4 +78,9 @@ export default function Layout({ children }) {
       </main>
     </div>
   )
+}
+const handleLogout = () => {
+  console.log('LOGOUT CLICKED - navigating to landing page')
+  logout()
+  navigate('/')
 }
