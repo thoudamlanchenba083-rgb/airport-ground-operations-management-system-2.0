@@ -18,25 +18,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
-    'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
-    'drf_yasg',
-    'django_filters',
-
     'accounts',
-    'core_app',
     'flights',
     'gates',
-    'baggage',
-    'maintenance',
     'staff',
+    'maintenance',
+    'baggage',
     'notifications',
     'reports',
+    'core_app',
+    'ground_equipment',  # ADD THIS
+    'hr_management',     # ADD THIS
 ]
-
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',

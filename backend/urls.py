@@ -22,31 +22,17 @@ schema_view = get_schema_view(
 )
 
 FRONTEND = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend')
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-
-    
-    path('api/token/', RateLimitedTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', RateLimitedTokenRefreshView.as_view(), name='token_refresh'),
-
     path('api/accounts/', include('accounts.urls')),
-    path('api/', include('core_app.urls')),
-    path('api/', include('flights.urls')),
-    path('api/', include('gates.urls')),
-    path('api/', include('baggage.urls')),
-    path('api/', include('maintenance.urls')),
-    path('api/', include('staff.urls')),
-    path('api/', include('notifications.urls')),
-    path('api/', include('reports.urls')),
-
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-
-    # Serve frontend
-    path('', RedirectView.as_view(url='/pages/landing.html')),
-    path('pages/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'pages')}),
-    path('css/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'css')}),
-    path('js/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'js')}),
-    path('images/<path:path>', static_serve, {'document_root': os.path.join(FRONTEND, 'images')}),
+    path('api/flights/', include('flights.urls')),
+    path('api/gates/', include('gates.urls')),
+    path('api/staff/', include('staff.urls')),
+    path('api/maintenance/', include('maintenance.urls')),
+    path('api/baggage/', include('baggage.urls')),
+    path('api/notifications/', include('notifications.urls')),
+    path('api/reports/', include('reports.urls')),
+    path('api/core/', include('core_app.urls')),
+    path('api/ground-equipment/', include('ground_equipment.urls')),  # ADD THIS
+    path('api/hr/', include('hr_management.urls')),  # ADD THIS
 ]
