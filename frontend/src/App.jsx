@@ -13,6 +13,7 @@ import Flights from './pages/Flights'
 import Gates from './pages/Gates'
 import Baggage from './pages/Baggage'
 import Maintenance from './pages/Maintenance'
+import Equipment from './pages/Equipment'
 import Staff from './pages/Staff'
 import Notifications from './pages/Notifications'
 import Reports from './pages/Reports'
@@ -45,6 +46,7 @@ function App() {
           <Route path="/gates" element={withLayout(Gates)} />
           <Route path="/baggage" element={withLayout(Baggage)} />
           <Route path="/maintenance" element={withLayout(Maintenance)} />
+          <Route path="/equipment" element={withLayout(Equipment)} />
           <Route path="/staff" element={withLayout(Staff)} />
           <Route path="/notifications" element={withLayout(Notifications)} />
           <Route path="/reports" element={withLayout(Reports)} />
