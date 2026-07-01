@@ -5,6 +5,9 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import LandingPage from './pages/LandingPage'
+import Services from './pages/Services'
+import About from './pages/About'
+import Team from './pages/Team'
 import Dashboard from './pages/Dashboard'
 import Flights from './pages/Flights'
 import Gates from './pages/Gates'
@@ -31,6 +34,9 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+<Route path="/services" element={<Services />} />
+<Route path="/about" element={<About />} />
+<Route path="/team" element={<Team />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={withLayout(Dashboard)} />
