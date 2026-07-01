@@ -9,7 +9,7 @@ const STATUS_STYLES = {
   'Delayed':   'bg-yellow-100 text-yellow-700',
   'Cancelled': 'bg-red-100 text-red-700',
   'Boarding':  'bg-blue-100 text-blue-700',
-  'Landed':    'bg-gray-100 text-gray-600',
+  'Landed':    'bg-neutral-900 text-neutral-300',
 }
 
 function StatCard({ label, value, color, icon }) {
@@ -60,10 +60,10 @@ export default function Dashboard() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">
+          <h2 className="text-2xl font-bold text-white">
             Welcome back{user?.username ? `, ${user.username}` : ''}
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-neutral-400 mt-0.5">
             {now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             {' · '}
             {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -75,22 +75,22 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Flights"  value={stats.total}     color="bg-white border-gray-200 text-gray-800"      icon="" />
-        <StatCard label="On Time"        value={stats.onTime}    color="bg-green-50 border-green-200 text-green-800"  icon="" />
-        <StatCard label="Delayed"        value={stats.delayed}   color="bg-yellow-50 border-yellow-200 text-yellow-800" icon="" />
-        <StatCard label="Cancelled"      value={stats.cancelled} color="bg-red-50 border-red-200 text-red-800"        icon="" />
+        <StatCard label="Total Flights"  value={stats.total}     color="bg-neutral-900 border-neutral-700 text-white"      icon="" />
+        <StatCard label="On Time"        value={stats.onTime}    color="bg-neutral-900 border-neutral-700 text-green-800"  icon="" />
+        <StatCard label="Delayed"        value={stats.delayed}   color="bg-neutral-900 border-neutral-700 text-yellow-800" icon="" />
+        <StatCard label="Cancelled"      value={stats.cancelled} color="bg-neutral-900 border-neutral-700 text-red-800"        icon="" />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-neutral-900 rounded-xl shadow-sm border border-neutral-700 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h3 className="font-semibold text-gray-800">Recent Flights</h3>
-          {loading && <span className="text-xs text-gray-400 animate-pulse">Loading…</span>}
+          <h3 className="font-semibold text-white">Recent Flights</h3>
+          {loading && <span className="text-xs text-neutral-500 animate-pulse">Loading…</span>}
         </div>
         {error && <p className="text-red-500 text-sm px-5 py-4">{error}</p>}
         {!loading && !error && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+              <thead className="bg-neutral-900 text-neutral-400 uppercase text-xs tracking-wide">
                 <tr>
                   <th className="px-5 py-3">Flight No.</th>
                   <th className="px-5 py-3">Airline</th>
@@ -99,18 +99,18 @@ export default function Dashboard() {
                   <th className="px-5 py-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-neutral-800">
                 {recent.length === 0 && (
-                  <tr><td colSpan="5" className="px-5 py-6 text-center text-gray-400">No flights available</td></tr>
+                  <tr><td colSpan="5" className="px-5 py-6 text-center text-neutral-500">No flights available</td></tr>
                 )}
                 {recent.map((f) => (
-                  <tr key={f.id} className="hover:bg-gray-50 transition">
+                  <tr key={f.id} className="hover:bg-neutral-900 transition">
                     <td className="px-5 py-3 font-mono font-semibold text-blue-700">{f.flight_number}</td>
-                    <td className="px-5 py-3 text-gray-700">{f.airline_name || f.airline}</td>
-                    <td className="px-5 py-3 text-gray-600">{f.origin || '—'}</td>
-                    <td className="px-5 py-3 text-gray-600">{f.destination || '—'}</td>
+                    <td className="px-5 py-3 text-neutral-100">{f.airline_name || f.airline}</td>
+                    <td className="px-5 py-3 text-neutral-300">{f.origin || '—'}</td>
+                    <td className="px-5 py-3 text-neutral-300">{f.destination || '—'}</td>
                     <td className="px-5 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[f.status] || 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[f.status] || 'bg-neutral-900 text-neutral-300'}`}>
                         {f.status}
                       </span>
                     </td>
@@ -134,9 +134,9 @@ export default function Dashboard() {
           <Link
             key={item.to}
             to={item.to}
-            className="flex flex-col items-center justify-center gap-1 bg-white border border-gray-200 rounded-xl py-4 hover:border-blue-400 hover:shadow transition text-center"
+            className="flex flex-col items-center justify-center gap-1 bg-neutral-900 border border-neutral-700 rounded-xl py-4 hover:border-blue-400 hover:shadow transition text-center"
           >
-            <span className="text-xs font-medium text-gray-600">{item.label}</span>
+            <span className="text-xs font-medium text-neutral-300">{item.label}</span>
           </Link>
         ))}
       </div>

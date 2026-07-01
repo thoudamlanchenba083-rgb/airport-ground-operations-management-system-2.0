@@ -2,16 +2,15 @@
 import { useAuth } from '../context/AuthContext'
 
 const navItems = [
-  { to: '/dashboard',       label: 'Dashboard',     icon: '🏠' },
-  { to: '/flights',         label: 'Flights',       icon: '✈️' },
-  { to: '/gates',           label: 'Gates',         icon: '🚪' },
-  { to: '/baggage',         label: 'Baggage',       icon: '🧳' },
-  { to: '/maintenance',     label: 'Maintenance',   icon: '🔧' },
-  { to: '/staff',           label: 'Staff',         icon: '👷' },
-  { to: '/notifications',   label: 'Notifications', icon: '🔔' },
-  { to: '/reports',         label: 'Reports',       icon: '📊' },
-  { to: '/chatbot',         label: 'AI Assistant',  icon: '🤖' },
-
+  { to: '/dashboard',     label: 'Dashboard',     icon: '🏠' },
+  { to: '/flights',       label: 'Flights',       icon: '✈️' },
+  { to: '/gates',         label: 'Gates',         icon: '🚪' },
+  { to: '/baggage',       label: 'Baggage',       icon: '🧳' },
+  { to: '/maintenance',   label: 'Maintenance',   icon: '🔧' },
+  { to: '/staff',         label: 'Staff',         icon: '👷' },
+  { to: '/notifications', label: 'Notifications', icon: '🔔' },
+  { to: '/reports',       label: 'Reports',       icon: '📊' },
+  { to: '/chatbot',       label: 'AI Assistant',  icon: '🤖' },
 ]
 
 export default function Layout({ children }) {
@@ -20,15 +19,12 @@ export default function Layout({ children }) {
 
   const handleLogout = () => {
     logout()
-    navigate('/')
+    navigate('/', { replace: true })
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-
-      {/* Sidebar */}
-      <aside className="w-60 bg-slate-900 flex flex-col shrink-0">
-        {/* Brand */}
+    <div className="min-h-screen flex" style={{ backgroundColor: '#171717' }}>
+      <aside className="w-60 flex flex-col shrink-0" style={{ backgroundColor: '#0f0f0f' }}>
         <div className="px-5 py-5 border-b border-white/10 flex items-center gap-2">
           <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">✈</div>
           <div>
@@ -36,8 +32,6 @@ export default function Layout({ children }) {
             <p className="text-xs text-slate-400">Ops Management</p>
           </div>
         </div>
-
-        {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5">
           {navItems.map((item) => (
             <NavLink
@@ -56,8 +50,6 @@ export default function Layout({ children }) {
             </NavLink>
           ))}
         </nav>
-
-        {/* User + Logout */}
         <div className="px-4 py-4 border-t border-white/10">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
@@ -73,16 +65,9 @@ export default function Layout({ children }) {
           </button>
         </div>
       </aside>
-
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto" style={{ backgroundColor: '#171717' }}>
         {children}
       </main>
     </div>
   )
-}
-const handleLogout = () => {
-  console.log('LOGOUT CLICKED - navigating to landing page')
-  logout()
-  navigate('/')
 }

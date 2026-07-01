@@ -81,23 +81,23 @@ export default function Chatbot() {
     <div className="p-6 h-screen flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">AI Assistant</h1>
-          <p className="text-sm text-slate-500">Ask about flight status, delays, gates, maintenance, or staffing</p>
+          <h1 className="text-xl font-bold text-white">AI Assistant</h1>
+          <p className="text-sm text-neutral-400">Ask about flight status, delays, gates, maintenance, or staffing</p>
         </div>
         <button
           onClick={handleClear}
-          className="text-sm bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg transition"
+          className="text-sm bg-slate-200 hover:bg-slate-300 text-neutral-100 px-3 py-1.5 rounded-lg transition"
         >
           Clear Chat
         </button>
       </div>
 
-      <div className="flex-1 bg-white rounded-xl shadow border border-slate-200 flex flex-col overflow-hidden">
+      <div className="flex-1 bg-neutral-900 rounded-xl shadow border border-neutral-700 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {loading && <p className="text-sm text-slate-400">Loading conversation...</p>}
+          {loading && <p className="text-sm text-neutral-500">Loading conversation...</p>}
 
           {!loading && messages.length === 0 && (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-neutral-500">
               No messages yet. Try "what's the status of AI202" or "show available gates".
             </p>
           )}
@@ -111,7 +111,7 @@ export default function Chatbot() {
                 className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap ${
                   m.role === 'user'
                     ? 'bg-blue-600 text-white rounded-br-sm'
-                    : 'bg-slate-100 text-slate-800 rounded-bl-sm'
+                    : 'bg-neutral-900 text-white rounded-bl-sm'
                 }`}
               >
                 {m.content}
@@ -121,7 +121,7 @@ export default function Chatbot() {
 
           {sending && (
             <div className="flex justify-start">
-              <div className="bg-slate-100 text-slate-400 px-4 py-2 rounded-2xl rounded-bl-sm text-sm">
+              <div className="bg-neutral-800 text-neutral-400 px-4 py-2 rounded-2xl rounded-bl-sm text-sm">
                 Thinking...
               </div>
             </div>
@@ -129,13 +129,13 @@ export default function Chatbot() {
           <div ref={bottomRef} />
         </div>
 
-        <form onSubmit={handleSend} className="border-t border-slate-200 p-3 flex gap-2">
+        <form onSubmit={handleSend} className="border-t border-neutral-700 p-3 flex gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about a flight, gate, or delay..."
-            className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 border border-neutral-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             type="submit"
