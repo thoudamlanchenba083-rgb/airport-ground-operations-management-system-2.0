@@ -365,9 +365,9 @@ export default function LandingPage() {
           </div>
           <div className="nav-links nav-links-desktop">
             <a href="#" className="active">Home</a>
-            <a href="#services">Services</a>
-            <a href="#about">About</a>
-            <a href="#team">Team</a>
+            <a href="#services" onClick={(e) => { e.preventDefault(); document.getElementById('services').scrollIntoView({ behavior: 'smooth' }) }}>Services</a>
+            <a href="#about" onClick={(e) => { e.preventDefault(); document.getElementById('about').scrollIntoView({ behavior: 'smooth' }) }}>About</a>
+            <a href="#team" onClick={(e) => { e.preventDefault(); document.getElementById('team').scrollIntoView({ behavior: 'smooth' }) }}>Team</a>
             <button className="btn-nav" onClick={() => navigate('/login')}>Launch →</button>
           </div>
           <button
@@ -382,9 +382,9 @@ export default function LandingPage() {
         {mobOpen && (
           <div className="mob-nav open">
             <a href="#" onClick={() => setMobOpen(false)}>Home</a>
-            <a href="#services" onClick={() => setMobOpen(false)}>Services</a>
-            <a href="#about" onClick={() => setMobOpen(false)}>About</a>
-            <a href="#team" onClick={() => setMobOpen(false)}>Team</a>
+            <a href="#services" onClick={(e) => { e.preventDefault(); setMobOpen(false); document.getElementById('services').scrollIntoView({ behavior: 'smooth' }) }}>Services</a>
+            <a href="#about" onClick={(e) => { e.preventDefault(); setMobOpen(false); document.getElementById('about').scrollIntoView({ behavior: 'smooth' }) }}>About</a>
+            <a href="#team" onClick={(e) => { e.preventDefault(); setMobOpen(false); document.getElementById('team').scrollIntoView({ behavior: 'smooth' }) }}>Team</a>
             <button onClick={() => { setMobOpen(false); navigate('/login') }}>Launch Dashboard →</button>
           </div>
         )}
@@ -679,7 +679,7 @@ export default function LandingPage() {
             </div>
             <div className="foot-col">
               <h4>Company</h4>
-              <a href="#about">About Us</a><a href="#services">Services</a><a href="#team">Team</a>
+              <a href="#about">About Us</a><a href="#services" onClick={(e) => { e.preventDefault(); document.getElementById('services').scrollIntoView({ behavior: 'smooth' }) }}>Services</a><a href="#team" onClick={(e) => { e.preventDefault(); document.getElementById('team').scrollIntoView({ behavior: 'smooth' }) }}>Team</a>
             </div>
             <div className="foot-col">
               <h4>Platform</h4>
