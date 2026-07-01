@@ -11,6 +11,7 @@ const navItems = [
   { to: '/notifications', label: 'Notifications', icon: '🔔' },
   { to: '/reports',       label: 'Reports',       icon: '📊' },
   { to: '/chatbot',       label: 'AI Assistant',  icon: '🤖' },
+  { to: '/analytics',     label: 'Analytics',     icon: '📈' },
 ]
 
 export default function Layout({ children }) {

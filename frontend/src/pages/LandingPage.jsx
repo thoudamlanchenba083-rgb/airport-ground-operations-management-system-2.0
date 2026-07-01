@@ -365,9 +365,9 @@ export default function LandingPage() {
           </div>
           <div className="nav-links nav-links-desktop">
             <a href="#" className="active">Home</a>
-            <a href="#services" onClick={(e) => { e.preventDefault(); document.getElementById('services').scrollIntoView({ behavior: 'smooth' }) }}>Services</a>
-            <a href="#about" onClick={(e) => { e.preventDefault(); document.getElementById('about').scrollIntoView({ behavior: 'smooth' }) }}>About</a>
-            <a href="#team" onClick={(e) => { e.preventDefault(); document.getElementById('team').scrollIntoView({ behavior: 'smooth' }) }}>Team</a>
+            <span style={{cursor:"pointer"}} onClick={() => navigate("/services")}>Services</span>
+            <span style={{cursor:"pointer"}} onClick={() => navigate("/about")}>About</span>
+            <span style={{cursor:"pointer"}} onClick={() => navigate("/team")}>Team</span>
             <button className="btn-nav" onClick={() => navigate('/login')}>Launch →</button>
           </div>
           <button
@@ -382,9 +382,9 @@ export default function LandingPage() {
         {mobOpen && (
           <div className="mob-nav open">
             <a href="#" onClick={() => setMobOpen(false)}>Home</a>
-            <a href="#services" onClick={(e) => { e.preventDefault(); setMobOpen(false); document.getElementById('services').scrollIntoView({ behavior: 'smooth' }) }}>Services</a>
-            <a href="#about" onClick={(e) => { e.preventDefault(); setMobOpen(false); document.getElementById('about').scrollIntoView({ behavior: 'smooth' }) }}>About</a>
-            <a href="#team" onClick={(e) => { e.preventDefault(); setMobOpen(false); document.getElementById('team').scrollIntoView({ behavior: 'smooth' }) }}>Team</a>
+            <span style={{cursor:"pointer"}} onClick={() => { setMobOpen(false); navigate("/services") }}>Services</span>
+            <span style={{cursor:"pointer"}} onClick={() => { setMobOpen(false); navigate("/about") }}>About</span>
+            <span style={{cursor:"pointer"}} onClick={() => { setMobOpen(false); navigate("/team") }}>Team</span>
             <button onClick={() => { setMobOpen(false); navigate('/login') }}>Launch Dashboard →</button>
           </div>
         )}
@@ -679,7 +679,7 @@ export default function LandingPage() {
             </div>
             <div className="foot-col">
               <h4>Company</h4>
-              <a href="#about">About Us</a><a href="#services" onClick={(e) => { e.preventDefault(); document.getElementById('services').scrollIntoView({ behavior: 'smooth' }) }}>Services</a><a href="#team" onClick={(e) => { e.preventDefault(); document.getElementById('team').scrollIntoView({ behavior: 'smooth' }) }}>Team</a>
+              <a href="#about">About Us</a><span style={{cursor:"pointer"}} onClick={() => navigate("/services")}>Services</span><span style={{cursor:"pointer"}} onClick={() => navigate("/team")}>Team</span>
             </div>
             <div className="foot-col">
               <h4>Platform</h4>
