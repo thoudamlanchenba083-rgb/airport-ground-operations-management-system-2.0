@@ -188,3 +188,73 @@ class PredictFailureAPITest(TestCase):
         response = self.client.get(f'/api/ground-equipment/equipment/{equipment_no_maint.id}/predict_failure/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('prediction', response.data)
+class InvalidAssignmentScenariosTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='invaliduser', password='invalid123')
+
+        self.equipment_type = EquipmentType.objects.create(name='tow_vehicle', description='Tow vehicle')
+        self.equipment = GroundEquipment.objects.create(
+            equipment_type=self.equipment_type,
+            equipment_id='TV-001',
+            status='available',
+            location='Terminal D'
+        )
+
+        self.airline = Airline.objects.create(name='Invalid Airline', code='IA')
+        self.aircraft = Aircraft.objects.create(registration_number='TC-004', aircraft_type='Airbus A321', capacity=200)
+        self.flight = Flight.objects.create(
+            flight_number='IA001', origin='ORD', destination='DFW',
+            departure_time='2026-07-01T09:00:00Z', arrival_time='2026-07-01T12:00:00Z',
+            status='SCHEDULED', airline=self.airline, aircraft=self.aircraft
+        )
+
+    def get_token(self, username, password):
+        response = self.client.post('/api/token/', {'username': username, 'password': password})
+        return response.data['access']
+
+    def authenticate(self):
+        token = self.get_token('invaliduser', 'invalid123')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+
+    def test_unauthenticated_cannot_create_assignment(self):
+        response = self.client.post('/api/ground-equipment/assignments/', {
+            'equipment': self.equipment.id,
+            'flight': self.flight.id
+        })
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_duplicate_assignment_for_same_equipment_and_flight_rejected(self):
+        self.authenticate()
+        first = self.client.post('/api/ground-equipment/assignments/', {
+            'equipment': self.equipment.id,
+            'flight': self.flight.id
+        })
+        self.assertEqual(first.status_code, status.HTTP_201_CREATED)
+
+        duplicate = self.client.post('/api/ground-equipment/assignments/', {
+            'equipment': self.equipment.id,
+            'flight': self.flight.id
+        })
+        self.assertEqual(duplicate.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_assignment_with_nonexistent_equipment_returns_400(self):
+        self.authenticate()
+        response = self.client.post('/api/ground-equipment/assignments/', {
+            'equipment': 99999,
+            'flight': self.flight.id
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_assignment_with_nonexistent_flight_returns_400(self):
+        self.authenticate()
+        response = self.client.post('/api/ground-equipment/assignments/', {
+            'equipment': self.equipment.id,
+            'flight': 99999
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_assignment_missing_required_fields_returns_400(self):
+        self.authenticate()
+        response = self.client.post('/api/ground-equipment/assignments/', {})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
