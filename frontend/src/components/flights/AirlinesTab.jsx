@@ -47,9 +47,9 @@ export default function AirlinesTab() {
 
   return (
     <div>
-      <form onSubmit={handleAdd} className="bg-white rounded-lg shadow p-4 mb-4 flex flex-wrap gap-3 items-end">
+      <form onSubmit={handleAdd} className="bg-neutral-900 rounded-lg shadow p-4 mb-4 flex flex-wrap gap-3 items-end">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Name</label>
+          <label className="block text-xs text-neutral-400 mb-1">Name</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -59,7 +59,7 @@ export default function AirlinesTab() {
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Code</label>
+          <label className="block text-xs text-neutral-400 mb-1">Code</label>
           <input
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
@@ -77,9 +77,9 @@ export default function AirlinesTab() {
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <div className="bg-neutral-900 rounded-lg shadow overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-neutral-800 border-b">
               <tr>
                 <th className="px-4 py-2">Name</th>
                 <th className="px-4 py-2">Code</th>
@@ -88,7 +88,7 @@ export default function AirlinesTab() {
             </thead>
             <tbody>
               {airlines.length === 0 && (
-                <tr><td colSpan="3" className="px-4 py-4 text-gray-500">No airlines found</td></tr>
+                <tr><td colSpan="3" className="px-4 py-4 text-neutral-400">No airlines found</td></tr>
               )}
               {airlines.map((a) => (
                 <tr key={a.id} className="border-b">

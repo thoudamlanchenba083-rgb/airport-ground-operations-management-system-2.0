@@ -110,47 +110,47 @@ export default function FlightsTab() {
 
       {/* Add form */}
       {showForm && (
-        <form onSubmit={handleAdd} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-          <h4 className="font-semibold text-gray-700 mb-4">New Flight</h4>
+        <form onSubmit={handleAdd} className="bg-neutral-900 border border-neutral-700 rounded-xl p-5 shadow-sm">
+          <h4 className="font-semibold text-neutral-100 mb-4">New Flight</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Flight Number</label>
+              <label className="block text-xs text-neutral-400 mb-1">Flight Number</label>
               <input name="flight_number" value={form.flight_number} onChange={handleChange} required placeholder="e.g. AI202" className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Airline</label>
+              <label className="block text-xs text-neutral-400 mb-1">Airline</label>
               <select name="airline" value={form.airline} onChange={handleChange} required className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option value="">Select airline</option>
                 {airlines.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Aircraft</label>
+              <label className="block text-xs text-neutral-400 mb-1">Aircraft</label>
               <select name="aircraft" value={form.aircraft} onChange={handleChange} required className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option value="">Select aircraft</option>
                 {aircraft.map(a => <option key={a.id} value={a.id}>{a.registration_number} — {a.aircraft_type}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Origin</label>
+              <label className="block text-xs text-neutral-400 mb-1">Origin</label>
               <input name="origin" value={form.origin} onChange={handleChange} required placeholder="e.g. DEL" className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Destination</label>
+              <label className="block text-xs text-neutral-400 mb-1">Destination</label>
               <input name="destination" value={form.destination} onChange={handleChange} required placeholder="e.g. BOM" className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Status</label>
+              <label className="block text-xs text-neutral-400 mb-1">Status</label>
               <select name="status" value={form.status} onChange={handleChange} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Departure Time</label>
+              <label className="block text-xs text-neutral-400 mb-1">Departure Time</label>
               <input type="datetime-local" name="departure_time" value={form.departure_time} onChange={handleChange} required className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Arrival Time</label>
+              <label className="block text-xs text-neutral-400 mb-1">Arrival Time</label>
               <input type="datetime-local" name="arrival_time" value={form.arrival_time} onChange={handleChange} required className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
           </div>
@@ -164,14 +164,14 @@ export default function FlightsTab() {
       )}
 
       {/* Table */}
-      {loading && <p className="text-sm text-gray-400 animate-pulse">Loading flights…</p>}
+      {loading && <p className="text-sm text-neutral-500 animate-pulse">Loading flights…</p>}
       {error   && <p className="text-sm text-red-500">{error}</p>}
 
       {!loading && !error && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-neutral-900 rounded-xl shadow-sm border border-neutral-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+              <thead className="bg-neutral-800 text-neutral-400 uppercase text-xs tracking-wide">
                 <tr>
                   <th className="px-5 py-3">Flight No.</th>
                   <th className="px-5 py-3">Airline</th>
@@ -182,19 +182,19 @@ export default function FlightsTab() {
                   <th className="px-5 py-3">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-neutral-800">
                 {filtered.length === 0 && (
-                  <tr><td colSpan="7" className="px-5 py-6 text-center text-gray-400">No flights found</td></tr>
+                  <tr><td colSpan="7" className="px-5 py-6 text-center text-neutral-500">No flights found</td></tr>
                 )}
                 {filtered.map(f => (
-                  <tr key={f.id} className="hover:bg-gray-50 transition">
+                  <tr key={f.id} className="hover:bg-neutral-800 transition">
                     <td className="px-5 py-3 font-mono font-semibold text-blue-700">{f.flight_number}</td>
-                    <td className="px-5 py-3 text-gray-700">{f.airline_name || f.airline}</td>
-                    <td className="px-5 py-3 text-gray-600">{f.origin} ? {f.destination}</td>
-                    <td className="px-5 py-3 text-gray-600">{fmt(f.departure_time)}</td>
-                    <td className="px-5 py-3 text-gray-600">{fmt(f.arrival_time)}</td>
+                    <td className="px-5 py-3 text-neutral-100">{f.airline_name || f.airline}</td>
+                    <td className="px-5 py-3 text-neutral-300">{f.origin} ? {f.destination}</td>
+                    <td className="px-5 py-3 text-neutral-300">{fmt(f.departure_time)}</td>
+                    <td className="px-5 py-3 text-neutral-300">{fmt(f.arrival_time)}</td>
                     <td className="px-5 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[f.status] || 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[f.status] || 'bg-neutral-800 text-neutral-300'}`}>
                         {f.status}
                       </span>
                     </td>
@@ -208,7 +208,7 @@ export default function FlightsTab() {
               </tbody>
             </table>
           </div>
-          <div className="px-5 py-3 border-t text-xs text-gray-400">
+          <div className="px-5 py-3 border-t text-xs text-neutral-500">
             {filtered.length} of {flights.length} flights
           </div>
         </div>

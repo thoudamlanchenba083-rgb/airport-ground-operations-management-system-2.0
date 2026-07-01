@@ -63,19 +63,19 @@ export default function StaffTab() {
     fetchStaff()
   }
 
-  if (loading) return <p className="text-gray-500 p-4">Loading staff...</p>
+  if (loading) return <p className="text-neutral-400 p-4">Loading staff...</p>
   if (error) return <p className="text-red-500 p-4">{error}</p>
 
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-700">Staff Members</h3>
+        <h3 className="text-lg font-semibold text-neutral-100">Staff Members</h3>
         <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">+ Add Staff</button>
       </div>
 
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+          <div className="bg-neutral-900 rounded-lg p-6 w-full max-w-md shadow-xl">
             <h4 className="text-lg font-bold mb-4">{editItem ? 'Edit Staff' : 'Add Staff'}</h4>
             <form onSubmit={handleSubmit} className="space-y-3">
               <input required placeholder="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
@@ -91,7 +91,7 @@ export default function StaffTab() {
               </label>
               <div className="flex gap-2 pt-2">
                 <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Save</button>
-                <button type="button" onClick={() => setShowForm(false)} className="bg-gray-200 px-4 py-2 rounded text-sm hover:bg-gray-300">Cancel</button>
+                <button type="button" onClick={() => setShowForm(false)} className="bg-neutral-700 px-4 py-2 rounded text-sm hover:bg-gray-300">Cancel</button>
               </div>
             </form>
           </div>
@@ -99,8 +99,8 @@ export default function StaffTab() {
       )}
 
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border rounded-lg text-sm">
-          <thead className="bg-gray-100 text-gray-600">
+        <table className="min-w-full bg-neutral-900 border rounded-lg text-sm">
+          <thead className="bg-neutral-800 text-neutral-300">
             <tr>
               <th className="px-4 py-2 text-left">Name</th>
               <th className="px-4 py-2 text-left">Employee ID</th>
@@ -113,10 +113,10 @@ export default function StaffTab() {
           </thead>
           <tbody>
             {staff.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-6 text-center text-gray-400">No staff members found.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-6 text-center text-neutral-500">No staff members found.</td></tr>
             )}
             {staff.map(s => (
-              <tr key={s.id} className="border-t hover:bg-gray-50">
+              <tr key={s.id} className="border-t hover:bg-neutral-800">
                 <td className="px-4 py-2 font-medium">{s.name}</td>
                 <td className="px-4 py-2">{s.employee_id}</td>
                 <td className="px-4 py-2">{STAFF_TYPES.find(t => t.value === s.staff_type)?.label ?? s.staff_type}</td>

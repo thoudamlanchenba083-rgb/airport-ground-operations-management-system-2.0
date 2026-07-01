@@ -44,7 +44,7 @@ export default function GatesTab() {
     axiosClient.delete(`/gates/gates/${id}/`).then(load).catch(() => setError('Failed to delete.'))
   }
 
-  if (loading) return <p className="text-gray-500 p-4">Loading gates...</p>
+  if (loading) return <p className="text-neutral-400 p-4">Loading gates...</p>
 
   return (
     <div>
@@ -66,7 +66,7 @@ export default function GatesTab() {
       </div>
 
       {showForm && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 grid grid-cols-3 gap-3">
+        <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4 mb-4 grid grid-cols-3 gap-3">
           <input
             placeholder="Gate Number (e.g. A1)"
             value={form.gate_number}
@@ -99,9 +99,9 @@ export default function GatesTab() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <div className="overflow-x-auto rounded-lg border border-neutral-700">
         <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+          <thead className="bg-neutral-800 text-neutral-300 uppercase text-xs">
             <tr>
               <th className="px-4 py-3 text-left">Gate</th>
               <th className="px-4 py-3 text-left">Terminal</th>
@@ -109,13 +109,13 @@ export default function GatesTab() {
               <th className="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
+          <tbody className="divide-y divide-neutral-800 bg-neutral-900">
             {filtered.length === 0 ? (
-              <tr><td colSpan={4} className="text-center text-gray-400 py-6">No gates found.</td></tr>
+              <tr><td colSpan={4} className="text-center text-neutral-500 py-6">No gates found.</td></tr>
             ) : filtered.map(g => (
-              <tr key={g.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-semibold text-gray-800">{g.gate_number}</td>
-                <td className="px-4 py-3 text-gray-600">{g.terminal}</td>
+              <tr key={g.id} className="hover:bg-neutral-800">
+                <td className="px-4 py-3 font-semibold text-white">{g.gate_number}</td>
+                <td className="px-4 py-3 text-neutral-300">{g.terminal}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${g.is_available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
                     {g.is_available ? 'Available' : 'Unavailable'}
