@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from .models import EquipmentType, GroundEquipment, EquipmentAssignment
 from .serializers import EquipmentTypeSerializer, GroundEquipmentSerializer, EquipmentAssignmentSerializer
-
+from ai_module.ml.predictor import predict_equipment_failure
 class EquipmentTypeViewSet(viewsets.ModelViewSet):
     queryset = EquipmentType.objects.all()
     serializer_class = EquipmentTypeSerializer
@@ -47,16 +47,15 @@ class GroundEquipmentViewSet(viewsets.ModelViewSet):
             'equipment': GroundEquipmentSerializer(equipment).data
         })
     
-    @action(detail=True, methods=['post'])
-    def mark_maintenance(self, request, pk=None):
-        """Mark equipment for maintenance"""
+    @action(detail=True, methods=['get'])
+    def predict_failure(self, request, pk=None):
+        """Predict failure risk / maintenance need for this equipment"""
         equipment = self.get_object()
-        equipment.status = 'maintenance'
-        equipment.save()
-        
+        result, confidence = predict_equipment_failure(equipment)
         return Response({
-            'message': 'Equipment marked for maintenance',
-            'equipment': GroundEquipmentSerializer(equipment).data
+            'equipment': GroundEquipmentSerializer(equipment).data,
+            'prediction': result,
+            'confidence': confidence,
         })
 
 class EquipmentAssignmentViewSet(viewsets.ModelViewSet):

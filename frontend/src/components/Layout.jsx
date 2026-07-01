@@ -2,16 +2,16 @@
 import { useAuth } from '../context/AuthContext'
 
 const navItems = [
-  { to: '/dashboard',     label: 'Dashboard',     icon: '🏠' },
-  { to: '/flights',       label: 'Flights',       icon: '✈️' },
-  { to: '/gates',         label: 'Gates',         icon: '🚪' },
-  { to: '/baggage',       label: 'Baggage',       icon: '🧳' },
-  { to: '/maintenance',   label: 'Maintenance',   icon: '🔧' },
-  { to: '/staff',         label: 'Staff',         icon: '👷' },
-  { to: '/notifications', label: 'Notifications', icon: '🔔' },
-  { to: '/reports',       label: 'Reports',       icon: '📊' },
-  { to: '/chatbot',       label: 'AI Assistant',  icon: '🤖' },
-  { to: '/analytics',     label: 'Analytics',     icon: '📈' },
+  { to: '/dashboard',     label: 'Dashboard' },
+  { to: '/flights',       label: 'Flights' },
+  { to: '/gates',         label: 'Gates' },
+  { to: '/baggage',       label: 'Baggage'},
+  { to: '/maintenance',   label: 'Maintenance'},
+  { to: '/staff',         label: 'Staff' },
+  { to: '/notifications', label: 'Notifications' },
+  { to: '/reports',       label: 'Reports',},
+  { to: '/chatbot',       label: 'AI Assistant', },
+  { to: '/analytics',     label: 'Analytics',},
 ]
 
 export default function Layout({ children }) {
