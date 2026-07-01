@@ -60,7 +60,7 @@ class BusinessRuleValidator:
             return False, "Pending maintenance approvals exist"
         
         # Rule 5: Passenger count vs aircraft capacity
-        if flight.passenger_count > flight.aircraft.capacity:
+        if flight.passenger_count is not None and flight.passenger_count > flight.aircraft.capacity:
             return False, f"Passenger count ({flight.passenger_count}) exceeds aircraft capacity ({flight.aircraft.capacity})"
         
         return True, "All departure requirements met"

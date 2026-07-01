@@ -72,6 +72,8 @@ class Flight(models.Model):
     origin = models.CharField(max_length=100)
     destination = models.CharField(max_length=100)
 
+    passenger_count = models.PositiveIntegerField(null=True, blank=True)
+
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
 

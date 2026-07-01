@@ -2,6 +2,8 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import Department, Designation, HRProfile, LeaveType, LeaveRequest, Attendance, Payroll
@@ -14,25 +16,42 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['name', 'description']
+    ordering_fields = ['name', 'created_at']
 
 class DesignationViewSet(viewsets.ModelViewSet):
     queryset = Designation.objects.all()
     serializer_class = DesignationSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['department']
+    search_fields = ['name', 'description']
+    ordering_fields = ['name', 'created_at']
 
 class HRProfileViewSet(viewsets.ModelViewSet):
     queryset = HRProfile.objects.all()
     serializer_class = HRProfileSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['department', 'designation']
+    search_fields = ['staff__name', 'aadhar_number', 'pan_number']
+    ordering_fields = ['date_of_joining', 'created_at']
 
 class LeaveTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LeaveType.objects.all()
     serializer_class = LeaveTypeSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['name']
+    ordering_fields = ['name', 'max_days_per_year']
 
 class LeaveRequestViewSet(viewsets.ModelViewSet):
     serializer_class = LeaveRequestSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ['staff', 'leave_type', 'status']
+    ordering_fields = ['start_date', 'created_at']
     
     def get_queryset(self):
         user = self.request.user
@@ -85,6 +104,9 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
 class AttendanceViewSet(viewsets.ModelViewSet):
     serializer_class = AttendanceSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ['staff', 'status', 'date']
+    ordering_fields = ['date', 'created_at']
     
     def get_queryset(self):
         user = self.request.user
@@ -137,6 +159,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 class PayrollViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ['staff', 'status', 'month']
+    ordering_fields = ['month', 'created_at']
     
     def get_queryset(self):
         user = self.request.user
