@@ -15,6 +15,8 @@ from .ml.predictor import (
     predict_staff,
     predict_best_gate,
 )
+from .ml.resource_optimizer import optimize_resources
+from .ml.dashboard_intelligence import get_dashboard_intelligence
 from .chatbot import ChatbotEngine
 def recommend_gate(flight):
     gates = list(Gate.objects.filter(is_available=True)[:10])
@@ -32,82 +34,6 @@ def recommend_gate(flight):
         'alternatives': [g.gate_number for g, _ in ranked[1:3]],
     }, round(min(0.99, best_score / 100), 2)
 
-
-def optimize_resources():
-    """
-    Rule-based (greedy) resource optimizer across gates, staff, and ground
-    equipment, using real DB data - no ML model needed for this one, since
-    it's reporting current allocation state rather than predicting an
-    unknown outcome.
-    """
-    from staff.models import Staff, StaffAssignment
-    from ground_equipment.models import GroundEquipment, EquipmentType
-
-    active_statuses = [s for s, _ in Flight.STATUS_CHOICES if s not in ('DEPARTED', 'CANCELLED', 'ARRIVED')]
-    active_flights = Flight.objects.filter(status__in=active_statuses).count()
-
-    # --- Gates ---
-    total_gates = Gate.objects.count()
-    available_gates = Gate.objects.filter(is_available=True).count()
-    gate_utilization_pct = round((1 - available_gates / total_gates) * 100, 1) if total_gates else 0.0
-
-    # --- Staff (per type) ---
-    staff_breakdown = {}
-    for staff_type, label in Staff.STAFF_TYPES:
-        total = Staff.objects.filter(staff_type=staff_type, is_active=True).count()
-        assigned = StaffAssignment.objects.filter(
-            staff__staff_type=staff_type, flight__status__in=active_statuses
-        ).values('staff').distinct().count()
-        available = max(0, total - assigned)
-        staff_breakdown[label] = {
-            'total': total,
-            'assigned': assigned,
-            'available': available,
-            'utilization_pct': round((assigned / total) * 100, 1) if total else 0.0,
-        }
-
-    # --- Equipment (per type) ---
-    equipment_breakdown = {}
-    for etype in EquipmentType.objects.all():
-        qs = GroundEquipment.objects.filter(equipment_type=etype)
-        total = qs.count()
-        available = qs.filter(status='available').count()
-        in_use = qs.filter(status='in_use').count()
-        maintenance = qs.filter(status='maintenance').count()
-        damaged = qs.filter(status='damaged').count()
-        equipment_breakdown[etype.get_name_display()] = {
-            'total': total,
-            'available': available,
-            'in_use': in_use,
-            'maintenance': maintenance,
-            'damaged': damaged,
-            'utilization_pct': round((in_use / total) * 100, 1) if total else 0.0,
-        }
-
-    # --- Recommendations ---
-    recommendations = []
-    if available_gates < active_flights:
-        recommendations.append('Open additional gates - active flights exceed available gates')
-    for label, data in staff_breakdown.items():
-        if data['total'] > 0 and data['available'] == 0 and active_flights > 0:
-            recommendations.append(f'{label} shortage - all staff currently assigned')
-    for name, data in equipment_breakdown.items():
-        if data['total'] > 0 and data['available'] == 0:
-            recommendations.append(f'{name} shortage - none available')
-    if not recommendations:
-        recommendations.append('All resources currently within optimal range')
-
-    return {
-        'gates': {
-            'total': total_gates,
-            'available': available_gates,
-            'active_flights': active_flights,
-            'utilization_pct': gate_utilization_pct,
-        },
-        'staff': staff_breakdown,
-        'equipment': equipment_breakdown,
-        'recommendations': recommendations,
-    }, 0.85
 
 PREDICTION_HANDLERS = {
     'DELAY': lambda f, d: predict_delay(f),
@@ -156,6 +82,15 @@ class AIPredictionViewSet(viewsets.ModelViewSet):
             )['avg'] or 0,
         }
         return Response(data)
+
+    @action(detail=False, methods=['get'])
+    def dashboard(self, request):
+        """
+        Live KPIs + ML forecasts (delay, weather, passenger rush, staff
+        shortage, maintenance alerts) for the dashboard. Read-only, doesn't
+        write an AIPrediction row - see dashboard_intelligence.py docstring.
+        """
+        return Response(get_dashboard_intelligence())
 
 
 class AIChatViewSet(viewsets.ViewSet):
