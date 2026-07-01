@@ -35,13 +35,20 @@ def validate_gate_assignment(sender, instance, **kwargs):
     if not can_assign:
         raise ValidationError(message)
 
-
 @receiver(pre_save, sender=EquipmentAssignment)
 def validate_equipment_assignment(sender, instance, **kwargs):
-    """Validate equipment assignment before saving"""
-    can_assign, message = BusinessRuleValidator.can_assign_equipment_to_flight(
-        instance.equipment,
-        instance.flight
-    )
-    if not can_assign:
-        raise ValidationError(message)
+    """Validate equipment assignment before saving.
+
+    Only enforce the "equipment must be available" business rule when a
+    NEW assignment is being created. Without this guard, releasing an
+    existing assignment (which re-saves the same row to set released_at)
+    would fail: the equipment is legitimately 'in_use' at that point,
+    and the rule would incorrectly reject the release itself.
+    """
+    if instance._state.adding:
+        can_assign, message = BusinessRuleValidator.can_assign_equipment_to_flight(
+            instance.equipment,
+            instance.flight
+        )
+        if not can_assign:
+            raise ValidationError(message)
