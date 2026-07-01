@@ -11,6 +11,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # throttled by the same 5/min login limit real users face.
 TESTING = 'test' in sys.argv or 'pytest' in sys.modules
 
+# Actually disable rate-limiting during test runs so test suites that don't
+# add their own @override_settings(RATELIMIT_ENABLE=False) (e.g. ground_equipment)
+# don't get throttled by the real 5/min login limit and fail with KeyError('access').
+RATELIMIT_ENABLE = not TESTING
+
 SECRET_KEY = config('SECRET_KEY')
 
 DEBUG = config('DEBUG', default=False, cast=bool)
