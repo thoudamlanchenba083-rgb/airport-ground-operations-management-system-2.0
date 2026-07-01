@@ -2,8 +2,14 @@ from pathlib import Path
 from datetime import timedelta
 from decouple import config
 import os
+import sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# True whenever running `manage.py test` (or pytest via manage.py) —
+# used below to disable rate-limiting so test suites don't get
+# throttled by the same 5/min login limit real users face.
+TESTING = 'test' in sys.argv or 'pytest' in sys.modules
 
 SECRET_KEY = config('SECRET_KEY')
 
