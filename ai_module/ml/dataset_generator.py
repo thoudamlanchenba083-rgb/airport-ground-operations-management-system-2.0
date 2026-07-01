@@ -184,3 +184,65 @@ def generate_staff_requirement_dataset(n=4000):
         'baggage_handlers_required': baggage_handlers,
     })
     return df
+def generate_gate_recommendation_dataset(n=5000):
+    """
+    Features -> target: suitability_score (regression), how good a gate is
+    for a given flight to be assigned to.
+    """
+    distance_score = RNG.uniform(0, 1, n)          # 0 = close to stand, 1 = far
+    recent_utilization = RNG.uniform(0, 1, n)       # how busy the gate has been recently
+    terminal_match = RNG.binomial(1, 0.5, n)        # gate terminal matches preferred terminal
+    aircraft_size_fit = RNG.uniform(0, 1, n)        # how well gate accommodates aircraft size
+    is_international = RNG.binomial(1, 0.3, n)
+
+    suitability = (
+        (1 - distance_score) * 35
+        + (1 - recent_utilization) * 30
+        + terminal_match * 15
+        + aircraft_size_fit * 15
+        + is_international * 5
+        + RNG.normal(0, 5, n)
+    )
+    suitability = np.clip(suitability, 0, 100)
+
+    df = pd.DataFrame({
+        'distance_score': distance_score,
+        'recent_utilization': recent_utilization,
+        'terminal_match': terminal_match,
+        'aircraft_size_fit': aircraft_size_fit,
+        'is_international': is_international,
+        'suitability_score': suitability,
+    })
+    return df
+
+def generate_equipment_failure_dataset(n=5000):
+    """
+    Features -> target: failure_risk_score (regression), maintenance_required (classification)
+    for ground equipment (tow tractors, GPUs, belt loaders, fuel trucks, etc).
+    """
+    days_since_maintenance = RNG.uniform(0, 365, n)
+    age_days = RNG.uniform(30, 3000, n)
+    usage_count_30d = RNG.poisson(12, n)
+    avg_usage_hours = RNG.uniform(0.5, 8, n)
+    prior_damage_flag = RNG.binomial(1, 0.1, n)
+
+    risk = (
+        (days_since_maintenance / 365) * 35
+        + (age_days / 3000) * 20
+        + (usage_count_30d / 30) * 20
+        + (avg_usage_hours / 8) * 10
+        + prior_damage_flag * 15
+        + RNG.normal(0, 6, n)
+    )
+    risk = np.clip(risk, 0, 100)
+
+    df = pd.DataFrame({
+        'days_since_maintenance': days_since_maintenance,
+        'age_days': age_days,
+        'usage_count_30d': usage_count_30d,
+        'avg_usage_hours': avg_usage_hours,
+        'prior_damage_flag': prior_damage_flag,
+        'failure_risk_score': risk,
+    })
+    df['maintenance_required'] = (df['failure_risk_score'] > 55).astype(int)
+    return df

@@ -205,3 +205,114 @@ def predict_staff(flight):
         'model': 'RandomForestRegressor x3 (trained)',
     }
     return result, 0.9
+# ------------------------------------------------------------------ GATE ---
+def _gate_features(flight, gate):
+    """
+    distance_score and aircraft_size_fit are per-gate proxies (deterministic,
+    stable per gate) standing in for real physical gate specs the Gate model
+    doesn't capture yet (no distance-from-stand or capacity field). Add those
+    fields to the Gate model later to replace these with real values.
+    recent_utilization is REAL data from GateAssignment history.
+    """
+    from gates.models import GateAssignment
+    from django.utils import timezone
+    from datetime import timedelta
+
+    gid = gate.id
+    fid = flight.id
+
+    distance_score = _seeded_value(gid, 'distance', 0, 1)
+    aircraft_size_fit = _seeded_value(gid, 'sizefit', 0.3, 1.0)
+    terminal_match = int(_seeded_value(fid, f'terminal-{gate.terminal}', 0, 1) > 0.5)
+    is_international = int(_seeded_value(fid, 'intl', 0, 1) > 0.7)
+
+    since = timezone.now() - timedelta(hours=24)
+    recent_count = GateAssignment.objects.filter(gate=gate, assigned_at__gte=since).count()
+    recent_utilization = min(1.0, recent_count / 5.0)
+
+    return {
+        'distance_score': distance_score,
+        'recent_utilization': recent_utilization,
+        'terminal_match': terminal_match,
+        'aircraft_size_fit': aircraft_size_fit,
+        'is_international': is_international,
+    }
+
+
+def predict_best_gate(flight, candidate_gates):
+    """
+    Scores each candidate gate with the trained suitability model.
+    Returns a list of (gate, score) tuples, ranked best to worst.
+    """
+    reg = _load('gate_regressor.pkl')
+    features = _load('gate_features.pkl')
+
+    scored = []
+    for gate in candidate_gates:
+        row = _gate_features(flight, gate)
+        X = pd.DataFrame([row], columns=features)
+        score = float(reg.predict(X)[0])
+        scored.append((gate, score))
+
+    scored.sort(key=lambda t: t[1], reverse=True)
+    return scored
+
+# -------------------------------------------------------------- EQUIPMENT --
+def predict_equipment_failure(equipment):
+    """
+    Unlike aircraft maintenance, this one uses mostly REAL computed features:
+    days_since_maintenance, age_days, and usage stats all come from actual
+    GroundEquipment / EquipmentAssignment records. Only prior_damage_flag is
+    a proxy (current status snapshot, since damage history isn't tracked
+    over time - only current state).
+    """
+    from django.utils import timezone
+    from ground_equipment.models import EquipmentAssignment
+
+    reg = _load('equipment_regressor.pkl')
+    clf = _load('equipment_classifier.pkl')
+    features = _load('equipment_features.pkl')
+
+    now = timezone.now()
+    days_since_maintenance = (now - equipment.last_maintenance).days if equipment.last_maintenance else 365
+    age_days = (now - equipment.created_at).days if equipment.created_at else 365
+
+    since_30d = now - pd_timedelta_days(30)
+    assignments_30d = EquipmentAssignment.objects.filter(equipment=equipment, assigned_at__gte=since_30d)
+    usage_count_30d = assignments_30d.count()
+
+    completed = assignments_30d.exclude(released_at__isnull=True)
+    if completed.exists():
+        durations = [(a.released_at - a.assigned_at).total_seconds() / 3600 for a in completed]
+        avg_usage_hours = sum(durations) / len(durations)
+    else:
+        avg_usage_hours = 2.0  # no completed assignments yet, use a neutral default
+
+    prior_damage_flag = 1 if equipment.status == 'damaged' else 0
+
+    row = {
+        'days_since_maintenance': days_since_maintenance,
+        'age_days': age_days,
+        'usage_count_30d': usage_count_30d,
+        'avg_usage_hours': avg_usage_hours,
+        'prior_damage_flag': prior_damage_flag,
+    }
+    X = pd.DataFrame([row], columns=features)
+
+    risk_score = float(reg.predict(X)[0])
+    required = bool(clf.predict(X)[0])
+    confidence = float(max(clf.predict_proba(X)[0]))
+
+    result = {
+        'maintenance_required': required,
+        'failure_risk_score': round(risk_score, 1),
+        'urgency': 'IMMEDIATE' if risk_score > 75 else 'SOON' if risk_score > 55 else 'ROUTINE',
+        'days_since_maintenance': days_since_maintenance,
+        'usage_count_30d': usage_count_30d,
+        'model': 'RandomForestRegressor+Classifier (synthetic-trained, real features)',
+    }
+    return result, round(confidence, 2)
+
+
+def pd_timedelta_days(n):
+    return pd.Timedelta(days=n)

@@ -87,7 +87,7 @@ class ChatbotEngine:
                 "I can help with:\n"
                 "- Flight status (e.g. \"what's the status of AI202\")\n"
                 "- Delay predictions (e.g. \"is AI202 going to be delayed\")\n"
-                "- Gate info (e.g. \"which gate is AI202 at\")\n"
+                "- Gate info and recommendations (e.g. \"which gate is AI202 at\")\n"
                 "- Available gates (e.g. \"show available gates\")\n"
                 "- Maintenance alerts\n"
                 "- Staffing requirements"
@@ -119,13 +119,22 @@ class ChatbotEngine:
                 gate_step = flight.workflow_steps.filter(step='GATE_ASSIGNED').first()
                 if gate_step:
                     return f"Flight {flight.flight_number} gate assignment was recorded at {gate_step.completed_at.strftime('%H:%M')}. Check the Gates module for the current gate number."
-                return f"Flight {flight.flight_number} hasn't been assigned a gate yet."
+                from .views import recommend_gate
+                result, confidence = recommend_gate(flight)
+                if result.get('recommended_gate'):
+                    return (
+                        f"Flight {flight.flight_number} hasn't been assigned a gate yet. "
+                        f"Based on availability and utilization, I'd recommend Gate {result['recommended_gate']} "
+                        f"(suitability {result['suitability_score']}/100, confidence {int(confidence*100)}%)."
+                    )
+                return f"Flight {flight.flight_number} hasn't been assigned a gate yet, and no gates are currently available to recommend."
             if gate:
-                return f"Gate {gate.gate_number} status: {gate.get_status_display() if hasattr(gate, 'get_status_display') else gate.status}."
+                status = 'available' if gate.is_available else 'occupied'
+                return f"Gate {gate.gate_number} ({gate.terminal}) is currently {status}."
             return "Which flight or gate are you asking about?"
 
         if intent == 'gate_availability':
-            available = Gate.objects.filter(status='AVAILABLE')
+            available = Gate.objects.filter(is_available=True)
             if available.exists():
                 names = ', '.join(g.gate_number for g in available[:10])
                 return f"{available.count()} gate(s) available: {names}."

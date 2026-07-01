@@ -46,18 +46,16 @@ export default function Analytics() {
     }, {})
   ).map(([name, value]) => ({ name, value }))
 
-  // Gate utilization
+  // Gate utilization - Gate model only has is_available (boolean), no status field
   const gateData = [
-    { name: 'Available', value: gates.filter(g => g.status === 'AVAILABLE').length },
-    { name: 'Occupied',  value: gates.filter(g => g.status === 'OCCUPIED').length },
-    { name: 'Maintenance', value: gates.filter(g => g.status === 'MAINTENANCE').length },
-    { name: 'Closed',   value: gates.filter(g => g.status === 'CLOSED').length },
+    { name: 'Available', value: gates.filter(g => g.is_available === true).length },
+    { name: 'Occupied',  value: gates.filter(g => g.is_available === false).length },
   ].filter(d => d.value > 0)
 
-  // Staff by role
+  // Staff by role - field is staff_type, not role
   const staffRoleData = Object.entries(
     staff.reduce((acc, s) => {
-      const r = s.role || 'Unknown'
+      const r = s.staff_type || 'Unknown'
       acc[r] = (acc[r] || 0) + 1
       return acc
     }, {})
@@ -81,11 +79,11 @@ export default function Analytics() {
     }, {})
   ).map(([name, value]) => ({ name, value }))
 
-  // Flights over time (by scheduled date)
+  // Flights over time - field is departure_time, not scheduled_departure
   const flightsByDate = Object.entries(
     flights.reduce((acc, f) => {
-      const date = f.scheduled_departure
-        ? new Date(f.scheduled_departure).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+      const date = f.departure_time
+        ? new Date(f.departure_time).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
         : 'Unknown'
       acc[date] = (acc[date] || 0) + 1
       return acc
