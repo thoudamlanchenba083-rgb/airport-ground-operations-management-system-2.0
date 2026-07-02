@@ -26,15 +26,15 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: '#171717' }}>
-      <aside className="w-60 flex flex-col shrink-0" style={{ backgroundColor: '#0f0f0f' }}>
-        <div className="px-5 py-5 border-b border-white/10 flex items-center gap-2">
+      <aside className="w-60 h-screen flex flex-col shrink-0 sticky top-0" style={{ backgroundColor: '#0f0f0f' }}>
+        <div className="px-5 py-5 border-b border-white/10 flex items-center gap-2 shrink-0">
           <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">✈</div>
           <div>
             <h1 className="text-sm font-bold text-white leading-tight">AeroGround</h1>
             <p className="text-xs text-slate-400">Ops Management</p>
           </div>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
+        <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-4 space-y-0.5">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -52,7 +52,7 @@ export default function Layout({ children }) {
             </NavLink>
           ))}
         </nav>
-        <div className="px-4 py-4 border-t border-white/10">
+        <div className="px-4 py-4 border-t border-white/10 shrink-0">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
               {user?.username?.[0]?.toUpperCase() || 'U'}

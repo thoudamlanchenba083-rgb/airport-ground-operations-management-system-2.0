@@ -1,4 +1,11 @@
-﻿from rest_framework import viewsets
+﻿import logging
+
+logger = logging.getLogger('gates')
+
+from rest_framework import viewsets
+
+
+
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.exceptions import ValidationError
@@ -44,16 +51,23 @@ class GateAssignmentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         gate = serializer.validated_data['gate']
         if not gate.is_available:
+            logger.warning(
+                f"Gate assignment failed: gate {gate.gate_number} not available "
+                f"(attempted by {self.request.user})"
+            )
             raise ValidationError(
                 {'gate': f'Gate {gate.gate_number} is not available.'}
             )
         instance = serializer.save()
         gate.is_available = False
         gate.save()
+        logger.info(
+            f"Gate {gate.gate_number} assigned to flight {instance.flight} "
+            f"by {self.request.user}"
+        )
         log_action(self.request.user, 'CREATE', 'GateAssignment', instance.id,
                    f'Assigned gate {gate.gate_number} to flight {instance.flight}',
                    self.request)
-
     def perform_destroy(self, instance):
         gate = instance.gate
         gate.is_available = True

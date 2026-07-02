@@ -1,8 +1,15 @@
+import logging
+
+logger = logging.getLogger('accounts')
+
 from rest_framework import viewsets, generics, permissions, status
+
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+
 from django.contrib.auth import update_session_auth_hash
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
@@ -18,9 +25,15 @@ from rest_framework import status
 @method_decorator(ratelimit(key='ip', rate='5/m', method='POST', block=True), name='post')
 class RateLimitedTokenObtainPairView(TokenObtainPairView):
     """Login endpoint — max 5 attempts per minute per IP."""
-    pass
 
-
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username', 'unknown')
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            logger.info(f"Login successful for user '{username}' from IP {request.META.get('REMOTE_ADDR')}")
+        else:
+            logger.warning(f"Login failed for user '{username}' from IP {request.META.get('REMOTE_ADDR')} - status {response.status_code}")
+        return response
 @method_decorator(ratelimit(key='ip', rate='10/m', method='POST', block=True), name='post')
 class RateLimitedTokenRefreshView(TokenRefreshView):
     """Token refresh — max 10 per minute per IP."""

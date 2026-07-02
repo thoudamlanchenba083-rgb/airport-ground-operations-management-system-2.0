@@ -1,4 +1,4 @@
-﻿from django.db import models
+from django.db import models
 from django.core.validators import MinValueValidator
 from staff.models import Staff
 
@@ -6,7 +6,10 @@ class Department(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
 
@@ -16,7 +19,10 @@ class Designation(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
 
@@ -56,6 +62,7 @@ class LeaveType(models.Model):
     
     class Meta:
         unique_together = ('name',)
+        ordering = ['name']
     
     def __str__(self):
         return self.get_name_display()

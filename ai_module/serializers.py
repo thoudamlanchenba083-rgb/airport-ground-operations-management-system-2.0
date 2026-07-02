@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import AIPrediction, AIChatMessage
+from .models import AIPrediction, AIChatMessage, FlightScheduleUpload
 
 
 class AIPredictionSerializer(serializers.ModelSerializer):
@@ -25,3 +25,15 @@ class AIChatMessageSerializer(serializers.ModelSerializer):
         model = AIChatMessage
         fields = ['id', 'role', 'content', 'created_at', 'session_id']
         read_only_fields = ['created_at']
+
+
+class FlightScheduleUploadSerializer(serializers.ModelSerializer):
+    uploaded_by_username = serializers.CharField(source='uploaded_by.username', read_only=True)
+
+    class Meta:
+        model = FlightScheduleUpload
+        fields = [
+            'id', 'original_filename', 'uploaded_by', 'uploaded_by_username',
+            'uploaded_at', 'row_count', 'status', 'error_message',
+        ]
+        read_only_fields = fields

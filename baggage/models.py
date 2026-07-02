@@ -9,6 +9,9 @@ class Baggage(models.Model):
     weight = models.DecimalField(max_digits=6, decimal_places=2)
     flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ['baggage_tag']
+
     def __str__(self):
         return self.baggage_tag
 

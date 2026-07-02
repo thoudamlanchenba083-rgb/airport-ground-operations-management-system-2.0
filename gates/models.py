@@ -22,6 +22,9 @@ class Gate(models.Model):
                                   help_text='Usable length in meters, used for aircraft compatibility checks')
     is_under_maintenance = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['gate_number']
+
     def __str__(self):
         return self.gate_number
 

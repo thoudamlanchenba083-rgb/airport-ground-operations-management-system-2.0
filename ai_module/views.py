@@ -2,9 +2,11 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Avg, Count
-from .models import AIPrediction, AIChatMessage
-from .serializers import AIPredictionSerializer, AIChatMessageSerializer
+from .models import AIPrediction, AIChatMessage, FlightScheduleUpload
+from .serializers import AIPredictionSerializer, AIChatMessageSerializer, FlightScheduleUploadSerializer
+from .excel_import import import_flight_schedule
 from flights.models import Flight
 from gates.models import Gate
 from .ml.predictor import (
@@ -128,3 +130,39 @@ class AIChatViewSet(viewsets.ViewSet):
         session_id = request.data.get('session_id', '')
         AIChatMessage.objects.filter(user=request.user, session_id=session_id).delete()
         return Response({'message': 'Chat cleared'})
+
+
+class FlightScheduleViewSet(viewsets.ViewSet):
+    """
+    Upload an Excel/CSV flight-timing sheet so the AI Assistant chatbot can
+    answer "is there a flight at this time" questions against it.
+    """
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def list(self, request):
+        """GET /api/ai/schedule/ - info about the currently active sheet."""
+        upload = FlightScheduleUpload.objects.order_by('-uploaded_at').first()
+        if not upload:
+            return Response({'active': False})
+        return Response({'active': True, **FlightScheduleUploadSerializer(upload).data})
+
+    def create(self, request):
+        """POST /api/ai/schedule/ - upload a new sheet (multipart 'file')."""
+        f = request.FILES.get('file')
+        if not f:
+            return Response({'error': 'No file provided. Attach it under the "file" field.'}, status=400)
+        if not f.name.lower().endswith(('.xlsx', '.xls', '.csv')):
+            return Response({'error': 'Please upload a .xlsx, .xls, or .csv file.'}, status=400)
+
+        upload = import_flight_schedule(f, f.name, user=request.user)
+        if upload.status == 'FAILED':
+            return Response(
+                {'error': f"Couldn't read that file: {upload.error_message}"}, status=400
+            )
+        return Response(FlightScheduleUploadSerializer(upload).data, status=201)
+
+    @action(detail=False, methods=['delete'])
+    def clear(self, request):
+        FlightScheduleUpload.objects.all().delete()
+        return Response({'message': 'Flight schedule cleared'})
