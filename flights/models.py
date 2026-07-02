@@ -1,4 +1,4 @@
-﻿from django.db import models
+from django.db import models
 
 
 class Airline(models.Model):
@@ -13,6 +13,10 @@ class Aircraft(models.Model):
     registration_number = models.CharField(max_length=20, unique=True)
     aircraft_type = models.CharField(max_length=100)
     capacity = models.PositiveIntegerField()
+    width = models.DecimalField(max_digits=6, decimal_places=2, default=36.00,
+                                 help_text='Wingspan in meters, used for gate compatibility checks')
+    length = models.DecimalField(max_digits=6, decimal_places=2, default=40.00,
+                                  help_text='Fuselage length in meters, used for gate compatibility checks')
 
     def __str__(self):
         return self.registration_number
@@ -57,7 +61,18 @@ class Flight(models.Model):
         'DEPARTED',
     ]
 
+    FLIGHT_TYPE_CHOICES = [
+        ('domestic', 'Domestic'),
+        ('international', 'International'),
+    ]
+
     flight_number = models.CharField(max_length=20, unique=True)
+
+    flight_type = models.CharField(
+        max_length=20,
+        choices=FLIGHT_TYPE_CHOICES,
+        default='domestic'
+    )
 
     airline = models.ForeignKey(
         Airline,

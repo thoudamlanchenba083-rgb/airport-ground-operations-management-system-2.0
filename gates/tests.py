@@ -28,29 +28,29 @@ class GateAPITest(TestCase):
     def test_admin_can_create_gate(self):
         token = self.get_token('admin', 'admin123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/gates/', {'gate_number': 'B2', 'terminal': 'B', 'is_available': True})
+        response = self.client.post('/api/gates/gates/', {'gate_number': 'B2', 'terminal': 'B', 'is_available': True})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_user_can_list_gates(self):
         token = self.get_token('staffuser', 'staff123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.get('/api/gates/')
+        response = self.client.get('/api/gates/gates/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_user_cannot_create_gate(self):
         token = self.get_token('staffuser', 'staff123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/gates/', {'gate_number': 'C3', 'terminal': 'C', 'is_available': True})
+        response = self.client.post('/api/gates/gates/', {'gate_number': 'C3', 'terminal': 'C', 'is_available': True})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_admin_can_assign_gate(self):
         token = self.get_token('admin', 'admin123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/gate-assignments/', {
+        response = self.client.post('/api/gates/gate-assignments/', {
             'gate': self.gate.id, 'flight': self.flight.id
         })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_unauthenticated_cannot_access_gates(self):
-        response = self.client.get('/api/gates/')
+        response = self.client.get('/api/gates/gates/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

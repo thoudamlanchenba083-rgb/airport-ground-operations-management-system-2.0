@@ -21,23 +21,23 @@ class FlightAPITest(TestCase):
     def test_admin_can_create_airline(self):
         token = self.get_token('admin', 'admin123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/airlines/', {'name': 'New Airline', 'code': 'NA'})
+        response = self.client.post('/api/flights/airlines/', {'name': 'New Airline', 'code': 'NA'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_user_cannot_create_airline(self):
         token = self.get_token('user', 'user123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/airlines/', {'name': 'New Airline', 'code': 'NA'})
+        response = self.client.post('/api/flights/airlines/', {'name': 'New Airline', 'code': 'NA'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_can_list_airlines(self):
         token = self.get_token('user', 'user123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.get('/api/airlines/')
+        response = self.client.get('/api/flights/airlines/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_unauthenticated_cannot_access(self):
-        response = self.client.get('/api/airlines/')
+        response = self.client.get('/api/flights/airlines/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_admin_can_create_flight(self):
@@ -53,11 +53,11 @@ class FlightAPITest(TestCase):
             'airline': self.airline.id,
             'aircraft': self.aircraft.id
         }
-        response = self.client.post('/api/flights/', data)
+        response = self.client.post('/api/flights/flights/', data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_admin_can_delete_airline(self):
         token = self.get_token('admin', 'admin123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.delete(f'/api/airlines/{self.airline.id}/')
+        response = self.client.delete(f'/api/flights/airlines/{self.airline.id}/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

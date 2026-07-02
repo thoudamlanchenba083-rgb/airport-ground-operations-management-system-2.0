@@ -22,35 +22,27 @@ class NotificationAPITest(TestCase):
     def test_user_can_list_own_notifications(self):
         token = self.get_token('staffuser', 'staff123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.get('/api/notifications/')
+        response = self.client.get('/api/notifications/notifications/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_admin_can_list_all_notifications(self):
         token = self.get_token('admin', 'admin123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.get('/api/notifications/')
+        response = self.client.get('/api/notifications/notifications/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_user_can_create_notification(self):
-        token = self.get_token('staffuser', 'staff123')
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/notifications/', {
-            'type': 'FLIGHT', 'message': 'Flight delayed'
-        })
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_user_sees_only_own_notifications(self):
         token = self.get_token('staffuser', 'staff123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.get('/api/notifications/')
+        response = self.client.get('/api/notifications/notifications/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for item in response.data['results']:
             self.assertEqual(item['user'], self.user.id)
 
-    def test_user_can_create_notification(self):
+    def test_user_cannot_create_notification(self):
         token = self.get_token('staffuser', 'staff123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/notifications/', {
+        response = self.client.post('/api/notifications/notifications/', {
             'type': 'FLIGHT', 'message': 'Flight delayed'
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -58,7 +50,7 @@ class NotificationAPITest(TestCase):
     def test_admin_can_create_notification(self):
         token = self.get_token('admin', 'admin123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/notifications/', {
+        response = self.client.post('/api/notifications/notifications/', {
             'type': 'FLIGHT', 'message': 'Flight delayed'
         })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

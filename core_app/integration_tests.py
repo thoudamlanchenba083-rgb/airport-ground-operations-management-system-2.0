@@ -62,7 +62,7 @@ class AuthFlowIntegrationTest(TestCase):
 
         # 3. Access protected endpoint
         authed = auth_client(access)
-        res = authed.get('/api/flights/')
+        res = authed.get('/api/flights/flights/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         # 4. Refresh token
@@ -113,18 +113,18 @@ class FlightCRUDIntegrationTest(TestCase):
 
     def test_flight_crud_flow(self):
         # CREATE
-        res = self.client.post('/api/flights/', self._payload(), format='json')
+        res = self.client.post('/api/flights/flights/', self._payload(), format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         flight_id = res.data['id']
         self.assertEqual(res.data['status'], 'SCHEDULED')
 
         # READ
-        res = self.client.get(f'/api/flights/{flight_id}/')
+        res = self.client.get(f'/api/flights/flights/{flight_id}/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['flight_number'], 'INT100')
 
         # UPDATE (status change)
-        res = self.client.patch(f'/api/flights/{flight_id}/', {'status': 'BOARDING'}, format='json')
+        res = self.client.patch(f'/api/flights/flights/{flight_id}/', {'status': 'BOARDING'}, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['status'], 'BOARDING')
 
@@ -132,11 +132,11 @@ class FlightCRUDIntegrationTest(TestCase):
         self.assertIn('updated_at', res.data)
 
         # DELETE
-        res = self.client.delete(f'/api/flights/{flight_id}/')
+        res = self.client.delete(f'/api/flights/flights/{flight_id}/')
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
 
         # Confirm gone
-        res = self.client.get(f'/api/flights/{flight_id}/')
+        res = self.client.get(f'/api/flights/flights/{flight_id}/')
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
 
@@ -163,26 +163,26 @@ class StaffCRUDIntegrationTest(TestCase):
         }
 
         # CREATE
-        res = self.client.post('/api/staff/', payload, format='json')
+        res = self.client.post('/api/staff/staff/', payload, format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         staff_id = res.data['id']
 
         # READ
-        res = self.client.get(f'/api/staff/{staff_id}/')
+        res = self.client.get(f'/api/staff/staff/{staff_id}/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['name'], 'Alice Integration')
 
         # UPDATE
-        res = self.client.patch(f'/api/staff/{staff_id}/', {'phone': '9111111111'}, format='json')
+        res = self.client.patch(f'/api/staff/staff/{staff_id}/', {'phone': '9111111111'}, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['phone'], '9111111111')
 
         # DELETE
-        res = self.client.delete(f'/api/staff/{staff_id}/')
+        res = self.client.delete(f'/api/staff/staff/{staff_id}/')
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
 
         # Confirm gone
-        res = self.client.get(f'/api/staff/{staff_id}/')
+        res = self.client.get(f'/api/staff/staff/{staff_id}/')
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
 
@@ -222,7 +222,7 @@ class RBACIntegrationTest(TestCase):
 
     def test_admin_can_create_staff(self):
         client = auth_client(self.admin_token)
-        res = client.post('/api/staff/', {
+        res = client.post('/api/staff/staff/', {
             'name': 'Bob RBAC',
             'employee_id': 'RBAC01',
             'staff_type': 'GROUND',
@@ -233,7 +233,7 @@ class RBACIntegrationTest(TestCase):
 
     def test_ground_staff_cannot_create_staff(self):
         client = auth_client(self.ground_token)
-        res = client.post('/api/staff/', {
+        res = client.post('/api/staff/staff/', {
             'name': 'Charlie RBAC',
             'employee_id': 'RBAC02',
             'staff_type': 'GROUND',
@@ -244,12 +244,12 @@ class RBACIntegrationTest(TestCase):
 
     def test_ground_staff_can_read_flights(self):
         client = auth_client(self.ground_token)
-        res = client.get('/api/flights/')
+        res = client.get('/api/flights/flights/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_unauthenticated_blocked_everywhere(self):
         unauth = APIClient()
-        endpoints = ['/api/flights/', '/api/staff/', '/api/baggage/']
+        endpoints = ['/api/flights/flights/', '/api/staff/staff/', '/api/baggage/baggage/']
         for url in endpoints:
             res = unauth.get(url)
             self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED, msg=f"Expected 401 on {url}")
