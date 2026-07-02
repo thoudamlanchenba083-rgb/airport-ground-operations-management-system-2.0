@@ -30,7 +30,7 @@ class BaggageAPITest(TestCase):
     def test_admin_can_create_baggage(self):
         token = self.get_token('admin', 'admin123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/baggage/', {
+        response = self.client.post('/api/baggage/baggage/', {
             'baggage_tag': 'BAG002', 'passenger_name': 'Jane Doe', 'weight': '18.0', 'flight': self.flight.id
         })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -38,13 +38,13 @@ class BaggageAPITest(TestCase):
     def test_user_can_list_baggage(self):
         token = self.get_token('staffuser', 'staff123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.get('/api/baggage/')
+        response = self.client.get('/api/baggage/baggage/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_user_cannot_create_baggage(self):
         token = self.get_token('staffuser', 'staff123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/baggage/', {
+        response = self.client.post('/api/baggage/baggage/', {
             'baggage_tag': 'BAG003', 'passenger_name': 'Bob', 'weight': '10.0', 'flight': self.flight.id
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -52,11 +52,11 @@ class BaggageAPITest(TestCase):
     def test_admin_can_add_tracking(self):
         token = self.get_token('admin', 'admin123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/baggage-tracking/', {
+        response = self.client.post('/api/baggage/baggage-tracking/', {
             'baggage': self.baggage.id, 'status': 'LOADED'
         })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_unauthenticated_cannot_access_baggage(self):
-        response = self.client.get('/api/baggage/')
+        response = self.client.get('/api/baggage/baggage/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

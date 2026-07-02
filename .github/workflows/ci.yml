@@ -53,7 +53,40 @@ jobs:
       - name: Run migrations
         run: python manage.py migrate
 
-      - name: Run unit tests
+      - name: Test accounts
+        run: python manage.py test accounts --verbosity=2
+
+      - name: Test flights
+        run: python manage.py test flights --verbosity=2
+
+      - name: Test gates
+        run: python manage.py test gates --verbosity=2
+
+      - name: Test staff
+        run: python manage.py test staff --verbosity=2
+
+      - name: Test maintenance
+        run: python manage.py test maintenance --verbosity=2
+
+      - name: Test baggage
+        run: python manage.py test baggage --verbosity=2
+
+      - name: Test notifications
+        run: python manage.py test notifications --verbosity=2
+
+      - name: Test reports
+        run: python manage.py test reports --verbosity=2
+
+      - name: Test ground_equipment
+        run: python manage.py test ground_equipment --verbosity=2
+
+      - name: Test hr_management
+        run: python manage.py test hr_management --verbosity=2
+
+      - name: Test ai_module
+        run: python manage.py test ai_module --verbosity=2
+
+      - name: Test core_app
         run: python manage.py test core_app --verbosity=2
 
       - name: Run integration tests

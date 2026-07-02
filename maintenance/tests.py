@@ -10,8 +10,8 @@ User = get_user_model()
 class MaintenanceAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.admin = User.objects.create_superuser(username='admin', password='admin123', email='admin@test.com')
-        self.user = User.objects.create_user(username='staffuser', password='staff123')
+        self.admin = User.objects.create_superuser(username='admin', password='admin123', email='admin@test.com', role='ADMIN')
+        self.user = User.objects.create_user(username='staffuser', password='staff123', role='MAINTENANCE_ENGINEER')
         self.aircraft = Aircraft.objects.create(
             registration_number='TC-001', aircraft_type='Boeing 737', capacity=180
         )
@@ -26,7 +26,7 @@ class MaintenanceAPITest(TestCase):
     def test_admin_can_create_maintenance_request(self):
         token = self.get_token('admin', 'admin123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/maintenance/', {
+        response = self.client.post('/api/maintenance/maintenance/', {
             'aircraft': self.aircraft.id,
             'issue_description': 'Fuel leak',
             'priority': 'HIGH'
@@ -36,13 +36,13 @@ class MaintenanceAPITest(TestCase):
     def test_user_can_list_maintenance_requests(self):
         token = self.get_token('staffuser', 'staff123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.get('/api/maintenance/')
+        response = self.client.get('/api/maintenance/maintenance/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_user_cannot_create_maintenance_request(self):
         token = self.get_token('staffuser', 'staff123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/maintenance/', {
+        response = self.client.post('/api/maintenance/maintenance/', {
             'aircraft': self.aircraft.id,
             'issue_description': 'Tire check',
             'priority': 'LOW'
@@ -52,12 +52,12 @@ class MaintenanceAPITest(TestCase):
     def test_admin_can_add_maintenance_log(self):
         token = self.get_token('admin', 'admin123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post('/api/maintenance-logs/', {
+        response = self.client.post('/api/maintenance/maintenance-logs/', {
             'request': self.mrequest.id,
             'action_taken': 'Engine inspected and cleared'
         })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_unauthenticated_cannot_access(self):
-        response = self.client.get('/api/maintenance/')
+        response = self.client.get('/api/maintenance/maintenance/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
