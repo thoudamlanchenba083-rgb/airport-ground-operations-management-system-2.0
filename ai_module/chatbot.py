@@ -38,6 +38,9 @@ INTENTS = {
         'flight at', 'flights at', 'flight around', 'flights around', 'flights between',
         'flight between', 'flight schedule', 'check the schedule', 'check schedule',
         'according to the excel', 'according to the sheet', 'in the excel', 'uploaded schedule',
+        'any flight', 'any flights', 'flight options', 'flights available', 'flight available',
+        'available flight', 'available flights', 'departing between', 'flights departing',
+        'flight departing', 'flights are there', 'flight are there', 'flights there',
     ],
     'flight_status': ['status', 'where is', 'flight info', 'flight detail', 'when does', 'departure', 'arrival'],
     'delay_prediction': ['delay', 'late', 'on time', 'predict delay'],
@@ -77,13 +80,27 @@ def _extract_gate(text):
 
 
 TIME_PATTERNS = [
-    # e.g. "3:45 pm", "15:45"
-    re.compile(r'\b(?P<h>\d{1,2}):(?P<m>\d{2})\s*(?P<ap>am|pm)?\b', re.IGNORECASE),
-    # e.g. "3 pm", "11am"
+    # e.g. "3:45 pm", "15:45", "8.00 pm", "08.00PM" - colon or dot as the separator
+    re.compile(r'\b(?P<h>\d{1,2})[:.](?P<m>\d{2})\s*(?P<ap>am|pm)?\b', re.IGNORECASE),
+    # e.g. "3 pm", "11am", "8.00PM" (fallback if no minutes given)
     re.compile(r'\b(?P<h>\d{1,2})\s*(?P<ap>am|pm)\b', re.IGNORECASE),
     # e.g. "at 15", "at 9"
     re.compile(r'\bat\s+(?P<h>\d{1,2})\b', re.IGNORECASE),
 ]
+
+
+def _parse_time_match(m):
+    """Turn a TIME_PATTERNS regex match into (hour, minute) 24h, or None if invalid."""
+    hour = int(m.group('h'))
+    minute = int(m.group('m')) if 'm' in m.groupdict() and m.group('m') else 0
+    ap = (m.groupdict().get('ap') or '').lower()
+    if hour > 23 or minute > 59:
+        return None
+    if ap == 'pm' and hour < 12:
+        hour += 12
+    if ap == 'am' and hour == 12:
+        hour = 0
+    return hour, minute
 
 
 def _extract_time_of_day(text):
@@ -92,16 +109,43 @@ def _extract_time_of_day(text):
         m = pattern.search(text)
         if not m:
             continue
-        hour = int(m.group('h'))
-        minute = int(m.group('m')) if 'm' in m.groupdict() and m.group('m') else 0
-        ap = (m.groupdict().get('ap') or '').lower()
-        if hour > 23 or minute > 59:
-            continue
-        if ap == 'pm' and hour < 12:
-            hour += 12
-        if ap == 'am' and hour == 12:
-            hour = 0
-        return hour, minute
+        result = _parse_time_match(m)
+        if result:
+            return result
+    return None
+
+
+def _extract_time_range(text):
+    """
+    Find a "between X and Y" / "from X to Y" / "X to Y" style time range
+    mention, where X and Y are both clock times (not routes). Returns
+    ((h1, m1), (h2, m2)) or None.
+    """
+    m = re.search(r'between\s+(.+?)\s+and\s+(.+?)(?:[?!]|\s*$)', text, re.IGNORECASE)
+    if not m:
+        m = re.search(r'\bfrom\s+(.+?)\s+to\s+(.+?)(?:[?!]|\s*$)', text, re.IGNORECASE)
+    if not m:
+        # plain "8pm to 9pm" / "08.00PM to 9.00PM" without a leading from/between
+        m = re.search(r'\b(\d[\d:.\s]*(?:am|pm)?)\s+to\s+(\d[\d:.\s]*(?:am|pm)?)\b', text, re.IGNORECASE)
+    if not m:
+        return None
+
+    start_text, end_text = m.group(1), m.group(2)
+    start = None
+    end = None
+    for pattern in TIME_PATTERNS:
+        sm = pattern.search(start_text)
+        if sm:
+            start = _parse_time_match(sm)
+            break
+    for pattern in TIME_PATTERNS:
+        em = pattern.search(end_text)
+        if em:
+            end = _parse_time_match(em)
+            break
+
+    if start and end:
+        return start, end
     return None
 
 
@@ -123,12 +167,12 @@ def _check_schedule(text, text_lower):
         return ("I don't have a flight schedule uploaded yet. Go to the AI Assistant page, "
                 "upload an Excel/CSV sheet with flight times, and then ask me again.")
 
-    time_of_day = _extract_time_of_day(text)
-    if not time_of_day:
+    time_range = _extract_time_range(text)
+    time_of_day = None if time_range else _extract_time_of_day(text)
+    if not time_range and not time_of_day:
         return ("What time should I check? For example: \"is there a flight at 3:30 pm\" "
-                "or \"any flights at 15:00\".")
+                "or \"any flights between 8pm and 9pm\".")
 
-    hour, minute = time_of_day
     origin, destination = _extract_route(text_lower)
 
     rows = upload.rows.exclude(scheduled_time__isnull=True)
@@ -137,16 +181,27 @@ def _check_schedule(text, text_lower):
     if destination:
         rows = rows.filter(destination__icontains=destination)
 
-    target_minutes = hour * 60 + minute
-    window = 30  # minutes
+    if time_range:
+        (h1, m1), (h2, m2) = time_range
+        start_minutes = h1 * 60 + m1
+        end_minutes = h2 * 60 + m2
+        if end_minutes < start_minutes:
+            start_minutes, end_minutes = end_minutes, start_minutes
+        time_label = f"{h1:02d}:{m1:02d}\u2013{h2:02d}:{m2:02d}"
+    else:
+        hour, minute = time_of_day
+        start_minutes = hour * 60 + minute - 30
+        end_minutes = hour * 60 + minute + 30
+        time_label = f"{hour:02d}:{minute:02d}"
+
     matches = []
     for r in rows:
         row_minutes = r.scheduled_time.hour * 60 + r.scheduled_time.minute
-        if abs(row_minutes - target_minutes) <= window:
+        if start_minutes <= row_minutes <= end_minutes:
             matches.append(r)
 
-    time_label = f"{hour:02d}:{minute:02d}"
     route_label = f" from {origin} to {destination}" if origin and destination else ""
+    time_word = "between" if time_range else "around"
 
     if matches:
         matches.sort(key=lambda r: r.scheduled_time)
@@ -158,13 +213,13 @@ def _check_schedule(text, text_lower):
         extra = f" (+{len(matches) - 8} more)" if len(matches) > 8 else ""
         return (
             f"Yes, according to the uploaded schedule ({upload.original_filename}), "
-            f"there {'is a flight' if len(matches)==1 else 'are flights'} around {time_label}{route_label}:\n"
+            f"there {'is a flight' if len(matches)==1 else 'are flights'} {time_word} {time_label}{route_label}:\n"
             + "\n".join(lines) + extra
         )
 
     return (
         f"No, according to the uploaded schedule ({upload.original_filename}), "
-        f"there are no flights around {time_label}{route_label}."
+        f"there are no flights {time_word} {time_label}{route_label}."
     )
 
 
@@ -177,6 +232,9 @@ class ChatbotEngine:
         intent = _score_intent(text_lower)
         flight = _extract_flight(text)
         gate = _extract_gate(text)
+
+        if intent is None and 'flight' in text_lower and (_extract_time_range(text) or _extract_time_of_day(text)):
+            intent = 'schedule_check'
 
         if intent == 'greeting':
             return f"Hello{' ' + user.first_name if user and user.first_name else ''}! I can check flight status, delays, gate availability, maintenance alerts, and staffing. What do you need?"
