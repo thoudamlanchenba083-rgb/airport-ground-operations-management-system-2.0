@@ -26,7 +26,7 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'priority']
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['list', 'retrieve', 'create']:
             return [IsMaintenanceStaff()]
         return [IsAdminUser()]
 
@@ -140,3 +140,6 @@ class MaintenanceLogViewSet(viewsets.ModelViewSet):
         log_action(self.request.user, 'DELETE', 'MaintenanceLog', instance.id,
                    f'Deleted maintenance log: {instance.id}', self.request)
         instance.delete()
+
+
+
