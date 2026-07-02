@@ -22,6 +22,8 @@ schema_view = get_schema_view(
 )
 
 FRONTEND = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend')
+from django.conf import settings
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/token/', RateLimitedTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -38,4 +40,4 @@ urlpatterns = [
     path('api/ground-equipment/', include('ground_equipment.urls')),
     path('api/hr/', include('hr_management.urls')),  
     path('api/ai/', include('ai_module.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

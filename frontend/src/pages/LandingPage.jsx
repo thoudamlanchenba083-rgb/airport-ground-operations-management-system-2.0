@@ -368,6 +368,7 @@ export default function LandingPage() {
             <span style={{cursor:"pointer"}} onClick={() => navigate("/services")}>Services</span>
             <span style={{cursor:"pointer"}} onClick={() => navigate("/about")}>About</span>
             <span style={{cursor:"pointer"}} onClick={() => navigate("/team")}>Team</span>
+            <a href="http://localhost:8000/admin" target="_blank" rel="noopener noreferrer" className="btn-nav" style={{ background: 'transparent', textDecoration: 'none', display: 'inline-block' }}>Django Admin</a>
             <button className="btn-nav" onClick={() => navigate('/login')}>Launch →</button>
           </div>
           <button
@@ -385,6 +386,7 @@ export default function LandingPage() {
             <span style={{cursor:"pointer"}} onClick={() => { setMobOpen(false); navigate("/services") }}>Services</span>
             <span style={{cursor:"pointer"}} onClick={() => { setMobOpen(false); navigate("/about") }}>About</span>
             <span style={{cursor:"pointer"}} onClick={() => { setMobOpen(false); navigate("/team") }}>Team</span>
+            <a href="http://localhost:8000/admin" target="_blank" rel="noopener noreferrer" onClick={() => setMobOpen(false)} style={{ textDecoration: 'none' }}>Django Admin</a>
             <button onClick={() => { setMobOpen(false); navigate('/login') }}>Launch Dashboard →</button>
           </div>
         )}
