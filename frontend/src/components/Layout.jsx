@@ -1,23 +1,25 @@
 ﻿import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { canAccessPage } from '../utils/roleAccess'
 
 const navItems = [
-  { to: '/dashboard',     label: 'Dashboard' },
-  { to: '/flights',       label: 'Flights' },
-  { to: '/gates',         label: 'Gates' },
-  { to: '/baggage',       label: 'Baggage'},
-  { to: '/maintenance',   label: 'Maintenance'},
-  { to: '/equipment',     label: 'Equipment'},
-  { to: '/staff',         label: 'Staff' },
-  { to: '/notifications', label: 'Notifications' },
-  { to: '/reports',       label: 'Reports',},
-  { to: '/chatbot',       label: 'AI Assistant', },
-  { to: '/analytics',     label: 'Analytics',},
+  { to: '/dashboard',     label: 'Dashboard',    page: 'dashboard' },
+  { to: '/flights',       label: 'Flights',      page: 'flights' },
+  { to: '/gates',         label: 'Gates',        page: 'gates' },
+  { to: '/baggage',       label: 'Baggage',      page: 'baggage' },
+  { to: '/maintenance',   label: 'Maintenance',  page: 'maintenance' },
+  { to: '/equipment',     label: 'Equipment',    page: 'equipment' },
+  { to: '/staff',         label: 'Staff',        page: 'staff' },
+  { to: '/notifications', label: 'Notifications',page: 'notifications' },
+  { to: '/reports',       label: 'Reports',      page: 'reports' },
+  { to: '/chatbot',       label: 'AI Assistant', page: 'chatbot' },
+  { to: '/analytics',     label: 'Analytics',    page: 'analytics' },
 ]
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const visibleNavItems = navItems.filter((item) => canAccessPage(user, item.page))
 
   const handleLogout = () => {
     logout()
@@ -35,7 +37,7 @@ export default function Layout({ children }) {
           </div>
         </div>
         <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-4 space-y-0.5">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

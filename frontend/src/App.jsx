@@ -20,9 +20,9 @@ import Reports from './pages/Reports'
 import Chatbot from './pages/Chatbot'
 import Analytics from './pages/Analytics'
 
-function withLayout(Component) {
+function withLayout(Component, page) {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute page={page}>
       <Layout>
         <Component />
       </Layout>
@@ -41,17 +41,17 @@ function App() {
 <Route path="/team" element={<Team />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/dashboard" element={withLayout(Dashboard)} />
-          <Route path="/flights" element={withLayout(Flights)} />
-          <Route path="/gates" element={withLayout(Gates)} />
-          <Route path="/baggage" element={withLayout(Baggage)} />
-          <Route path="/maintenance" element={withLayout(Maintenance)} />
-          <Route path="/equipment" element={withLayout(Equipment)} />
-          <Route path="/staff" element={withLayout(Staff)} />
-          <Route path="/notifications" element={withLayout(Notifications)} />
-          <Route path="/reports" element={withLayout(Reports)} />
-          <Route path="/chatbot" element={withLayout(Chatbot)} />
-<Route path="/analytics" element={withLayout(Analytics)} />
+          <Route path="/dashboard" element={withLayout(Dashboard, 'dashboard')} />
+          <Route path="/flights" element={withLayout(Flights, 'flights')} />
+          <Route path="/gates" element={withLayout(Gates, 'gates')} />
+          <Route path="/baggage" element={withLayout(Baggage, 'baggage')} />
+          <Route path="/maintenance" element={withLayout(Maintenance, 'maintenance')} />
+          <Route path="/equipment" element={withLayout(Equipment, 'equipment')} />
+          <Route path="/staff" element={withLayout(Staff, 'staff')} />
+          <Route path="/notifications" element={withLayout(Notifications, 'notifications')} />
+          <Route path="/reports" element={withLayout(Reports, 'reports')} />
+          <Route path="/chatbot" element={withLayout(Chatbot, 'chatbot')} />
+<Route path="/analytics" element={withLayout(Analytics, 'analytics')} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
