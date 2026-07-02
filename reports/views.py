@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+﻿from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -26,7 +26,7 @@ class ReportViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(generated_by=self.request.user)
 
-    @action(detail=False, methods=['get'], url_path='summary/flights')
+    @action(detail=False, methods=['get'], url_path='summary/flight')
     def flight_summary(self, request):
         now = timezone.now()
         last_7 = now - timedelta(days=7)
