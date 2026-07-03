@@ -61,17 +61,21 @@ const tickerData = [
 function Counter({ target, suffix = '' }) {
   const [val, setVal] = useState(0)
   const ref = useRef(null)
-  const started = useRef(false)
+  const animating = useRef(false)
   useEffect(() => {
     const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !started.current) {
-        started.current = true
+      if (entry.isIntersecting && !animating.current) {
+        animating.current = true
+        setVal(0)
         let v = 0
         const step = target / 60
         const id = setInterval(() => {
           v = Math.min(v + step, target)
           setVal(Number.isInteger(target) ? Math.floor(v) : v.toFixed(1))
-          if (v >= target) clearInterval(id)
+          if (v >= target) {
+            clearInterval(id)
+            animating.current = false
+          }
         }, 18)
       }
     }, { threshold: 0.5 })
@@ -416,9 +420,9 @@ export default function LandingPage() {
                 <div className="f-row"><span className="f-code">9W-314</span><span className="f-route">DEL → MAA</span><span className="f-gate">E6</span><span className="status s-o">On Time</span></div>
               </div>
               <div className="mini-kpis">
-                <div className="mk"><span className="mk-v">47</span><div className="mk-l">Flights</div></div>
-                <div className="mk"><span className="mk-v">3</span><div className="mk-l">Delayed</div></div>
-                <div className="mk"><span className="mk-v">12</span><div className="mk-l">Boarding</div></div>
+                <div className="mk"><span className="mk-v"><Counter target={47} /></span><div className="mk-l">Flights</div></div>
+                <div className="mk"><span className="mk-v"><Counter target={3} /></span><div className="mk-l">Delayed</div></div>
+                <div className="mk"><span className="mk-v"><Counter target={12} /></span><div className="mk-l">Boarding</div></div>
               </div>
             </div>
           </div>
