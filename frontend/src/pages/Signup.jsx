@@ -3,18 +3,11 @@ import { useNavigate, Link } from 'react-router-dom'
 import axiosClient from '../api/axiosClient'
 import usePageMeta from '../hooks/usePageMeta'
 
-const ROLES = [
-  { value: 'GROUND_STAFF', label: 'Ground Staff' },
-  { value: 'SUPERVISOR',   label: 'Supervisor' },
-  { value: 'MAINTENANCE',  label: 'Maintenance' },
-]
-
 export default function Signup() {
   usePageMeta('Sign Up', 'Create your AeroGround account to manage airport ground operations.')
   const [username, setUsername] = useState('')
   const [email, setEmail]       = useState('')
   const [phone, setPhone]       = useState('')
-  const [role, setRole]         = useState('GROUND_STAFF')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm]   = useState('')
   const [error, setError]       = useState('')
@@ -40,7 +33,7 @@ export default function Signup() {
     setLoading(true)
     try {
       await axiosClient.post('/accounts/register/', {
-        username, email, phone, role, password,
+        username, email, phone, role: 'GROUND_STAFF', password,
       })
       setSuccess(true)
       setTimeout(() => navigate('/login'), 1500)
@@ -120,19 +113,6 @@ export default function Signup() {
               placeholder="Optional"
               className="w-full px-4 py-2.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent text-sm transition"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm text-neutral-300 mb-1 font-medium">Role</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent text-sm transition"
-            >
-              {ROLES.map((r) => (
-                <option key={r.value} value={r.value} className="bg-neutral-900">{r.label}</option>
-              ))}
-            </select>
           </div>
 
           <div>
