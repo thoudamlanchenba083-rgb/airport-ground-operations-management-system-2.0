@@ -1,6 +1,5 @@
 ﻿import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
 import { canAccessPage } from '../utils/roleAccess'
 const navItems = [
   { to: '/dashboard',     label: 'Dashboard',    page: 'dashboard' },
@@ -17,7 +16,6 @@ const navItems = [
 ]
 export default function Layout({ children }) {
   const { user, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const visibleNavItems = navItems.filter((item) => canAccessPage(user, item.page))
   const handleLogout = () => {
@@ -53,12 +51,6 @@ export default function Layout({ children }) {
           ))}
         </nav>
         <div className="px-4 py-3 border-t border-black/10 dark:border-white/10 shrink-0">
-          <button
-            onClick={toggleTheme}
-            className="w-full flex items-center justify-center gap-2 text-sm bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-gray-700 dark:text-slate-200 py-1.5 rounded-lg transition mb-3"
-          >
-            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-          </button>
           <div className="flex items-center gap-2 mb-3">
             <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
               {user?.username?.[0]?.toUpperCase() || 'U'}

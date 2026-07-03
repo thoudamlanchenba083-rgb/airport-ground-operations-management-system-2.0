@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from 'react'
+﻿import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import axiosClient from '../api/axiosClient'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import usePageMeta from '../hooks/usePageMeta'
 
 // Keyed on the REAL Flight.STATUS_CHOICES values from the backend
@@ -64,6 +65,7 @@ function EmptyState({ text }) {
 export default function Dashboard() {
   usePageMeta('Dashboard', 'Airport Ground Operations live dashboard - flights, gates, baggage and staff overview.')
   const { user } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const [flights, setFlights] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -130,6 +132,12 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            className="text-sm bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 px-3 py-2 rounded-lg hover:border-blue-400 transition"
+          >
+            {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
           <button
             onClick={loadIntel}
             disabled={intelLoading}
