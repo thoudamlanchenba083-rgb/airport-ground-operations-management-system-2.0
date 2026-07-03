@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+﻿import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Login from './pages/Login'
@@ -32,31 +33,32 @@ function withLayout(Component, page) {
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-<Route path="/services" element={<Services />} />
-<Route path="/about" element={<About />} />
-<Route path="/team" element={<Team />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/dashboard" element={withLayout(Dashboard, 'dashboard')} />
-          <Route path="/flights" element={withLayout(Flights, 'flights')} />
-          <Route path="/gates" element={withLayout(Gates, 'gates')} />
-          <Route path="/baggage" element={withLayout(Baggage, 'baggage')} />
-          <Route path="/maintenance" element={withLayout(Maintenance, 'maintenance')} />
-          <Route path="/equipment" element={withLayout(Equipment, 'equipment')} />
-          <Route path="/staff" element={withLayout(Staff, 'staff')} />
-          <Route path="/notifications" element={withLayout(Notifications, 'notifications')} />
-          <Route path="/reports" element={withLayout(Reports, 'reports')} />
-          <Route path="/chatbot" element={withLayout(Chatbot, 'chatbot')} />
-<Route path="/analytics" element={withLayout(Analytics, 'analytics')} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/dashboard" element={withLayout(Dashboard, 'dashboard')} />
+            <Route path="/flights" element={withLayout(Flights, 'flights')} />
+            <Route path="/gates" element={withLayout(Gates, 'gates')} />
+            <Route path="/baggage" element={withLayout(Baggage, 'baggage')} />
+            <Route path="/maintenance" element={withLayout(Maintenance, 'maintenance')} />
+            <Route path="/equipment" element={withLayout(Equipment, 'equipment')} />
+            <Route path="/staff" element={withLayout(Staff, 'staff')} />
+            <Route path="/notifications" element={withLayout(Notifications, 'notifications')} />
+            <Route path="/reports" element={withLayout(Reports, 'reports')} />
+            <Route path="/chatbot" element={withLayout(Chatbot, 'chatbot')} />
+            <Route path="/analytics" element={withLayout(Analytics, 'analytics')} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 
 export default App
-

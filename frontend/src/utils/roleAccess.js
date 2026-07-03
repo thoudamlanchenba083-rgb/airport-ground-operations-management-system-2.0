@@ -29,5 +29,5 @@ export function canAccessPage(user, page) {
   const allowedRoles = PAGE_ROLES[page]
   if (!allowedRoles) return true // open to everyone who is logged in
   if (!user) return false
-  return Boolean(user.is_staff) || allowedRoles.includes(user.role)
+  return allowedRoles.includes(user.role)
 }
