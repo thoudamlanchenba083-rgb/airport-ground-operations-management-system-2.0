@@ -7,7 +7,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Report
 from .serializers import ReportSerializer
-from core_app.permissions import IsAdminUser, IsSupervisor
+from core_app.permissions import IsAdminUser, IsSupervisor, IsReportsUser
 from flights.models import Flight
 from baggage.models import Baggage, BaggageTracking
 from maintenance.models import MaintenanceRequest
@@ -17,7 +17,7 @@ from staff.models import Staff, Schedule
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
-    permission_classes = [IsSupervisor]
+    permission_classes = [IsReportsUser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['report_type']
     search_fields = ['title', 'content']
