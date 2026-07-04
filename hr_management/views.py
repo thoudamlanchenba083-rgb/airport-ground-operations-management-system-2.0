@@ -204,3 +204,16 @@ class PayrollViewSet(viewsets.ModelViewSet):
             'message': f'Payroll generated for {created_count} staff',
             'month': month
         })
+
+    @action(detail=True, methods=['post'])
+    def mark_paid(self, request, pk=None):
+        """Mark a payroll record as paid"""
+        payroll = self.get_object()
+        payroll.status = 'paid'
+        payroll.payment_date = timezone.now()
+        payroll.save()
+
+        return Response({
+            'message': 'Payroll marked as paid',
+            'payroll': PayrollSerializer(payroll).data
+        })

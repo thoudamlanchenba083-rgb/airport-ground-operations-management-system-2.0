@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 import { useAuth } from '../../context/AuthContext'
 
@@ -13,7 +13,7 @@ const STATUS_COLORS = {
 const STATUSES = ['SCHEDULED','BOARDING','DEPARTED','ARRIVED','CANCELLED']
 
 function fmt(dt) {
-  if (!dt) return '—'
+  if (!dt) return 'â€”'
   return new Date(dt).toLocaleString('en-US', {
     month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
@@ -100,7 +100,7 @@ export default function FlightsTab() {
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search flights, airline, route…"
+          placeholder="Search flights, airline, routeâ€¦"
           className="border border-gray-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         {!isViewer && (
@@ -133,7 +133,7 @@ export default function FlightsTab() {
               <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Aircraft</label>
               <select name="aircraft" value={form.aircraft} onChange={handleChange} required className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option value="">Select aircraft</option>
-                {aircraft.map(a => <option key={a.id} value={a.id}>{a.registration_number} — {a.aircraft_type}</option>)}
+                {aircraft.map(a => <option key={a.id} value={a.id}>{a.registration_number} â€” {a.aircraft_type}</option>)}
               </select>
             </div>
             <div>
@@ -162,14 +162,14 @@ export default function FlightsTab() {
           {formError && <p className="text-red-500 text-xs mt-3">{formError}</p>}
           <div className="mt-4 flex gap-2">
             <button type="submit" disabled={saving} className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition">
-              {saving ? 'Saving…' : 'Save Flight'}
+              {saving ? 'Savingâ€¦' : 'Save Flight'}
             </button>
           </div>
         </form>
       )}
 
       {/* Table */}
-      {loading && <p className="text-sm text-gray-500 dark:text-neutral-500 animate-pulse">Loading flights…</p>}
+      {loading && <p className="text-sm text-gray-500 dark:text-neutral-500 animate-pulse">Loading flightsâ€¦</p>}
       {error   && <p className="text-sm text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -195,7 +195,7 @@ export default function FlightsTab() {
                   <tr key={f.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800 transition">
                     <td className="px-5 py-3 font-mono font-semibold text-blue-700">{f.flight_number}</td>
                     <td className="px-5 py-3 text-gray-900 dark:text-neutral-100">{f.airline_name || f.airline}</td>
-                    <td className="px-5 py-3 text-gray-600 dark:text-neutral-300">{f.origin} ? {f.destination}</td>
+                    <td className="px-5 py-3 text-gray-600 dark:text-neutral-300">{f.origin} → {f.destination}</td>
                     <td className="px-5 py-3 text-gray-600 dark:text-neutral-300">{fmt(f.departure_time)}</td>
                     <td className="px-5 py-3 text-gray-600 dark:text-neutral-300">{fmt(f.arrival_time)}</td>
                     <td className="px-5 py-3">
@@ -223,3 +223,4 @@ export default function FlightsTab() {
     </div>
   )
 }
+
