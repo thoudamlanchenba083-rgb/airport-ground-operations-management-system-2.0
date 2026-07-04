@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
+import { useAuth } from '../../context/AuthContext'
 
 const STATUS_COLORS = {
   CHECKED_IN:  'bg-blue-100 text-blue-700',
@@ -13,6 +14,8 @@ const STATUS_COLORS = {
 const STATUSES = ['CHECKED_IN', 'LOADED', 'IN_TRANSIT', 'ARRIVED', 'CLAIMED', 'MISSING']
 
 export default function BaggageTab() {
+  const { user } = useAuth()
+  const isViewer = user?.role === 'VIEWER'
   const [baggage,   setBaggage]   = useState([])
   const [flights,   setFlights]   = useState([])
   const [loading,   setLoading]   = useState(true)
@@ -151,16 +154,18 @@ export default function BaggageTab() {
           placeholder="Search tag or passenger..."
           className="border border-gray-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <button
-          onClick={() => setShowForm(v => !v)}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg"
-        >
-          {showForm ? 'Cancel' : '+ Add Baggage'}
-        </button>
+        {!isViewer && (
+          <button
+            onClick={() => setShowForm(v => !v)}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg"
+          >
+            {showForm ? 'Cancel' : '+ Add Baggage'}
+          </button>
+        )}
       </div>
 
       {/* Add form */}
-      {showForm && (
+      {showForm && !isViewer && (
         <div className="bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg p-4 mb-4 grid grid-cols-2 gap-3">
           <input
             placeholder="Baggage Tag (e.g. BG001)"
@@ -241,12 +246,14 @@ export default function BaggageTab() {
                   >
                     Tracking
                   </button>
-                  <button
-                    onClick={() => deleteBaggage(b.id)}
-                    className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded"
-                  >
-                    Delete
-                  </button>
+                  {!isViewer && (
+                    <button
+                      onClick={() => deleteBaggage(b.id)}
+                      className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

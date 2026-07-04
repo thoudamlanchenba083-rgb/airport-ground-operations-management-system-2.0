@@ -1,4 +1,4 @@
-﻿from rest_framework import viewsets, status
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -6,6 +6,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from datetime import datetime, timedelta
+from core_app.permissions import IsViewerReadOnly
 from .models import Department, Designation, HRProfile, LeaveType, LeaveRequest, Attendance, Payroll
 from .serializers import (
     DepartmentSerializer, DesignationSerializer, HRProfileSerializer,

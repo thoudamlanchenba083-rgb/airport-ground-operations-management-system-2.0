@@ -12,30 +12,23 @@ class UserSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
 
-    ALLOWED_ROLES = ['GROUND_STAFF', 'SUPERVISOR', 'MAINTENANCE']
-
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'role', 'phone']
+        fields = ['username', 'email', 'password', 'phone']
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError('A user with this email already exists.')
         return value
 
-    def validate_role(self, value):
-        if value == 'ADMIN':
-            raise serializers.ValidationError('You cannot register as ADMIN. Contact your administrator.')
-        if value not in self.ALLOWED_ROLES:
-            raise serializers.ValidationError(f'Invalid role. Allowed: {", ".join(self.ALLOWED_ROLES)}')
-        return value
-
     def create(self, validated_data):
+        # Public self-registration always creates a VIEWER account.
+        # Any elevated role must be assigned manually by an ADMIN afterward.
         return User.objects.create_user(
             username=validated_data['username'],
             email=validated_data.get('email', ''),
             password=validated_data['password'],
-            role=validated_data.get('role', 'GROUND_STAFF'),
+            role='VIEWER',
             phone=validated_data.get('phone', ''),
         )
 

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
+import { useAuth } from '../../context/AuthContext'
 
 export default function AirlinesTab() {
+  const { user } = useAuth()
+  const isViewer = user?.role === 'VIEWER'
   const [airlines, setAirlines] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')

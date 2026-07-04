@@ -33,7 +33,7 @@ export default function Signup() {
     setLoading(true)
     try {
       await axiosClient.post('/accounts/register/', {
-        username, email, phone, role: 'GROUND_STAFF', password,
+        username, email, phone, password,
       })
       setSuccess(true)
       setTimeout(() => navigate('/login'), 1500)

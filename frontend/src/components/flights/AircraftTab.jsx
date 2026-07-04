@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
+import { useAuth } from '../../context/AuthContext'
 
 export default function AircraftTab() {
+  const { user } = useAuth()
+  const isViewer = user?.role === 'VIEWER'
   const [aircraft,  setAircraft]  = useState([])
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState('')
@@ -52,12 +55,14 @@ export default function AircraftTab() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          {showForm ? '? Cancel' : '+ Add Aircraft'}
-        </button>
+        {!isViewer && (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            {showForm ? '? Cancel' : '+ Add Aircraft'}
+          </button>
+        )}
       </div>
 
       {showForm && (

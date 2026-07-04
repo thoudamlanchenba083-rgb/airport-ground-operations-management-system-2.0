@@ -27,7 +27,7 @@ from .serializers import (
     GateChangeApprovalRequestSerializer, FlightDelayApprovalRequestSerializer,
     EmergencyFlightApprovalRequestSerializer
 )
-from .permissions import IsSupervisor
+from .permissions import IsSupervisor, IsViewerReadOnly
 
 
 class ApprovalRequestViewSet(viewsets.ModelViewSet):
