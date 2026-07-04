@@ -11,7 +11,7 @@ const STATUS_COLORS = {
 const URGENCY_COLORS = {
   IMMEDIATE: 'bg-red-100 text-red-700',
   SOON:      'bg-yellow-100 text-yellow-700',
-  ROUTINE:   'bg-neutral-800 text-neutral-300',
+  ROUTINE:   'bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300',
 }
 
 export default function EquipmentTab() {
@@ -47,7 +47,7 @@ export default function EquipmentTab() {
       .finally(() => setPredicting(null))
   }
 
-  if (loading) return <div className="text-neutral-400">Loading equipment...</div>
+  if (loading) return <div className="text-gray-500 dark:text-neutral-400">Loading equipment...</div>
 
   return (
     <div>
@@ -55,13 +55,13 @@ export default function EquipmentTab() {
 
       <div className="flex gap-3 mb-4">
         <input
-          className="bg-neutral-900 border border-neutral-700 rounded px-3 py-2 text-white"
+          className="bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 text-gray-900 dark:text-white rounded px-3 py-2"
           placeholder="Search by equipment ID..."
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
         <select
-          className="bg-neutral-900 border border-neutral-700 rounded px-3 py-2 text-white"
+          className="bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 text-gray-900 dark:text-white rounded px-3 py-2"
           value={filterStatus}
           onChange={e => setFilterStatus(e.target.value)}
         >
@@ -73,9 +73,9 @@ export default function EquipmentTab() {
         </select>
       </div>
 
-      <table className="w-full text-left text-neutral-200">
+      <table className="w-full text-left text-gray-800 dark:text-neutral-200">
         <thead>
-          <tr className="border-b border-neutral-700 text-neutral-400 text-sm">
+          <tr className="border-b border-gray-200 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-sm">
             <th className="py-2">Equipment ID</th>
             <th>Type</th>
             <th>Status</th>
@@ -88,7 +88,7 @@ export default function EquipmentTab() {
           {filtered.map(item => {
             const pred = predictions[item.id]
             return (
-              <tr key={item.id} className="border-b border-neutral-800">
+              <tr key={item.id} className="border-b border-gray-200 dark:border-neutral-800">
                 <td className="py-2">{item.equipment_id}</td>
                 <td>{item.equipment_type_display}</td>
                 <td>
@@ -103,12 +103,12 @@ export default function EquipmentTab() {
                       {pred.prediction.urgency} ({pred.prediction.failure_risk_score}%)
                     </span>
                   ) : (
-                    <span className="text-neutral-500 text-xs">Not checked</span>
+                    <span className="text-gray-400 dark:text-neutral-500 text-xs">Not checked</span>
                   )}
                 </td>
                 <td>
                   <button
-                    className="text-sm bg-neutral-800 hover:bg-neutral-700 px-3 py-1 rounded"
+                    className="text-sm bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-800 dark:text-white px-3 py-1 rounded"
                     disabled={predicting === item.id}
                     onClick={() => predictFailure(item)}
                   >
