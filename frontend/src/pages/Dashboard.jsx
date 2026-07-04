@@ -209,13 +209,35 @@ export default function Dashboard() {
           >
             {weather && (
               <>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">Analyzed {weather.flights_analyzed} upcoming flight(s)</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">Analyzed {weather.flights_analyzed} upcoming flight(s)</p>
+                  {weather.flights_analyzed > 0 && (
+                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded whitespace-nowrap ${
+                      weather.live_data_count === weather.flights_analyzed
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                        : weather.live_data_count > 0
+                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                        : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400'
+                    }`}>
+                      {weather.live_data_count === weather.flights_analyzed
+                        ? '● Live'
+                        : weather.live_data_count > 0
+                        ? `● ${weather.live_data_count}/${weather.flights_analyzed} Live`
+                        : '○ Simulated'}
+                    </span>
+                  )}
+                </div>
                 {weather.flagged_flights.length === 0 && <EmptyState text="No severe weather risk detected" />}
                 <ul className="space-y-1">
                   {weather.flagged_flights.map((f) => (
                     <li key={f.flight_number} className="text-xs text-neutral-700 dark:text-neutral-200 flex justify-between">
                       <span className="font-mono">{f.flight_number}</span>
-                      <span className="text-red-600 dark:text-red-400">{f.conditions}</span>
+                      <span className="text-red-600 dark:text-red-400">
+                        {f.conditions}
+                        {f.data_source !== 'OpenWeatherMap (live)' && (
+                          <span className="text-neutral-400 dark:text-neutral-500 ml-1">(sim)</span>
+                        )}
+                      </span>
                     </li>
                   ))}
                 </ul>

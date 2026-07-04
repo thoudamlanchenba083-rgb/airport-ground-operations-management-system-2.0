@@ -157,10 +157,23 @@ def _extract_route(text_lower):
     return None, None
 
 
+DATE_WORDS = {'today': 0, 'tomorrow': 1, 'yesterday': -1}
+
+
+def _extract_date_word(text_lower):
+    """Find a relative-date word like 'today' / 'tomorrow' / 'yesterday'. Returns a date or None."""
+    for word, offset in DATE_WORDS.items():
+        if re.search(rf'\b{word}\b', text_lower):
+            return (timezone.now() + timezone.timedelta(days=offset)).date()
+    return None
+
+
 def _check_schedule(text, text_lower):
     """
-    Answers "is there a flight at this time" style questions by looking at
-    the most recently uploaded flight schedule sheet (FlightScheduleRow).
+    Answers flight-schedule questions by looking at the most recently uploaded
+    flight schedule sheet (FlightScheduleRow). Handles an exact time
+    ("at 3:30pm"), a time range ("between 8pm and 9pm"), a relative date
+    ("today" / "tomorrow"), or just a plain "any flights?" listing.
     """
     upload = FlightScheduleUpload.objects.filter(status='PROCESSED').order_by('-uploaded_at').first()
     if not upload or upload.row_count == 0:
@@ -169,10 +182,7 @@ def _check_schedule(text, text_lower):
 
     time_range = _extract_time_range(text)
     time_of_day = None if time_range else _extract_time_of_day(text)
-    if not time_range and not time_of_day:
-        return ("What time should I check? For example: \"is there a flight at 3:30 pm\" "
-                "or \"any flights between 8pm and 9pm\".")
-
+    date_filter = _extract_date_word(text_lower)
     origin, destination = _extract_route(text_lower)
 
     rows = upload.rows.exclude(scheduled_time__isnull=True)
@@ -180,6 +190,27 @@ def _check_schedule(text, text_lower):
         rows = rows.filter(origin__icontains=origin)
     if destination:
         rows = rows.filter(destination__icontains=destination)
+    if date_filter:
+        rows = rows.filter(scheduled_time__date=date_filter)
+
+    route_label = f" from {origin} to {destination}" if origin and destination else ""
+    date_label = f" on {date_filter.strftime('%b %d')}" if date_filter else ""
+
+    if not time_range and not time_of_day:
+        matches = list(rows.order_by('scheduled_time'))
+        if not matches:
+            return (f"No flights found{date_label}{route_label} in the uploaded schedule "
+                    f"({upload.original_filename}).")
+        lines = []
+        for r in matches[:10]:
+            fn = r.flight_number or 'Flight'
+            route = f"{r.origin} -> {r.destination}" if (r.origin or r.destination) else ""
+            lines.append(f"- {fn}: {route} at {r.scheduled_time.strftime('%H:%M')}".rstrip(': '))
+        extra = f" (+{len(matches) - 10} more)" if len(matches) > 10 else ""
+        return (
+            f"Found {len(matches)} flight(s){date_label}{route_label} in the uploaded schedule "
+            f"({upload.original_filename}):\n" + "\n".join(lines) + extra
+        )
 
     if time_range:
         (h1, m1), (h2, m2) = time_range
@@ -200,7 +231,6 @@ def _check_schedule(text, text_lower):
         if start_minutes <= row_minutes <= end_minutes:
             matches.append(r)
 
-    route_label = f" from {origin} to {destination}" if origin and destination else ""
     time_word = "between" if time_range else "around"
 
     if matches:
@@ -213,13 +243,13 @@ def _check_schedule(text, text_lower):
         extra = f" (+{len(matches) - 8} more)" if len(matches) > 8 else ""
         return (
             f"Yes, according to the uploaded schedule ({upload.original_filename}), "
-            f"there {'is a flight' if len(matches)==1 else 'are flights'} {time_word} {time_label}{route_label}:\n"
+            f"there {'is a flight' if len(matches)==1 else 'are flights'} {time_word} {time_label}{date_label}{route_label}:\n"
             + "\n".join(lines) + extra
         )
 
     return (
         f"No, according to the uploaded schedule ({upload.original_filename}), "
-        f"there are no flights {time_word} {time_label}{route_label}."
+        f"there are no flights {time_word} {time_label}{date_label}{route_label}."
     )
 
 
@@ -326,9 +356,11 @@ class ChatbotEngine:
             from .ml.predictor import predict_weather_risk
             if flight:
                 result, confidence = predict_weather_risk(flight)
+                source_note = '' if result.get('data_source') == 'OpenWeatherMap (live)' else ' (simulated - live feed unavailable)'
                 return (
-                    f"Weather risk for {flight.flight_number}: {result['risk_level']} "
-                    f"({result['conditions']}, visibility {result['visibility_km']}km). "
+                    f"Weather at {flight.origin.title()} for {flight.flight_number}: {result['risk_level']} risk{source_note}. "
+                    f"{result['conditions']}, {result['temperature_c']}\u00b0C, {result['humidity_pct']}% humidity, "
+                    f"wind {result['wind_speed_kmh']}km/h, visibility {result['visibility_km']}km. "
                     f"Delay likely: {'Yes' if result['delay_likely'] else 'No'}."
                 )
             return "Which flight's weather risk do you want to check?"
