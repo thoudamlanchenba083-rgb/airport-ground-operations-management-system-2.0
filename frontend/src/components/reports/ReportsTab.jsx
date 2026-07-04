@@ -15,6 +15,54 @@ const TYPE_COLORS = {
   STAFF: 'bg-green-100 text-green-700',
 }
 
+function prettyLabel(key) {
+  return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+function SummaryView({ summary }) {
+  if (summary.error) return <p className="text-red-500 text-sm">{summary.error}</p>
+
+  const scalarEntries = Object.entries(summary).filter(([, v]) => typeof v !== 'object' || v === null)
+  const tableEntries = Object.entries(summary).filter(([, v]) => typeof v === 'object' && v !== null && !Array.isArray(v))
+
+  return (
+    <div className="space-y-4">
+      {scalarEntries.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {scalarEntries.map(([key, value]) => (
+            <div key={key} className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg p-3">
+              <p className="text-xs text-gray-500 dark:text-neutral-400">{prettyLabel(key)}</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">{String(value)}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tableEntries.map(([key, obj]) => (
+        <div key={key} className="overflow-x-auto">
+          <p className="text-xs font-semibold text-gray-600 dark:text-neutral-300 mb-1">{prettyLabel(key)}</p>
+          <table className="min-w-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm">
+            <thead className="bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300">
+              <tr>
+                <th className="px-4 py-2 text-left">Category</th>
+                <th className="px-4 py-2 text-left">Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(obj).map(([label, count]) => (
+                <tr key={label} className="border-t border-gray-200 dark:border-neutral-800 text-gray-800 dark:text-neutral-200">
+                  <td className="px-4 py-2">{label}</td>
+                  <td className="px-4 py-2 font-medium">{count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function ReportsTab() {
   const [reports, setReports] = useState([])
   const [summary, setSummary] = useState(null)
@@ -97,11 +145,8 @@ export default function ReportsTab() {
         {loadingSummary && <p className="text-sm text-gray-500 dark:text-neutral-500 mt-3">Loading summary...</p>}
         {summary && !loadingSummary && (
           <div className="mt-3 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-neutral-100 mb-2">{summaryType} Summary</h4>
-            {summary.error
-              ? <p className="text-red-500 text-sm">{summary.error}</p>
-              : <pre className="text-xs text-gray-600 dark:text-neutral-300 whitespace-pre-wrap">{JSON.stringify(summary, null, 2)}</pre>
-            }
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-neutral-100 mb-3">{summaryType} Summary</h4>
+            <SummaryView summary={summary} />
           </div>
         )}
       </div>

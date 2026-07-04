@@ -114,16 +114,16 @@ class AIChatViewSet(viewsets.ViewSet):
             user=request.user, role='user',
             content=content, session_id=session_id
         )
-        reply = self._generate_reply(content, user=request.user)
+        reply = self._generate_reply(content, user=request.user, session_id=session_id)
         bot_msg = AIChatMessage.objects.create(
             user=request.user, role='assistant',
             content=reply, session_id=session_id
         )
         return Response(AIChatMessageSerializer(bot_msg).data, status=201)
 
-    def _generate_reply(self, message, user=None):
+    def _generate_reply(self, message, user=None, session_id=''):
         try:
-            return ChatbotEngine.respond(message, user=user)
+            return ChatbotEngine.respond(message, user=user, session_id=session_id)
         except Exception as e:
             return f"Sorry, I hit an error answering that: {str(e)}"
     @action(detail=False, methods=['delete'])

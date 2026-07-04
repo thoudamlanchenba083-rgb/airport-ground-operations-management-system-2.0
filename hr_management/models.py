@@ -145,6 +145,11 @@ class Payroll(models.Model):
     class Meta:
         unique_together = ('staff', 'month')
         ordering = ['-month']
-    
+
+    def save(self, *args, **kwargs):
+        overtime_pay = (self.overtime_hours or 0) * (self.overtime_rate or 0)
+        self.net_salary = (self.base_salary or 0) + overtime_pay + (self.bonus or 0) - (self.deductions or 0)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.staff.name} - {self.month.strftime('%B %Y')}"
