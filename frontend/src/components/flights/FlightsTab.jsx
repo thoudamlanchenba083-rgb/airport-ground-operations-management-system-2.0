@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 import { useAuth } from '../../context/AuthContext'
 
@@ -12,8 +12,31 @@ const STATUS_COLORS = {
 
 const STATUSES = ['SCHEDULED','BOARDING','DEPARTED','ARRIVED','CANCELLED']
 
+// Mirrors Flight.WORKFLOW_ORDER on the backend. Used to figure out the next
+// step for the "Advance" button, and to render a readable label for it.
+const WORKFLOW_ORDER = [
+  'SCHEDULED', 'GATE_ASSIGNED', 'CREW_ASSIGNED', 'FUELING', 'CLEANING',
+  'MAINTENANCE_CHECK', 'BAGGAGE_LOADING', 'BOARDING', 'GATE_CLOSED',
+  'PUSHBACK', 'TAXIING', 'DEPARTED', 'AIRBORNE', 'LANDING',
+  'TAXI_TO_GATE', 'ARRIVED',
+]
+
+const STEP_LABELS = {
+  SCHEDULED: 'Scheduled', GATE_ASSIGNED: 'Gate Assigned', CREW_ASSIGNED: 'Ground Crew Assigned',
+  FUELING: 'Fuel Assigned', CLEANING: 'Cleaning Started', MAINTENANCE_CHECK: 'Maintenance Check',
+  BAGGAGE_LOADING: 'Baggage Loading', BOARDING: 'Boarding', GATE_CLOSED: 'Gate Closed',
+  PUSHBACK: 'Pushback', TAXIING: 'Taxiing', DEPARTED: 'Departed', AIRBORNE: 'Airborne',
+  LANDING: 'Landing', TAXI_TO_GATE: 'Taxi to Gate', ARRIVED: 'Arrived (Landed)',
+}
+
+function nextWorkflowStep(status) {
+  const idx = WORKFLOW_ORDER.indexOf(status)
+  if (idx === -1 || idx === WORKFLOW_ORDER.length - 1) return null
+  return WORKFLOW_ORDER[idx + 1]
+}
+
 function fmt(dt) {
-  if (!dt) return 'â€”'
+  if (!dt) return '—'
   return new Date(dt).toLocaleString('en-US', {
     month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
@@ -85,6 +108,18 @@ export default function FlightsTab() {
     }
   }
 
+  const handleAdvance = async (flight) => {
+    const step = nextWorkflowStep(flight.status)
+    if (!step) return
+    try {
+      await axiosClient.post(`/flights/flights/${flight.id}/advance-step/`, { step })
+      load()
+    } catch (err) {
+      const msg = err.response?.data?.error ?? 'Failed to advance flight status.'
+      alert(msg)
+    }
+  }
+
   const filtered = flights.filter(f =>
     f.flight_number?.toLowerCase().includes(search.toLowerCase()) ||
     f.airline_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -100,7 +135,7 @@ export default function FlightsTab() {
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search flights, airline, routeâ€¦"
+          placeholder="Search flights, airline, route…"
           className="border border-gray-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         {!isViewer && (
@@ -133,7 +168,7 @@ export default function FlightsTab() {
               <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Aircraft</label>
               <select name="aircraft" value={form.aircraft} onChange={handleChange} required className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option value="">Select aircraft</option>
-                {aircraft.map(a => <option key={a.id} value={a.id}>{a.registration_number} â€” {a.aircraft_type}</option>)}
+                {aircraft.map(a => <option key={a.id} value={a.id}>{a.registration_number} — {a.aircraft_type}</option>)}
               </select>
             </div>
             <div>
@@ -162,14 +197,14 @@ export default function FlightsTab() {
           {formError && <p className="text-red-500 text-xs mt-3">{formError}</p>}
           <div className="mt-4 flex gap-2">
             <button type="submit" disabled={saving} className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition">
-              {saving ? 'Savingâ€¦' : 'Save Flight'}
+              {saving ? 'Saving…' : 'Save Flight'}
             </button>
           </div>
         </form>
       )}
 
       {/* Table */}
-      {loading && <p className="text-sm text-gray-500 dark:text-neutral-500 animate-pulse">Loading flightsâ€¦</p>}
+      {loading && <p className="text-sm text-gray-500 dark:text-neutral-500 animate-pulse">Loading flights…</p>}
       {error   && <p className="text-sm text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -205,9 +240,24 @@ export default function FlightsTab() {
                     </td>
                     {!isViewer && (
                       <td className="px-5 py-3">
-                        <button onClick={() => handleDelete(f.id)} className="text-red-500 hover:text-red-700 text-xs font-medium transition">
-                          Delete
-                        </button>
+                        <div className="flex items-center gap-3">
+                          {nextWorkflowStep(f.status) ? (
+                            <button
+                              onClick={() => handleAdvance(f)}
+                              className="text-blue-600 hover:text-blue-800 text-xs font-medium transition"
+                              title={`Advance to ${STEP_LABELS[nextWorkflowStep(f.status)]}`}
+                            >
+                              Advance → {STEP_LABELS[nextWorkflowStep(f.status)]}
+                            </button>
+                          ) : (
+                            <span className="text-xs text-gray-400 dark:text-neutral-600">
+                              {f.status === 'ARRIVED' ? 'Completed' : '—'}
+                            </span>
+                          )}
+                          <button onClick={() => handleDelete(f.id)} className="text-red-500 hover:text-red-700 text-xs font-medium transition">
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -223,4 +273,3 @@ export default function FlightsTab() {
     </div>
   )
 }
-
