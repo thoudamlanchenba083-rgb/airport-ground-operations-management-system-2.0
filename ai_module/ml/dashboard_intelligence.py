@@ -104,26 +104,31 @@ def _delay_forecast(flights):
 
 def _weather_alerts(flights):
     if not flights:
-        return {'flights_analyzed': 0, 'high_risk_count': 0, 'flagged_flights': []}
+        return {'flights_analyzed': 0, 'high_risk_count': 0, 'flagged_flights': [], 'live_data_count': 0}
 
     high_risk = []
+    live_data_count = 0
     for flight in flights:
         try:
             result, confidence = predict_weather_risk(flight)
         except Exception:
             continue
+        if result.get('data_source') == 'OpenWeatherMap (live)':
+            live_data_count += 1
         if result['risk_level'] == 'HIGH':
             high_risk.append({
                 'flight_number': flight.flight_number,
                 'departure_time': flight.departure_time.isoformat(),
                 'conditions': result['conditions'],
                 'visibility_km': result['visibility_km'],
+                'data_source': result.get('data_source', 'simulated'),
             })
 
     return {
         'flights_analyzed': len(flights),
         'high_risk_count': len(high_risk),
         'flagged_flights': high_risk[:5],
+        'live_data_count': live_data_count,
     }
 
 

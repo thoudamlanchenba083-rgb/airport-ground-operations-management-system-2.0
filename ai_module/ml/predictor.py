@@ -9,6 +9,7 @@ every API call).
 import os
 import hashlib
 import joblib
+from .weather_service import get_live_weather
 import pandas as pd
 from datetime import datetime
 
@@ -145,28 +146,45 @@ def predict_weather_risk(flight):
     features = _load('weather_features.pkl')
 
     fid = flight.id
-    row = {
-        'visibility_km': _seeded_value(fid, 'vis', 0.2, 12),
-        'wind_speed_kmh': _seeded_value(fid, 'wind', 0, 90),
-        'precipitation_mm': _seeded_value(fid, 'precip', 0, 40),
-        'temperature_c': _seeded_value(fid, 'temp', -5, 45),
-        'humidity_pct': _seeded_value(fid, 'hum', 20, 100),
-    }
+    live = get_live_weather(flight.origin)
+
+    if live:
+        row = {
+            'visibility_km': live['visibility_km'],
+            'wind_speed_kmh': live['wind_speed_kmh'],
+            'precipitation_mm': live['precipitation_mm'],
+            'temperature_c': live['temperature_c'],
+            'humidity_pct': live['humidity_pct'],
+        }
+    else:
+        row = {
+            'visibility_km': _seeded_value(fid, 'vis', 0.2, 12),
+            'wind_speed_kmh': _seeded_value(fid, 'wind', 0, 90),
+            'precipitation_mm': _seeded_value(fid, 'precip', 0, 40),
+            'temperature_c': _seeded_value(fid, 'temp', -5, 45),
+            'humidity_pct': _seeded_value(fid, 'hum', 20, 100),
+        }
     X = pd.DataFrame([row], columns=features)
 
     risk_score = float(reg.predict(X)[0])
     delay_likely = bool(clf.predict(X)[0])
     confidence = float(max(clf.predict_proba(X)[0]))
 
-    conditions = 'Thunderstorm' if risk_score > 75 else 'Strong Winds' if risk_score > 55 else \
+    conditions = live['conditions_raw'] if live else (
+        'Thunderstorm' if risk_score > 75 else 'Strong Winds' if risk_score > 55 else
         'Fog' if risk_score > 35 else 'Light Rain' if risk_score > 15 else 'Clear'
+    )
 
     result = {
         'weather_risk_score': round(risk_score / 100, 2),
         'risk_level': 'HIGH' if risk_score > 60 else 'MEDIUM' if risk_score > 30 else 'LOW',
         'conditions': conditions,
         'visibility_km': round(row['visibility_km'], 1),
+        'temperature_c': round(row['temperature_c'], 1),
+        'humidity_pct': round(row['humidity_pct'], 1),
+        'wind_speed_kmh': round(row['wind_speed_kmh'], 1),
         'delay_likely': delay_likely,
+        'data_source': 'OpenWeatherMap (live)' if live else 'simulated',
         'model': 'RandomForestRegressor+Classifier (trained)',
     }
     return result, round(confidence, 2)

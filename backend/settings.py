@@ -149,6 +149,8 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Airport Ops <noreply@airportops.com>')
 
+OPENWEATHER_API_KEY = config('OPENWEATHER_API_KEY', default='')
+
 # --- Swagger: require auth (not fully public) ---
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
