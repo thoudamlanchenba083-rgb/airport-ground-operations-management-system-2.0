@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
+import { useAuth } from '../../context/AuthContext'
 
 const STATUS_COLORS = {
   SCHEDULED: 'bg-blue-100 text-blue-700',
@@ -20,6 +21,8 @@ function fmt(dt) {
 }
 
 export default function FlightsTab() {
+  const { user } = useAuth()
+  const isViewer = user?.role === 'VIEWER'
   const [flights,   setFlights]   = useState([])
   const [airlines,  setAirlines]  = useState([])
   const [aircraft,  setAircraft]  = useState([])
@@ -100,12 +103,14 @@ export default function FlightsTab() {
           placeholder="Search flights, airline, route…"
           className="border border-gray-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          {showForm ? '? Cancel' : '+ Add Flight'}
-        </button>
+        {!isViewer && (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            {showForm ? '? Cancel' : '+ Add Flight'}
+          </button>
+        )}
       </div>
 
       {/* Add form */}
@@ -179,7 +184,7 @@ export default function FlightsTab() {
                   <th className="px-5 py-3">Departure</th>
                   <th className="px-5 py-3">Arrival</th>
                   <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3">Actions</th>
+                  {!isViewer && <th className="px-5 py-3">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
@@ -198,11 +203,13 @@ export default function FlightsTab() {
                         {f.status}
                       </span>
                     </td>
-                    <td className="px-5 py-3">
-                      <button onClick={() => handleDelete(f.id)} className="text-red-500 hover:text-red-700 text-xs font-medium transition">
-                        Delete
-                      </button>
-                    </td>
+                    {!isViewer && (
+                      <td className="px-5 py-3">
+                        <button onClick={() => handleDelete(f.id)} className="text-red-500 hover:text-red-700 text-xs font-medium transition">
+                          Delete
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

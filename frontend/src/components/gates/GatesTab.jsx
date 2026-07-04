@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
+import { useAuth } from '../../context/AuthContext'
 
 export default function GatesTab() {
+  const { user } = useAuth()
+  const isViewer = user?.role === 'VIEWER'
   const [gates, setGates] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -57,12 +60,14 @@ export default function GatesTab() {
           placeholder="Search gate or terminal..."
           className="border border-gray-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <button
-          onClick={() => setShowForm(v => !v)}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg"
-        >
-          {showForm ? 'Cancel' : '+ Add Gate'}
-        </button>
+        {!isViewer && (
+          <button
+            onClick={() => setShowForm(v => !v)}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg"
+          >
+            {showForm ? 'Cancel' : '+ Add Gate'}
+          </button>
+        )}
       </div>
 
       {showForm && (
@@ -121,20 +126,22 @@ export default function GatesTab() {
                     {g.is_available ? 'Available' : 'Unavailable'}
                   </span>
                 </td>
-                <td className="px-4 py-3 flex gap-2">
-                  <button
-                    onClick={() => toggleAvailability(g)}
-                    className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded"
-                  >
-                    Toggle
-                  </button>
-                  <button
-                    onClick={() => deleteGate(g.id)}
-                    className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded"
-                  >
-                    Delete
-                  </button>
-                </td>
+                {!isViewer && (
+                  <td className="px-4 py-3 flex gap-2">
+                    <button
+                      onClick={() => toggleAvailability(g)}
+                      className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded"
+                    >
+                      Toggle
+                    </button>
+                    <button
+                      onClick={() => deleteGate(g.id)}
+                      className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

@@ -108,13 +108,13 @@ class IsReportsUser(BasePermission):
 
 
 class IsAuthenticatedBlockGroundStaffWrite(BasePermission):
-    """Equipment pages: any authenticated user can read; GROUND_STAFF is read-only, others can write."""
+    """Equipment pages: any authenticated user can read; GROUND_STAFF and VIEWER are read-only, others can write."""
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
         if request.method in SAFE_METHODS:
             return True
-        return request.user.role != 'GROUND_STAFF'
+        return request.user.role not in ['GROUND_STAFF', 'VIEWER']
 
 
 class IsViewerReadOnly(BasePermission):
