@@ -146,10 +146,21 @@ DAY_REFERENCES = [
 
 def _extract_day_reference(text_lower):
     """Find a relative day mention ("today", "tomorrow", "day after tomorrow").
+    Tries an exact substring match first, then falls back to fuzzy matching
+    each word against the day phrases so typos like "tommorrow" still work.
     Returns a date, or None if no such mention exists."""
     for phrase, offset in DAY_REFERENCES:
         if phrase in text_lower:
             return timezone.localdate() + timedelta(days=offset)
+
+    words = re.findall(r"[a-z]+", text_lower)
+    single_word_phrases = [(p, o) for p, o in DAY_REFERENCES if ' ' not in p]
+    for word in words:
+        if len(word) < 4:
+            continue
+        for phrase, offset in single_word_phrases:
+            if difflib.SequenceMatcher(None, word, phrase).ratio() >= 0.75:
+                return timezone.localdate() + timedelta(days=offset)
     return None
 
 

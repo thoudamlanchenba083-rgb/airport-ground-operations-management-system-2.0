@@ -31,6 +31,29 @@ const STATUS_STYLES = {
   EMERGENCY:           'bg-red-100 text-red-700',
 }
 
+// Mirrors Flight.WORKFLOW_ORDER on the backend (see FlightsTab.jsx for the
+// same list) - used to compute the next step for the Advance button here too.
+const WORKFLOW_ORDER = [
+  'SCHEDULED', 'GATE_ASSIGNED', 'CREW_ASSIGNED', 'FUELING', 'CLEANING',
+  'MAINTENANCE_CHECK', 'BAGGAGE_LOADING', 'BOARDING', 'GATE_CLOSED',
+  'PUSHBACK', 'TAXIING', 'DEPARTED', 'AIRBORNE', 'LANDING',
+  'TAXI_TO_GATE', 'ARRIVED',
+]
+
+const STEP_LABELS = {
+  SCHEDULED: 'Scheduled', GATE_ASSIGNED: 'Gate Assigned', CREW_ASSIGNED: 'Ground Crew Assigned',
+  FUELING: 'Fuel Assigned', CLEANING: 'Cleaning Started', MAINTENANCE_CHECK: 'Maintenance Check',
+  BAGGAGE_LOADING: 'Baggage Loading', BOARDING: 'Boarding', GATE_CLOSED: 'Gate Closed',
+  PUSHBACK: 'Pushback', TAXIING: 'Taxiing', DEPARTED: 'Departed', AIRBORNE: 'Airborne',
+  LANDING: 'Landing', TAXI_TO_GATE: 'Taxi to Gate', ARRIVED: 'Arrived (Landed)',
+}
+
+function nextWorkflowStep(status) {
+  const idx = WORKFLOW_ORDER.indexOf(status)
+  if (idx === -1 || idx === WORKFLOW_ORDER.length - 1) return null
+  return WORKFLOW_ORDER[idx + 1]
+}
+
 function StatCard({ label, value, color }) {
   return (
     <div className={`rounded-xl p-5 flex items-center gap-4 shadow-sm border ${color}`}>
@@ -65,6 +88,7 @@ function EmptyState({ text }) {
 export default function Dashboard() {
   usePageMeta('Dashboard', 'Airport Ground Operations live dashboard - flights, gates, baggage and staff overview.')
   const { user } = useAuth()
+  const isViewer = user?.role === 'VIEWER'
   const { theme, toggleTheme } = useTheme()
   const [flights, setFlights] = useState([])
   const [loading, setLoading] = useState(true)
@@ -80,7 +104,8 @@ export default function Dashboard() {
     return () => clearInterval(tick)
   }, [])
 
-  useEffect(() => {
+  const loadFlights = useCallback(() => {
+    setLoading(true)
     axiosClient.get('/flights/flights/')
       .then((res) => {
         const data = res.data
@@ -90,6 +115,19 @@ export default function Dashboard() {
       .catch(() => setError('Failed to load flight data.'))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { loadFlights() }, [loadFlights])
+
+  const handleAdvance = async (flight) => {
+    const step = nextWorkflowStep(flight.status)
+    if (!step) return
+    try {
+      await axiosClient.post(`/flights/flights/${flight.id}/advance-step/`, { step })
+      loadFlights()
+    } catch (err) {
+      alert(err.response?.data?.error ?? 'Failed to advance flight status.')
+    }
+  }
 
   const loadIntel = useCallback(() => {
     setIntelLoading(true)
@@ -313,11 +351,12 @@ export default function Dashboard() {
                   <th className="px-5 py-3">Origin</th>
                   <th className="px-5 py-3">Destination</th>
                   <th className="px-5 py-3">Status</th>
+                  {!isViewer && <th className="px-5 py-3">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
                 {recent.length === 0 && (
-                  <tr><td colSpan="5" className="px-5 py-6 text-center text-neutral-400 dark:text-neutral-500">No flights available</td></tr>
+                  <tr><td colSpan={isViewer ? 5 : 6} className="px-5 py-6 text-center text-neutral-400 dark:text-neutral-500">No flights available</td></tr>
                 )}
                 {recent.map((f) => (
                   <tr key={f.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900 transition">
@@ -330,6 +369,23 @@ export default function Dashboard() {
                         {f.status}
                       </span>
                     </td>
+                    {!isViewer && (
+                      <td className="px-5 py-3">
+                        {nextWorkflowStep(f.status) ? (
+                          <button
+                            onClick={() => handleAdvance(f)}
+                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 text-xs font-medium transition whitespace-nowrap"
+                            title={`Advance to ${STEP_LABELS[nextWorkflowStep(f.status)]}`}
+                          >
+                            Advance → {STEP_LABELS[nextWorkflowStep(f.status)]}
+                          </button>
+                        ) : (
+                          <span className="text-xs text-neutral-400 dark:text-neutral-600">
+                            {f.status === 'ARRIVED' ? 'Completed' : '—'}
+                          </span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

@@ -62,6 +62,10 @@ class Flight(models.Model):
         'PUSHBACK',
         'TAXIING',
         'DEPARTED',
+        'AIRBORNE',
+        'LANDING',
+        'TAXI_TO_GATE',
+        'ARRIVED',
     ]
 
     FLIGHT_TYPE_CHOICES = [
@@ -133,6 +137,10 @@ class FlightWorkflowStep(models.Model):
         ('PUSHBACK', 'Pushback'),
         ('TAXIING', 'Taxiing'),
         ('DEPARTED', 'Departed/Takeoff'),
+        ('AIRBORNE', 'Airborne'),
+        ('LANDING', 'Landing'),
+        ('TAXI_TO_GATE', 'Taxi to Gate'),
+        ('ARRIVED', 'Arrived/Landed'),
     ]
 
     flight = models.ForeignKey(
