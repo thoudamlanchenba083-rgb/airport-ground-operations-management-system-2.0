@@ -26,7 +26,7 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'priority']
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve', 'create']:
+        if self.action in ['list', 'retrieve', 'create', 'update', 'partial_update', 'destroy']:
             return [IsMaintenanceStaff()]
         return [IsAdminUser()]
 

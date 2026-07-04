@@ -1,17 +1,17 @@
 ﻿from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from .models import EquipmentType, GroundEquipment, EquipmentAssignment
 from .serializers import EquipmentTypeSerializer, GroundEquipmentSerializer, EquipmentAssignmentSerializer
 from ai_module.ml.predictor import predict_equipment_failure
+from core_app.permissions import IsAuthenticatedBlockGroundStaffWrite
 class EquipmentTypeViewSet(viewsets.ModelViewSet):
     queryset = EquipmentType.objects.all()
     serializer_class = EquipmentTypeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedBlockGroundStaffWrite]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'created_at']
@@ -19,7 +19,7 @@ class EquipmentTypeViewSet(viewsets.ModelViewSet):
 class GroundEquipmentViewSet(viewsets.ModelViewSet):
     queryset = GroundEquipment.objects.all()
     serializer_class = GroundEquipmentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedBlockGroundStaffWrite]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'equipment_type', 'location']
     search_fields = ['equipment_id', 'location']
@@ -64,7 +64,7 @@ class GroundEquipmentViewSet(viewsets.ModelViewSet):
 class EquipmentAssignmentViewSet(viewsets.ModelViewSet):
     queryset = EquipmentAssignment.objects.all()
     serializer_class = EquipmentAssignmentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedBlockGroundStaffWrite]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['equipment', 'flight']
     ordering_fields = ['assigned_at', 'released_at']

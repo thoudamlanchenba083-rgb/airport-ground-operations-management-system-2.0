@@ -24,7 +24,7 @@ class IsMaintenanceStaff(BasePermission):
         return bool(
             request.user and
             request.user.is_authenticated and
-            request.user.role in ['ADMIN', 'SUPERVISOR', 'MAINTENANCE', 'MAINTENANCE_ENGINEER']
+            request.user.role in ['ADMIN', 'SUPERVISOR', 'MAINTENANCE', 'MAINTENANCE_ENGINEER', 'GROUND_STAFF']
         )
 
 
@@ -34,7 +34,7 @@ class IsAuthenticatedReadOnly(BasePermission):
             return False
         if request.method in SAFE_METHODS:
             return True
-        return request.user.is_staff or request.user.role == 'ADMIN'
+        return request.user.is_staff or request.user.role in ['ADMIN', 'GROUND_STAFF']
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -66,7 +66,7 @@ class IsGateManager(BasePermission):
             return False
         if request.method in SAFE_METHODS:
             return True
-        return request.user.is_staff or request.user.role in ['ADMIN', 'GATE_MANAGER', 'OPERATIONS_MANAGER']
+        return request.user.is_staff or request.user.role in ['ADMIN', 'GATE_MANAGER', 'OPERATIONS_MANAGER', 'GROUND_STAFF']
 
 
 class IsBaggageSupervisor(BasePermission):
@@ -94,6 +94,27 @@ class IsSecurityOfficer(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         return request.user.is_staff or request.user.role in ['ADMIN', 'SECURITY_OFFICER']
+
+
+class IsReportsUser(BasePermission):
+    """Reports page: ADMIN/SUPERVISOR/OPERATIONS_MANAGER plus GROUND_STAFF get full access."""
+    def has_permission(self, request, view):
+        return bool(
+            request.user and
+            request.user.is_authenticated and
+            (request.user.is_staff or request.user.role in
+             ['ADMIN', 'SUPERVISOR', 'OPERATIONS_MANAGER', 'GROUND_STAFF'])
+        )
+
+
+class IsAuthenticatedBlockGroundStaffWrite(BasePermission):
+    """Equipment pages: any authenticated user can read; GROUND_STAFF is read-only, others can write."""
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if request.method in SAFE_METHODS:
+            return True
+        return request.user.role != 'GROUND_STAFF'
 
 
 class IsViewerReadOnly(BasePermission):
