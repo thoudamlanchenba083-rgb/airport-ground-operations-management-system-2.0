@@ -173,6 +173,16 @@ export default function Dashboard() {
   }
 
   const loadIntel = useCallback(() => {
+    // Guard against overlapping calls: React 18 StrictMode double-invokes
+    // effects in dev (mount -> unmount -> remount), and the 2-minute
+    // auto-poll below can also land right on top of a manual "Refresh"
+    // click. Two concurrent requests don't just waste a round-trip - they
+    // double the ML/DB work happening on the backend at once, which is
+    // what pushed calls past the frontend's 20s timeout. Skip firing a
+    // second request while one is still in flight.
+    if (loadIntel._inFlight) return
+    loadIntel._inFlight = true
+
     setIntelLoading(true)
     axiosClient.get('/ai/predictions/dashboard/')
       .then((res) => {
@@ -190,7 +200,10 @@ export default function Dashboard() {
         }
         setIntelError(message)
       })
-      .finally(() => setIntelLoading(false))
+      .finally(() => {
+        setIntelLoading(false)
+        loadIntel._inFlight = false
+      })
   }, [])
 
   useEffect(() => {

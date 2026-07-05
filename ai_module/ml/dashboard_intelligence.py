@@ -12,6 +12,8 @@ pipeline. To keep this fast enough to call on every dashboard load, ML
 forecasts (delay, weather, passenger rush) are capped to a sample of
 upcoming flights rather than running across everything.
 """
+import threading
+
 from django.utils import timezone
 from datetime import timedelta
 from concurrent.futures import ThreadPoolExecutor
@@ -203,6 +205,18 @@ def _passenger_prediction(todays_flights):
 DASHBOARD_CACHE_KEY = 'ai_dashboard_intelligence'
 DASHBOARD_CACHE_SECONDS = 25
 
+# Guards the actual computation below so that two requests arriving at
+# (almost) the same moment - e.g. React 18 StrictMode double-mounting the
+# dashboard effect in dev, or a manual "Refresh" click landing right after
+# the auto-poll fires - don't both see a cache miss and both pay the full
+# ML compute cost in parallel. Without this, that pair of concurrent calls
+# roughly doubles the CPU work happening at once (every model's predict()
+# calls, DB queries, etc. run twice simultaneously), which is exactly the
+# kind of extra latency that pushes a call past the frontend's 20s timeout.
+# With the lock, the second caller just waits for the first to finish and
+# then reads the now-populated cache instead of recomputing from scratch.
+_compute_lock = threading.Lock()
+
 
 def get_dashboard_intelligence():
     """Single entry point - returns the full dashboard payload.
@@ -222,6 +236,21 @@ def get_dashboard_intelligence():
     if cached is not None:
         return cached
 
+    # Only one thread actually computes at a time. Anyone else who reaches
+    # here while that's in progress blocks on the lock, then re-checks the
+    # cache (now populated by whoever held the lock) instead of redoing the
+    # same work.
+    with _compute_lock:
+        cached = cache.get(DASHBOARD_CACHE_KEY)
+        if cached is not None:
+            return cached
+
+        payload = _compute_dashboard_intelligence()
+        cache.set(DASHBOARD_CACHE_KEY, payload, DASHBOARD_CACHE_SECONDS)
+        return payload
+
+
+def _compute_dashboard_intelligence():
     todays = _todays_flights()
     upcoming_sample = _upcoming_flights_sample()
 
@@ -255,5 +284,4 @@ def get_dashboard_intelligence():
             'equipment': resource_result['equipment'],
         },
     }
-    cache.set(DASHBOARD_CACHE_KEY, payload, DASHBOARD_CACHE_SECONDS)
     return payload

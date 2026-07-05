@@ -36,6 +36,7 @@ export default function PublicNavbar({ active }) {
         .pnav-wrap{position:fixed;top:0;left:0;right:0;z-index:1000;height:72px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 clamp(22px,5.5vw,96px);background:rgba(4,4,4,0.45);backdrop-filter:blur(32px) saturate(160%);border-bottom:1px solid rgba(255,255,255,0.04);transition:all .35s;box-sizing:border-box;}
         .pnav-wrap.scrolled{background:rgba(4,4,4,0.97);border-color:rgba(255,255,255,0.09);box-shadow:0 2px 60px rgba(0,0,0,.95);}
         .pnav-brand{display:flex;align-items:center;gap:12px;font-family:'Cinzel',serif;font-size:.85rem;font-weight:700;letter-spacing:2px;color:#f0ede8;text-transform:uppercase;cursor:pointer;flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .pnav-logo-img{height:64px;width:auto;display:block;filter:drop-shadow(0 2px 12px rgba(0,0,0,.5));}
         .pnav-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,rgba(255,255,255,0.14),rgba(255,255,255,0.05));border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
         .pnav-links-desktop{display:none;align-items:center;gap:32px;}
         .pnav-links-desktop span,.pnav-links-desktop a{font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#6a6a62;transition:color .2s;cursor:pointer;text-decoration:none;}
@@ -52,7 +53,7 @@ export default function PublicNavbar({ active }) {
 
       <nav className={`pnav-wrap${scrolled ? ' scrolled' : ''}`}>
         <div className="pnav-brand" onClick={() => navigate('/')}>
-          <div className="pnav-icon">✈</div>Airport Ops
+          <img src="/brand/aeroground-logo-white.png" alt="AeroGround" className="pnav-logo-img" />
         </div>
 
         <div className="pnav-links-desktop">
