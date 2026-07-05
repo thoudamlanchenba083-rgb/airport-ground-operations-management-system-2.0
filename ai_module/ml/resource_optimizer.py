@@ -31,6 +31,16 @@ from .predictor import predict_staff, predict_equipment_failure, predict_best_ga
 # How far ahead to forecast demand.
 FORECAST_WINDOW_HOURS = 4
 
+# _upcoming_flights() / _forecast_equipment_risk() previously ran predict()
+# across EVERY matching row with no limit - fine with a handful of test
+# flights/equipment, but on a fuller dataset this is what actually made
+# dashboard loads slow (each one is a real RandomForest predict() call).
+# Capped the same way dashboard_intelligence.py already caps its own
+# per-flight forecasts, for the same "keep a dashboard load fast" reason
+# stated below.
+MAX_FLIGHTS_FOR_STAFF_FORECAST = 20
+MAX_EQUIPMENT_FOR_RISK_FORECAST = 30
+
 
 def _upcoming_flights():
     """Flights not yet departed/cancelled/arrived, departing within the
@@ -44,6 +54,7 @@ def _upcoming_flights():
         Flight.objects.exclude(status__in=inactive)
         .filter(departure_time__lte=horizon)
         .select_related('aircraft')
+        .order_by('departure_time')[:MAX_FLIGHTS_FOR_STAFF_FORECAST]
     )
 
 
@@ -92,7 +103,11 @@ def _forecast_equipment_risk():
     at_risk_by_type = {}
     confidences = []
 
-    for equipment in GroundEquipment.objects.filter(status='available').select_related('equipment_type'):
+    for equipment in (
+        GroundEquipment.objects.filter(status='available')
+        .select_related('equipment_type')
+        .order_by('id')[:MAX_EQUIPMENT_FOR_RISK_FORECAST]
+    ):
         try:
             result, confidence = predict_equipment_failure(equipment)
         except Exception:

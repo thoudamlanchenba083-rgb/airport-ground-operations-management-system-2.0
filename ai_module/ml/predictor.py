@@ -21,7 +21,27 @@ _cache = {}
 def _load(filename):
     if filename not in _cache:
         path = os.path.join(MODELS_DIR, filename)
-        _cache[filename] = joblib.load(path)
+        model = joblib.load(path)
+        # Trained estimators (e.g. RandomForest) are often pickled with
+        # n_jobs=-1 from training time, where parallelism across many rows
+        # actually helps. At prediction time here we only ever call
+        # .predict()/.predict_proba() on a single flight's row, so that
+        # parallel backend buys nothing but pays real overhead spinning up
+        # a worker pool - painfully slow on Windows, and it happens on
+        # every dashboard load, per flight, per model. Pin it to serial.
+        if hasattr(model, 'n_jobs'):
+            model.n_jobs = 1
+        # Some objects (e.g. a dict of {'model': ..., 'scaler': ...} or a
+        # Pipeline) wrap the estimator instead of being one directly.
+        for attr in ('estimator', 'best_estimator_'):
+            inner = getattr(model, attr, None)
+            if inner is not None and hasattr(inner, 'n_jobs'):
+                inner.n_jobs = 1
+        if isinstance(model, dict):
+            for v in model.values():
+                if hasattr(v, 'n_jobs'):
+                    v.n_jobs = 1
+        _cache[filename] = model
     return _cache[filename]
 
 
@@ -191,71 +211,6 @@ def predict_weather_risk(flight):
 
 
 # ------------------------------------------------------------------ STAFF --
-# ---------------------------------------------------------- BAGGAGE WEIGHT --
-# Real-world basis: bad weather (high wind, low visibility, storms) forces
-# airlines to plan for holding patterns, alternate airports, and reduced
-# runway performance - all of which shrink the max usable takeoff weight.
-# The safe checked-baggage allowance is modeled as a percentage of the
-# aircraft's nominal per-passenger allowance, reduced as weather risk rises.
-BASE_BAGGAGE_ALLOWANCE_KG_PER_PAX = 20  # standard checked-baggage assumption
-
-WEATHER_WEIGHT_REDUCTION_PCT = {
-    'LOW': 0.0,
-    'MEDIUM': 0.10,
-    'HIGH': 0.20,
-}
-
-
-def predict_baggage_weight_risk(flight):
-    """
-    Cross-checks total checked baggage weight against a weather-adjusted
-    safe limit for this flight. In bad weather the safe limit shrinks, so
-    a baggage load that was fine yesterday may need to be reduced today.
-    """
-    from baggage.models import Baggage
-    from django.db.models import Sum
-
-    capacity = flight.aircraft.capacity if flight.aircraft else 150
-    nominal_limit_kg = capacity * BASE_BAGGAGE_ALLOWANCE_KG_PER_PAX
-
-    weather_result, weather_confidence = predict_weather_risk(flight)
-    risk_level = weather_result['risk_level']
-    reduction_pct = WEATHER_WEIGHT_REDUCTION_PCT.get(risk_level, 0.0)
-    safe_limit_kg = nominal_limit_kg * (1 - reduction_pct)
-
-    total_weight = Baggage.objects.filter(flight=flight).aggregate(total=Sum('weight'))['total'] or 0
-    total_weight = float(total_weight)
-
-    over_by_kg = max(0.0, total_weight - safe_limit_kg)
-    action_required = over_by_kg > 0
-
-    if action_required:
-        recommendation = (
-            f"Reduce checked baggage by {round(over_by_kg, 1)}kg before boarding "
-            f"due to {risk_level.lower()}-risk weather ({weather_result['conditions']})."
-        )
-    elif reduction_pct > 0:
-        recommendation = (
-            f"Within the weather-adjusted safe limit, but margin is reduced "
-            f"due to {risk_level.lower()}-risk weather ({weather_result['conditions']})."
-        )
-    else:
-        recommendation = "Baggage weight is within the safe limit. No weather-related restriction."
-
-    result = {
-        'total_baggage_kg': round(total_weight, 1),
-        'nominal_limit_kg': round(nominal_limit_kg, 1),
-        'weather_risk_level': risk_level,
-        'weather_conditions': weather_result['conditions'],
-        'weight_reduction_pct': round(reduction_pct * 100),
-        'safe_limit_kg': round(safe_limit_kg, 1),
-        'over_limit_by_kg': round(over_by_kg, 1),
-        'action_required': action_required,
-        'recommendation': recommendation,
-    }
-    return result, weather_confidence
-
-
 def predict_staff(flight):
     ground_reg = _load('staff_ground_crew_regressor.pkl')
     security_reg = _load('staff_security_regressor.pkl')

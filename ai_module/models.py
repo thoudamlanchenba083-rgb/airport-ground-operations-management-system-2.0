@@ -12,7 +12,6 @@ class AIPrediction(models.Model):
         ('STAFF', 'Staff Requirement'),
         ('PASSENGER_RUSH', 'Passenger Rush'),
         ('WEATHER_RISK', 'Weather Risk'),
-        ('BAGGAGE_WEIGHT', 'Baggage Weight Risk'),
         ('RESOURCE', 'Resource Optimization'),
     ]
 

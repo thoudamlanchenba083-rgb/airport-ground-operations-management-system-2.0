@@ -7,7 +7,7 @@ const services = [
   { icon: "Baggage", title: "Baggage Handling", desc: "End-to-end baggage tracking from check-in to carousel with live status updates." },
   { icon: "Maintenance", title: "Maintenance Control", desc: "Scheduled and unscheduled maintenance request management with priority queues." },
   { icon: "Staff", title: "Staff Management", desc: "Shift planning, role assignment, and workforce allocation across all ground zones." },
-  { icon: "AI", title: "AI Assistant", desc: "Intelligent chatbot for instant queries on flight status, delays, gates, and staffing." },
+  { icon: "AI", title: "AeroGround AI", desc: "Intelligent chatbot for instant queries on flight status, delays, gates, and staffing." },
 ]
 
 export default function Services() {
