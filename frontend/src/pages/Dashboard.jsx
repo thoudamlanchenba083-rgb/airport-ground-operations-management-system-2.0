@@ -3,10 +3,15 @@ import { Link } from 'react-router-dom'
 import {
   Plane, Activity, Clock, XCircle, Target, TrendingUp, Cloud, Wrench,
   Users, User, RefreshCw, ArrowRight, Sparkles, SlidersHorizontal,
-  MoreVertical, DoorOpen, Package, Bell, ChevronRight, Gauge,
+  MoreVertical, DoorOpen, Package, Bell, ChevronRight, Gauge, BarChart3,
 } from 'lucide-react'
+import {
+  PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer,
+} from 'recharts'
 import axiosClient from '../api/axiosClient'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import usePageMeta from '../hooks/usePageMeta'
 
 // Keyed on the REAL Flight.STATUS_CHOICES values from the backend
@@ -58,6 +63,16 @@ function nextWorkflowStep(status) {
   return WORKFLOW_ORDER[idx + 1]
 }
 
+// See FlightsTab.jsx for the full explanation: status only ever changes via
+// the "Advance" button, so a flight can sit on a stale badge indefinitely
+// after its scheduled arrival passes. Flag it here too for consistency.
+const TERMINAL_STATUSES = ['ARRIVED', 'CANCELLED', 'EMERGENCY']
+function isOverdue(flight, now) {
+  if (TERMINAL_STATUSES.includes(flight.status)) return false
+  if (!flight.arrival_time) return false
+  return new Date(flight.arrival_time) < now
+}
+
 // Decorative sparkline - purely visual texture under stat cards, tinted via
 // currentColor so it inherits each card's accent color.
 function Sparkline({ seed = 0 }) {
@@ -95,10 +110,11 @@ function StatCard({ icon: Icon, chip, label, value, accent, seed }) {
   )
 }
 
-function IntelPanel({ icon: Icon, chip, title, badge, badgeTone, children }) {
+function IntelPanel({ icon: Icon, chip, title, badge, badgeTone, decoration, children }) {
   return (
-    <div className="glass rounded-2xl p-5 flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
+    <div className={`glass rounded-2xl p-5 flex flex-col gap-3 ${decoration ? 'relative overflow-hidden' : ''}`}>
+      {decoration}
+      <div className={`flex items-center justify-between gap-2 ${decoration ? 'relative z-10' : ''}`}>
         <div className="flex items-center gap-3 min-w-0">
           <div className={`icon-chip ${chip} !w-10 !h-10 !rounded-xl`}>
             <Icon size={18} strokeWidth={2.1} />
@@ -111,7 +127,39 @@ function IntelPanel({ icon: Icon, chip, title, badge, badgeTone, children }) {
           </span>
         )}
       </div>
+      {decoration ? <div className="relative z-10 flex flex-col gap-3">{children}</div> : children}
+    </div>
+  )
+}
+
+// Decorative sky + drifting clouds behind the Weather Alerts panel.
+function WeatherDecoration() {
+  return (
+    <div className="weather-sky">
+      <span className="weather-cloud weather-cloud--a" />
+      <span className="weather-cloud weather-cloud--b" />
+    </div>
+  )
+}
+
+// Small inline meter used to compare "available vs needed" at a glance
+// (staff shortage breakdown) or "ready vs total" (resource forecast).
+const CHART_COLORS = ['#3b82f6', '#a855f7', '#f59e0b', '#f43f5e', '#10b981', '#38bdf8', '#818cf8']
+
+function MiniChartCard({ title, children }) {
+  return (
+    <div className="glass rounded-2xl p-5 flex flex-col gap-3">
+      <h3 className="text-xs font-semibold tracking-wide text-neutral-500 dark:text-neutral-400 uppercase">{title}</h3>
       {children}
+    </div>
+  )
+}
+
+function MiniBar({ value, max, tone = 'bg-blue-500' }) {
+  const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0
+  return (
+    <div className="w-full h-1.5 rounded-full bg-black/5 dark:bg-white/10 overflow-hidden">
+      <div className={`h-full rounded-full ${tone}`} style={{ width: `${pct}%` }} />
     </div>
   )
 }
@@ -132,6 +180,8 @@ const QUICK_LINKS = [
 export default function Dashboard() {
   usePageMeta('Dashboard', 'Airport Ground Operations live dashboard - flights, gates, baggage and staff overview.')
   const { user } = useAuth()
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
   const isViewer = user?.role === 'VIEWER'
   const [flights, setFlights] = useState([])
   const [loading, setLoading] = useState(true)
@@ -223,6 +273,38 @@ export default function Dashboard() {
   const staff = intel?.staff_shortage
   const resources = intel?.resource_forecast
 
+  // Lightweight analytics reusing the flights we already have in memory -
+  // no extra network calls needed just to preview trends on the dashboard.
+  const flightStatusData = Object.entries(
+    flights.reduce((acc, f) => {
+      const s = f.status || 'Unknown'
+      acc[s] = (acc[s] || 0) + 1
+      return acc
+    }, {})
+  ).map(([name, value]) => ({ name, value }))
+
+  const flightsByDate = Object.entries(
+    flights.reduce((acc, f) => {
+      const date = f.departure_time
+        ? new Date(f.departure_time).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+        : 'Unknown'
+      acc[date] = (acc[date] || 0) + 1
+      return acc
+    }, {})
+  ).slice(-7).map(([date, count]) => ({ date, count }))
+
+  const chartGridStroke = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'
+  const chartTickColor  = isDark ? '#9ca3af' : '#6b7280'
+  const chartEmptyColor = isDark ? '#6b7280' : '#9ca3af'
+  const chartTooltip = {
+    backgroundColor: isDark ? 'rgba(20,22,30,0.85)' : 'rgba(255,255,255,0.85)',
+    backdropFilter: 'blur(12px)',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(15,23,42,0.08)'}`,
+    color: isDark ? '#fff' : '#111827',
+    borderRadius: 12,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+  }
+
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
       {/* Header */}
@@ -302,6 +384,9 @@ export default function Dashboard() {
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   Analyzed {delay.flights_analyzed} upcoming flight(s) - avg estimated delay {delay.avg_estimated_delay_min} min
                 </p>
+                {delay.flights_analyzed > 0 && (
+                  <MiniBar value={delay.high_risk_count} max={delay.flights_analyzed} tone="bg-blue-500" />
+                )}
                 {delay.flagged_flights.length === 0 && <EmptyState text="No high-risk flights right now" />}
                 <ul className="space-y-1">
                   {delay.flagged_flights.map((f) => (
@@ -320,6 +405,7 @@ export default function Dashboard() {
             title="Weather Alerts"
             badge={weather ? `${weather.high_risk_count} high risk` : undefined}
             badgeTone={weather?.high_risk_count ? 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20'}
+            decoration={<WeatherDecoration />}
           >
             {weather && (
               <>
@@ -341,6 +427,9 @@ export default function Dashboard() {
                     </span>
                   )}
                 </div>
+                {weather.flights_analyzed > 0 && (
+                  <MiniBar value={weather.high_risk_count} max={weather.flights_analyzed} tone="bg-sky-500" />
+                )}
                 {weather.flagged_flights.length === 0 && <EmptyState text="No severe weather risk detected" />}
                 <ul className="space-y-1">
                   {weather.flagged_flights.map((f) => (
@@ -367,12 +456,23 @@ export default function Dashboard() {
           >
             {maintenance && (
               <>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">{maintenance.total_open_requests} open request(s) total</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">{maintenance.total_open_requests} open request(s) total</p>
+                  {maintenance.total_open_requests > 0 && (
+                    <span className="text-[10px] font-medium text-rose-600 dark:text-rose-400">
+                      {maintenance.high_priority_count} urgent
+                    </span>
+                  )}
+                </div>
+                {maintenance.total_open_requests > 0 && (
+                  <MiniBar value={maintenance.high_priority_count} max={maintenance.total_open_requests} tone="bg-rose-500" />
+                )}
                 {maintenance.flagged_requests.length === 0 && <EmptyState text="No urgent maintenance requests" />}
-                <ul className="space-y-1">
+                <ul className="space-y-1.5">
                   {maintenance.flagged_requests.map((r, idx) => (
-                    <li key={idx} className="text-xs text-neutral-700 dark:text-neutral-200">
-                      <span className="font-mono text-neutral-500 dark:text-neutral-400">{r.aircraft}</span> - {r.issue}
+                    <li key={idx} className="text-xs text-neutral-700 dark:text-neutral-200 flex items-start gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1 shrink-0" />
+                      <span><span className="font-mono text-neutral-500 dark:text-neutral-400">{r.aircraft}</span> - {r.issue}</span>
                     </li>
                   ))}
                 </ul>
@@ -382,24 +482,34 @@ export default function Dashboard() {
 
           <IntelPanel icon={Users} chip="icon-chip-violet" title="Passenger Rush Prediction">
             {passengers && (
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{passengers.total_expected_passengers}</p>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                    expected passengers across {passengers.flights_analyzed} flight(s) today
-                    {passengers.high_rush_count > 0 && (
-                      <span className="text-amber-600 dark:text-amber-400"> - {passengers.high_rush_count} high-rush</span>
-                    )}
-                  </p>
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-2xl font-bold text-neutral-900 dark:text-white">{passengers.total_expected_passengers}</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                      expected passengers across {passengers.flights_analyzed} flight(s) today
+                    </p>
+                  </div>
+                  <div className="flex -space-x-2 shrink-0">
+                    {['icon-chip-violet', 'icon-chip-blue', 'icon-chip-sky', 'icon-chip-indigo'].map((c, i) => (
+                      <div key={i} className={`icon-chip ${c} !w-9 !h-9 !rounded-full border-2 border-white/40 dark:border-black/30`}>
+                        <User size={15} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex -space-x-2 shrink-0">
-                  {['icon-chip-violet', 'icon-chip-blue', 'icon-chip-sky', 'icon-chip-indigo'].map((c, i) => (
-                    <div key={i} className={`icon-chip ${c} !w-9 !h-9 !rounded-full border-2 border-white/40 dark:border-black/30`}>
-                      <User size={15} />
+                {passengers.flights_analyzed > 0 && (
+                  <div className="pt-1 border-t border-black/5 dark:border-white/5">
+                    <div className="flex items-center justify-between text-[10px] text-neutral-500 dark:text-neutral-400 mb-1">
+                      <span>High-rush flights</span>
+                      <span className={passengers.high_rush_count > 0 ? 'text-amber-600 dark:text-amber-400 font-medium' : ''}>
+                        {passengers.high_rush_count}/{passengers.flights_analyzed}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <MiniBar value={passengers.high_rush_count} max={passengers.flights_analyzed} tone="bg-amber-500" />
+                  </div>
+                )}
+              </>
             )}
           </IntelPanel>
 
@@ -418,7 +528,7 @@ export default function Dashboard() {
                   ))}
                 </ul>
                 {staff.breakdown && Object.keys(staff.breakdown).length > 0 && (
-                  <div className="grid grid-cols-2 gap-2 mt-1 pt-2 border-t border-black/5 dark:border-white/5">
+                  <div className="grid grid-cols-2 gap-3 mt-1 pt-2 border-t border-black/5 dark:border-white/5">
                     {Object.entries(staff.breakdown)
                       .filter(([, d]) => d.total > 0)
                       .map(([label, d]) => {
@@ -427,10 +537,15 @@ export default function Dashboard() {
                         const short = demand > d.available
                         return (
                           <div key={label} className="text-xs">
-                            <p className="text-neutral-500 dark:text-neutral-400">{label}</p>
+                            <div className="flex items-center justify-between">
+                              <p className="text-neutral-500 dark:text-neutral-400">{label}</p>
+                            </div>
                             <p className={`font-semibold ${short ? 'text-amber-600 dark:text-amber-400' : 'text-neutral-800 dark:text-neutral-100'}`}>
                               {d.available} avail / {demand} needed
                             </p>
+                            <div className="mt-1">
+                              <MiniBar value={d.available} max={Math.max(demand, d.available, 1)} tone={short ? 'bg-amber-500' : 'bg-emerald-500'} />
+                            </div>
                           </div>
                         )
                       })}
@@ -461,15 +576,20 @@ export default function Dashboard() {
                   <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">{resources.gates.utilization_pct}%</span>
                 </div>
                 {Object.keys(resources.equipment).length > 0 ? (
-                  <ul className="space-y-1 pt-1">
+                  <ul className="space-y-2 pt-1">
                     {Object.entries(resources.equipment).map(([name, d]) => (
-                      <li key={name} className="text-xs flex items-center justify-between gap-2">
-                        <span className="text-neutral-600 dark:text-neutral-300 flex items-center gap-1.5">
-                          <Wrench size={12} className="text-neutral-400 shrink-0" /> {name}
-                        </span>
-                        <span className={d.effective_available === 0 ? 'text-rose-600 dark:text-rose-400 font-medium' : 'text-neutral-500 dark:text-neutral-400'}>
-                          {d.effective_available}/{d.total} ready
-                        </span>
+                      <li key={name} className="text-xs">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-neutral-600 dark:text-neutral-300 flex items-center gap-1.5 min-w-0 truncate">
+                            <Wrench size={12} className="text-neutral-400 shrink-0" /> {name}
+                          </span>
+                          <span className={d.effective_available === 0 ? 'text-rose-600 dark:text-rose-400 font-medium shrink-0' : 'text-neutral-500 dark:text-neutral-400 shrink-0'}>
+                            {d.effective_available}/{d.total} ready
+                          </span>
+                        </div>
+                        <div className="mt-1">
+                          <MiniBar value={d.effective_available} max={Math.max(d.total, 1)} tone={d.effective_available === 0 ? 'bg-rose-500' : 'bg-emerald-500'} />
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -527,9 +647,19 @@ export default function Dashboard() {
                     <td className="px-5 py-3 text-neutral-600 dark:text-neutral-300">{f.origin || ''}</td>
                     <td className="px-5 py-3 text-neutral-600 dark:text-neutral-300">{f.destination || ''}</td>
                     <td className="px-5 py-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_STYLES[f.status] || 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300 border-neutral-500/20'}`}>
-                        {f.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_STYLES[f.status] || 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300 border-neutral-500/20'}`}>
+                          {f.status}
+                        </span>
+                        {isOverdue(f, now) && (
+                          <span
+                            className="px-2 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                            title="Scheduled arrival has already passed, but this flight was never advanced or cancelled"
+                          >
+                            Overdue
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-5 py-3 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
                       {f.scheduled_departure ? new Date(f.scheduled_departure).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—'}
@@ -562,6 +692,58 @@ export default function Dashboard() {
           <Link to="/flights" className="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition">
             View All Flights <ArrowRight size={13} />
           </Link>
+        </div>
+      </div>
+
+      {/* Analytics overview */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+            <BarChart3 size={17} className="text-blue-500" />
+            Analytics Overview
+          </h3>
+          <Link to="/analytics" className="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition">
+            Full Analytics <ArrowRight size={13} />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <MiniChartCard title="Flight Status Breakdown">
+            {flightStatusData.length === 0 ? (
+              <p style={{ color: chartEmptyColor }} className="text-[13px]">No flight data yet.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie data={flightStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={48} outerRadius={78} paddingAngle={2}>
+                    {flightStatusData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} stroke="none" />)}
+                  </Pie>
+                  <Tooltip contentStyle={chartTooltip} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </MiniChartCard>
+
+          <MiniChartCard title="Flights Over Time">
+            {flightsByDate.length === 0 ? (
+              <p style={{ color: chartEmptyColor }} className="text-[13px]">No timeline data yet.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={flightsByDate}>
+                  <defs>
+                    <linearGradient id="dashFlightsAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.45} />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGridStroke} vertical={false} />
+                  <XAxis dataKey="date" tick={{ fill: chartTickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: chartTickColor, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={chartTooltip} />
+                  <Area type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2.5} fill="url(#dashFlightsAreaGrad)" dot={{ fill: '#3b82f6', strokeWidth: 0, r: 3 }} activeDot={{ r: 5 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </MiniChartCard>
         </div>
       </div>
 

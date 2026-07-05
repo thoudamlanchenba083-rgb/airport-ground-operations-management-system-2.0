@@ -35,6 +35,18 @@ function nextWorkflowStep(status) {
   return WORKFLOW_ORDER[idx + 1]
 }
 
+// Flights never auto-transition based on wall-clock time - status only
+// changes when someone clicks "Advance". A flight whose arrival time has
+// already passed but is still sitting in a non-terminal status (not
+// ARRIVED/CANCELLED) is almost certainly stuck because nobody advanced or
+// cancelled it - flag it so ops staff notice instead of trusting a stale badge.
+const TERMINAL_STATUSES = ['ARRIVED', 'CANCELLED', 'EMERGENCY']
+function isOverdue(flight, now) {
+  if (TERMINAL_STATUSES.includes(flight.status)) return false
+  if (!flight.arrival_time) return false
+  return new Date(flight.arrival_time) < now
+}
+
 function fmt(dt) {
   if (!dt) return '—'
   return new Date(dt).toLocaleString('en-US', {
@@ -55,11 +67,17 @@ export default function FlightsTab() {
   const [showForm,  setShowForm]  = useState(false)
   const [formError, setFormError] = useState('')
   const [saving,    setSaving]    = useState(false)
+  const [now,       setNow]       = useState(new Date())
   const [form, setForm] = useState({
     flight_number: '', airline: '', aircraft: '',
     origin: '', destination: '',
     departure_time: '', arrival_time: '', status: 'SCHEDULED',
   })
+
+  useEffect(() => {
+    const tick = setInterval(() => setNow(new Date()), 60000)
+    return () => clearInterval(tick)
+  }, [])
 
   const load = () => {
     setLoading(true)
@@ -234,9 +252,19 @@ export default function FlightsTab() {
                     <td className="px-5 py-3 text-neutral-600 dark:text-neutral-300">{fmt(f.departure_time)}</td>
                     <td className="px-5 py-3 text-neutral-600 dark:text-neutral-300">{fmt(f.arrival_time)}</td>
                     <td className="px-5 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[f.status] || 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300'}`}>
-                        {f.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[f.status] || 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300'}`}>
+                          {f.status}
+                        </span>
+                        {isOverdue(f, now) && (
+                          <span
+                            className="px-2 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                            title="Scheduled arrival has already passed, but this flight was never advanced or cancelled"
+                          >
+                            Overdue
+                          </span>
+                        )}
+                      </div>
                     </td>
                     {!isViewer && (
                       <td className="px-5 py-3">

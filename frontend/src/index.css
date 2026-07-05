@@ -25,11 +25,7 @@ body {
 
 .dark body {
   color: #e5e7eb;
-  background:
-    radial-gradient(ellipse 900px 500px at 8% -5%, rgba(59, 130, 246, 0.22), transparent 55%),
-    radial-gradient(ellipse 800px 500px at 95% 10%, rgba(168, 85, 247, 0.18), transparent 55%),
-    radial-gradient(ellipse 900px 600px at 50% 105%, rgba(16, 185, 129, 0.14), transparent 55%),
-    #05070d;
+  background: #171717;
   background-attachment: fixed;
 }
 

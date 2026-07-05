@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { Sparkles, Send, Trash2, FileSpreadsheet, X } from 'lucide-react'
+import { Sparkles, Send, Trash2, FileSpreadsheet, X, Upload, Loader2, Lock } from 'lucide-react'
 import axiosClient from '../api/axiosClient'
 import PageHeader from '../components/PageHeader'
 import usePageMeta from '../hooks/usePageMeta'
+import { useAuth } from '../context/AuthContext'
 
 function getSessionId() {
   let id = localStorage.getItem('chat_session_id')
@@ -14,11 +15,17 @@ function getSessionId() {
 }
 
 export default function Chatbot() {
+  const { user } = useAuth()
+  const isViewer = user?.role === 'VIEWER'
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [loading, setLoading] = useState(true)
   const [schedule, setSchedule] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const [dragActive, setDragActive] = useState(false)
+  const fileInputRef = useRef(null)
   const bottomRef = useRef(null)
   const sessionId = getSessionId()
 
@@ -61,6 +68,48 @@ export default function Chatbot() {
       console.error('Failed to clear schedule', err)
     }
   }
+
+  const uploadFile = async (file) => {
+    if (!file) return
+    if (!/\.(xlsx|xls|csv)$/i.test(file.name)) {
+      setUploadError('Please upload a .xlsx, .xls, or .csv file.')
+      return
+    }
+    setUploading(true)
+    setUploadError('')
+    const formData = new FormData()
+    formData.append('file', file)
+    try {
+      const res = await axiosClient.post('/ai/schedule/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      setSchedule(res.data)
+    } catch (err) {
+      setUploadError(err.response?.data?.error || 'Failed to upload the schedule sheet.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleFileSelect = (e) => {
+    uploadFile(e.target.files?.[0])
+    e.target.value = '' // allow re-selecting the same file later
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setDragActive(false)
+    if (isViewer || uploading) return
+    uploadFile(e.dataTransfer.files?.[0])
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    if (isViewer || uploading) return
+    setDragActive(true)
+  }
+
+  const handleDragLeave = () => setDragActive(false)
 
   const handleSend = async (e) => {
     e.preventDefault()
@@ -122,7 +171,12 @@ export default function Chatbot() {
         />
       </div>
 
-      <div className="mb-4 glass rounded-2xl p-4">
+      <div
+        className="mb-4 glass rounded-2xl p-4"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex items-center gap-3">
             <div className="icon-chip icon-chip-sky !w-10 !h-10 !rounded-xl shrink-0">
@@ -134,16 +188,43 @@ export default function Chatbot() {
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
                   Using <span className="text-neutral-800 dark:text-neutral-200">{schedule.original_filename}</span> — {schedule.row_count} flight(s) loaded
                 </p>
+              ) : isViewer ? (
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  No schedule loaded. Ask an admin or ops staff member to upload one here.
+                </p>
               ) : (
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  No schedule loaded. Drop a .xlsx/.xls/.csv file into <code className="text-neutral-700 dark:text-neutral-300">ai_module/schedule_data/</code> and
-                  run <code className="text-neutral-700 dark:text-neutral-300">python manage.py import_schedule</code>, then refresh this page.
+                  No schedule loaded. Drag a .xlsx/.xls/.csv file in, or browse to upload one.
                 </p>
               )}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {schedule && (
+            {isViewer && !schedule && (
+              <span className="flex items-center gap-1.5 text-xs text-neutral-400 dark:text-neutral-500">
+                <Lock size={13} /> View only
+              </span>
+            )}
+            {!isViewer && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="flex items-center gap-1.5 text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg transition"
+                >
+                  {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+                  {uploading ? 'Uploading…' : schedule ? 'Replace' : 'Upload Sheet'}
+                </button>
+              </>
+            )}
+            {schedule && !isViewer && (
               <button
                 onClick={handleRemoveSchedule}
                 className="flex items-center gap-1.5 text-sm bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 px-3 py-1.5 rounded-lg transition"
@@ -154,7 +235,17 @@ export default function Chatbot() {
             )}
           </div>
         </div>
+
+        {!isViewer && dragActive && (
+          <div className="mt-3 rounded-xl border-2 border-dashed border-blue-500/50 bg-blue-500/5 py-4 text-center text-xs font-medium text-blue-600 dark:text-blue-300">
+            Drop the .xlsx / .xls / .csv file to upload
+          </div>
+        )}
+        {uploadError && (
+          <p className="mt-2 text-xs text-rose-500 dark:text-rose-400">{uploadError}</p>
+        )}
       </div>
+
 
       <div className="flex-1 glass rounded-2xl flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
