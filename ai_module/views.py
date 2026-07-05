@@ -137,8 +137,10 @@ class FlightScheduleViewSet(viewsets.ViewSet):
     """
     Upload an Excel/CSV flight-timing sheet so the AI Assistant chatbot can
     answer "is there a flight at this time" questions against it.
+    Any authenticated role can view the active sheet; VIEWER is blocked from
+    uploading or clearing it (read-only role, enforced by IsViewerReadOnly).
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsViewerReadOnly]
     parser_classes = [MultiPartParser, FormParser]
 
     def list(self, request):
