@@ -6,6 +6,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { canAccessPage } from '../utils/roleAccess'
 import AmbientBackground from './AmbientBackground'
+import Topbar from './Topbar'
 
 const navItems = [
   { to: '/dashboard',     label: 'Dashboard',    page: 'dashboard',     icon: LayoutDashboard },
@@ -95,6 +96,7 @@ export default function Layout({ children }) {
       </aside>
 
       <main className="relative z-10 flex-1 overflow-y-auto">
+        <Topbar />
         {children}
       </main>
     </div>

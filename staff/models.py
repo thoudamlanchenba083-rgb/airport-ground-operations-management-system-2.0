@@ -8,6 +8,7 @@ class Staff(models.Model):
         ('SECURITY', 'Security'),
         ('MAINTENANCE', 'Maintenance'),
         ('SUPERVISOR', 'Supervisor'),
+        ('BAGGAGE', 'Baggage Handling'),
     ]
 
     user = models.OneToOneField(

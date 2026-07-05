@@ -28,8 +28,13 @@ from datetime import timedelta
 
 from .predictor import predict_staff, predict_equipment_failure, predict_best_gate
 
-# How far ahead to forecast demand.
-FORECAST_WINDOW_HOURS = 4
+# How far ahead to forecast demand, when optimize_resources() is called on
+# its own (e.g. the standalone RESOURCE prediction handler) with no flights
+# supplied. When called from the dashboard, dashboard_intelligence.py passes
+# in its own already-fetched flight sample + window so every widget on the
+# dashboard reasons about the exact same set of flights instead of each
+# panel silently re-querying the DB with a different horizon.
+DEFAULT_FORECAST_WINDOW_HOURS = 4
 
 # _upcoming_flights() / _forecast_equipment_risk() previously ran predict()
 # across EVERY matching row with no limit - fine with a handful of test
@@ -42,14 +47,14 @@ MAX_FLIGHTS_FOR_STAFF_FORECAST = 20
 MAX_EQUIPMENT_FOR_RISK_FORECAST = 30
 
 
-def _upcoming_flights():
+def _upcoming_flights(window_hours):
     """Flights not yet departed/cancelled/arrived, departing within the
     forecast window (or already in progress)."""
     from flights.models import Flight
 
     inactive = ('DEPARTED', 'CANCELLED', 'ARRIVED')
     now = timezone.now()
-    horizon = now + timedelta(hours=FORECAST_WINDOW_HOURS)
+    horizon = now + timedelta(hours=window_hours)
     return list(
         Flight.objects.exclude(status__in=inactive)
         .filter(departure_time__lte=horizon)
@@ -62,7 +67,7 @@ def _forecast_staff_demand(flights):
     """Sums predicted staff demand across upcoming flights. Confidence is
     fixed at 0.9 by predict_staff() itself, so we just average across calls
     that returned a valid result."""
-    totals = {'GROUND': 0, 'SECURITY': 0, 'MAINTENANCE': 0}
+    totals = {'GROUND': 0, 'SECURITY': 0, 'MAINTENANCE': 0, 'BAGGAGE': 0}
     confidences = []
 
     for flight in flights:
@@ -72,6 +77,10 @@ def _forecast_staff_demand(flights):
             continue
         totals['GROUND'] += result.get('ground_crew_required', 0)
         totals['SECURITY'] += result.get('security_staff_required', 0)
+        # predict_staff() also returns baggage_handlers_required - it was
+        # being computed and thrown away before, so baggage staffing could
+        # never show up as a forecasted shortage. Count it like the others.
+        totals['BAGGAGE'] += result.get('baggage_handlers_required', 0)
         confidences.append(confidence)
 
     avg_confidence = sum(confidences) / len(confidences) if confidences else 0.5
@@ -121,17 +130,26 @@ def _forecast_equipment_risk():
     return at_risk_by_type, avg_confidence
 
 
-def optimize_resources():
+def optimize_resources(flights=None, window_hours=None):
     """
     ML-based replacement for the old rule-based optimizer. Same return shape
     (dict, confidence) as before, but 'recommendations' now reflect forecast
     demand rather than only the current instant.
+
+    flights: optionally pass in an already-fetched list of upcoming Flight
+    objects (e.g. from dashboard_intelligence.py) so this reasons about the
+    exact same flights as the rest of the dashboard, instead of running its
+    own separate DB query with its own horizon. When omitted (e.g. the
+    standalone RESOURCE prediction handler in views.py), it fetches its own
+    sample using window_hours (or DEFAULT_FORECAST_WINDOW_HOURS).
     """
     from staff.models import Staff, StaffAssignment
     from gates.models import Gate
     from ground_equipment.models import GroundEquipment, EquipmentType
 
-    flights = _upcoming_flights()
+    window_hours = window_hours or DEFAULT_FORECAST_WINDOW_HOURS
+    if flights is None:
+        flights = _upcoming_flights(window_hours)[:MAX_FLIGHTS_FOR_STAFF_FORECAST]
     active_statuses = ['SCHEDULED', 'GATE_ASSIGNED', 'CREW_ASSIGNED', 'FUELING',
                         'CLEANING', 'MAINTENANCE_CHECK', 'BAGGAGE_LOADING',
                         'BOARDING', 'GATE_CLOSED', 'PUSHBACK', 'TAXIING']
@@ -159,7 +177,7 @@ def optimize_resources():
             'total': total,
             'assigned': assigned,
             'available': available,
-            'forecast_demand_next_{}h'.format(FORECAST_WINDOW_HOURS): forecast_needed,
+            'forecast_demand_next_{}h'.format(window_hours): forecast_needed,
             'utilization_pct': round((assigned / total) * 100, 1) if total else 0.0,
         }
 
@@ -195,11 +213,11 @@ def optimize_resources():
         )
 
     for label, data in staff_breakdown.items():
-        demand_key = f'forecast_demand_next_{FORECAST_WINDOW_HOURS}h'
+        demand_key = f'forecast_demand_next_{window_hours}h'
         forecast_needed = data[demand_key]
         if data['total'] > 0 and forecast_needed > data['available']:
             recommendations.append(
-                f"{label} shortfall forecast in next {FORECAST_WINDOW_HOURS}h - "
+                f"{label} shortfall forecast in next {window_hours}h - "
                 f"predicted need {forecast_needed}, only {data['available']} available now"
             )
         elif data['total'] > 0 and data['available'] == 0 and active_flights_now > 0:
@@ -212,12 +230,12 @@ def optimize_resources():
 
     if not recommendations:
         recommendations.append('All resources within forecast-safe range for the next '
-                                f'{FORECAST_WINDOW_HOURS}h')
+                                f'{window_hours}h')
 
     overall_confidence = round((staff_confidence + equipment_confidence) / 2, 2)
 
     return {
-        'forecast_window_hours': FORECAST_WINDOW_HOURS,
+        'forecast_window_hours': window_hours,
         'gates': {
             'total': total_gates,
             'available': available_gates,
