@@ -20,6 +20,7 @@ import Notifications from './pages/Notifications'
 import Reports from './pages/Reports'
 import Chatbot from './pages/Chatbot'
 import Analytics from './pages/Analytics'
+import AeroGroundAIIntro from './pages/AeroGroundAIIntro'
 
 function withLayout(Component, page) {
   return (
@@ -54,6 +55,7 @@ function App() {
             <Route path="/reports" element={withLayout(Reports, 'reports')} />
             <Route path="/chatbot" element={withLayout(Chatbot, 'chatbot')} />
             <Route path="/analytics" element={withLayout(Analytics, 'analytics')} />
+            <Route path="/ai-intro" element={withLayout(AeroGroundAIIntro, 'ai-intro')} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

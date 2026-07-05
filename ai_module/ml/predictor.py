@@ -140,10 +140,11 @@ def predict_passenger_rush(flight):
         'hour': hour,
         'day_of_week': flight.departure_time.weekday(),
         'capacity': capacity,
-        'is_international': 1 if flight.destination and len(flight.destination) and not flight.destination.isupper() is False else _seeded_value(flight.id, 'intl', 0, 1) > 0.7,
+        # flight.flight_type is real data ('domestic'/'international') set on
+        # the flight itself - use it directly instead of guessing.
+        'is_international': int(flight.flight_type == 'international'),
         'holiday_season': 1 if datetime.now().month in (12, 1) else 0,
     }
-    row['is_international'] = int(bool(row['is_international']))
     X = pd.DataFrame([row], columns=features)
 
     rush_factor = float(reg.predict(X)[0])
@@ -220,7 +221,9 @@ def predict_staff(flight):
     capacity = flight.aircraft.capacity if flight.aircraft else 150
     fid = flight.id
     rush_factor = _seeded_value(fid, 'rush', 0.2, 1.0)
-    is_international = int(_seeded_value(fid, 'intl', 0, 1) > 0.7)
+    # flight.flight_type is real data ('domestic'/'international') - use it
+    # directly instead of a random per-flight seed.
+    is_international = int(flight.flight_type == 'international')
     baggage_volume_kg = capacity * _seeded_value(fid, 'bagvol', 15, 25)
 
     row = {
@@ -262,7 +265,9 @@ def _gate_features(flight, gate):
     distance_score = _seeded_value(gid, 'distance', 0, 1)
     aircraft_size_fit = _seeded_value(gid, 'sizefit', 0.3, 1.0)
     terminal_match = int(_seeded_value(fid, f'terminal-{gate.terminal}', 0, 1) > 0.5)
-    is_international = int(_seeded_value(fid, 'intl', 0, 1) > 0.7)
+    # flight.flight_type is real data ('domestic'/'international') - use it
+    # directly instead of a random per-flight seed.
+    is_international = int(flight.flight_type == 'international')
 
     since = timezone.now() - timedelta(hours=24)
     recent_count = GateAssignment.objects.filter(gate=gate, assigned_at__gte=since).count()

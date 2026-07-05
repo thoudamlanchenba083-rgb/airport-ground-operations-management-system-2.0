@@ -23,6 +23,14 @@ from .resource_optimizer import optimize_resources
 # weather, passenger rush) against, to keep a dashboard load fast.
 MAX_FLIGHTS_FOR_FORECAST = 15
 
+# How far ahead "upcoming" looks for every forecast panel on this dashboard.
+# All panels (delay, weather, passenger rush, staff shortage) now share this
+# single window and the single flight sample fetched below, instead of the
+# staff-shortage panel silently re-querying the DB with its own separate
+# horizon (it used to use 4h while everything else used 6h, so two boxes on
+# the same dashboard could describe two different sets of flights).
+UPCOMING_WINDOW_HOURS = 6
+
 
 def _todays_flights():
     from flights.models import Flight
@@ -45,7 +53,7 @@ def _upcoming_flights_sample():
 
     inactive = ('DEPARTED', 'CANCELLED', 'ARRIVED')
     now = timezone.now()
-    horizon = now + timedelta(hours=6)
+    horizon = now + timedelta(hours=UPCOMING_WINDOW_HOURS)
     return list(
         Flight.objects.exclude(status__in=inactive)
         .filter(departure_time__lte=horizon)
@@ -217,7 +225,9 @@ def get_dashboard_intelligence():
     todays = _todays_flights()
     upcoming_sample = _upcoming_flights_sample()
 
-    resource_result, resource_confidence = optimize_resources()
+    resource_result, resource_confidence = optimize_resources(
+        flights=upcoming_sample, window_hours=UPCOMING_WINDOW_HOURS
+    )
     staff_recommendations = [
         r for r in resource_result['recommendations']
         if 'forecast' in r.lower() or 'shortage' in r.lower()
@@ -234,6 +244,15 @@ def get_dashboard_intelligence():
             'recommendations': staff_recommendations,
             'breakdown': resource_result['staff'],
             'confidence': resource_confidence,
+        },
+        # gates/equipment were already computed by optimize_resources() above
+        # for the staff-shortage call - surface them too instead of quietly
+        # discarding them, so the dashboard can show gate utilization and
+        # at-risk equipment alongside the staff forecast.
+        'resource_forecast': {
+            'window_hours': resource_result['forecast_window_hours'],
+            'gates': resource_result['gates'],
+            'equipment': resource_result['equipment'],
         },
     }
     cache.set(DASHBOARD_CACHE_KEY, payload, DASHBOARD_CACHE_SECONDS)

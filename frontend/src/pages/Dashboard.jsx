@@ -2,12 +2,11 @@
 import { Link } from 'react-router-dom'
 import {
   Plane, Activity, Clock, XCircle, Target, TrendingUp, Cloud, Wrench,
-  Users, User, Moon, Sun, RefreshCw, ArrowRight, Sparkles, SlidersHorizontal,
-  MoreVertical, DoorOpen, Package, Bell, ChevronRight,
+  Users, User, RefreshCw, ArrowRight, Sparkles, SlidersHorizontal,
+  MoreVertical, DoorOpen, Package, Bell, ChevronRight, Gauge,
 } from 'lucide-react'
 import axiosClient from '../api/axiosClient'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
 import usePageMeta from '../hooks/usePageMeta'
 
 // Keyed on the REAL Flight.STATUS_CHOICES values from the backend
@@ -134,7 +133,6 @@ export default function Dashboard() {
   usePageMeta('Dashboard', 'Airport Ground Operations live dashboard - flights, gates, baggage and staff overview.')
   const { user } = useAuth()
   const isViewer = user?.role === 'VIEWER'
-  const { theme, toggleTheme } = useTheme()
   const [flights, setFlights] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -210,6 +208,7 @@ export default function Dashboard() {
   const maintenance = intel?.maintenance_alerts
   const passengers = intel?.passenger_prediction
   const staff = intel?.staff_shortage
+  const resources = intel?.resource_forecast
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
@@ -226,13 +225,6 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <button
-            onClick={toggleTheme}
-            className="glass glass-interactive flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-200 px-4 py-2.5 rounded-xl"
-          >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-          </button>
           <button
             onClick={loadIntel}
             disabled={intelLoading}
@@ -275,6 +267,12 @@ export default function Dashboard() {
             </span>
           )}
         </div>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 -mt-2 mb-3">
+          Forecasts below reason over the same upcoming flight window - see{' '}
+          <Link to="/ai-intro" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+            how each model works
+          </Link>.
+        </p>
 
         {intelError && <p className="text-rose-500 dark:text-rose-400 text-sm mb-3">{intelError}</p>}
 
@@ -400,12 +398,71 @@ export default function Dashboard() {
           >
             {staff && (
               <>
-                {staff.recommendations.length === 0 && <EmptyState text="All resources within forecast-safe range for the next 4h" />}
+                {staff.recommendations.length === 0 && <EmptyState text="All resources within forecast-safe range" />}
                 <ul className="space-y-1">
                   {staff.recommendations.map((rec, idx) => (
                     <li key={idx} className="text-xs text-amber-600 dark:text-amber-300">{rec}</li>
                   ))}
                 </ul>
+                {staff.breakdown && Object.keys(staff.breakdown).length > 0 && (
+                  <div className="grid grid-cols-2 gap-2 mt-1 pt-2 border-t border-black/5 dark:border-white/5">
+                    {Object.entries(staff.breakdown)
+                      .filter(([, d]) => d.total > 0)
+                      .map(([label, d]) => {
+                        const demandKey = Object.keys(d).find((k) => k.startsWith('forecast_demand_next_'))
+                        const demand = demandKey ? d[demandKey] : 0
+                        const short = demand > d.available
+                        return (
+                          <div key={label} className="text-xs">
+                            <p className="text-neutral-500 dark:text-neutral-400">{label}</p>
+                            <p className={`font-semibold ${short ? 'text-amber-600 dark:text-amber-400' : 'text-neutral-800 dark:text-neutral-100'}`}>
+                              {d.available} avail / {demand} needed
+                            </p>
+                          </div>
+                        )
+                      })}
+                  </div>
+                )}
+              </>
+            )}
+          </IntelPanel>
+
+          <IntelPanel
+            icon={Gauge} chip="icon-chip-emerald"
+            title="Resource Forecast"
+            badge={resources ? `next ${resources.window_hours}h` : undefined}
+            badgeTone="bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20"
+          >
+            {resources && (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <DoorOpen size={14} className="text-neutral-400" />
+                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                      Gates: {resources.gates.available}/{resources.gates.total} free
+                      {resources.gates.peak_forecast_demand > resources.gates.available && (
+                        <span className="text-amber-600 dark:text-amber-400"> · peak demand {resources.gates.peak_forecast_demand}</span>
+                      )}
+                    </span>
+                  </div>
+                  <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">{resources.gates.utilization_pct}%</span>
+                </div>
+                {Object.keys(resources.equipment).length > 0 ? (
+                  <ul className="space-y-1 pt-1">
+                    {Object.entries(resources.equipment).map(([name, d]) => (
+                      <li key={name} className="text-xs flex items-center justify-between gap-2">
+                        <span className="text-neutral-600 dark:text-neutral-300 flex items-center gap-1.5">
+                          <Wrench size={12} className="text-neutral-400 shrink-0" /> {name}
+                        </span>
+                        <span className={d.effective_available === 0 ? 'text-rose-600 dark:text-rose-400 font-medium' : 'text-neutral-500 dark:text-neutral-400'}>
+                          {d.effective_available}/{d.total} ready
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <EmptyState text="No ground equipment records yet" />
+                )}
               </>
             )}
           </IntelPanel>
