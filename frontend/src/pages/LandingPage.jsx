@@ -58,6 +58,44 @@ const tickerData = [
   { label: 'Incidents 24h', color: '#3dd68c', val: '0 critical' },
 ]
 
+const zigzagData = [
+  {
+    img: '/images/landing/zigzag/zz-1-tarmac-sunset.jpg',
+    num: '01',
+    tag: 'Ground Handling',
+    title: 'Every Turnaround, Choreographed',
+    desc: 'From the moment wheels touch tarmac to the next departure, ground crews work against the clock — refuelling, baggage, boarding stairs — every step logged and coordinated in one system.',
+  },
+  {
+    img: '/images/landing/zigzag/zz-2-night-window.jpg',
+    num: '02',
+    tag: 'Live Tracking',
+    title: 'Visibility That Never Sleeps',
+    desc: 'Whether a flight is climbing over a sleeping city or taxiing to a gate, its status streams into the same live board — no gaps between departure and arrival.',
+  },
+  {
+    img: '/images/landing/zigzag/zz-3-wing-clouds.jpg',
+    num: '03',
+    tag: 'AI Forecasting',
+    title: 'Weather Read Before It Lands',
+    desc: 'Skies like these are exactly what the delay-risk models are trained to read — visibility, wind, and cloud cover folded into a forecast before conditions reach the runway.',
+  },
+  {
+    img: '/images/landing/zigzag/zz-4-night-runway.jpg',
+    num: '04',
+    tag: 'Runway & Gate Ops',
+    title: 'After Dark, Still at Full Pace',
+    desc: 'Runway lights and gate assignments don\'t pause overnight. The platform keeps every gate, crew shift, and taxi clearance synced around the clock.',
+  },
+  {
+    img: '/images/landing/zigzag/zz-5-golden-takeoff.jpg',
+    num: '05',
+    tag: 'End-to-End Lifecycle',
+    title: 'Wheels-Up, Fully Accounted For',
+    desc: 'The instant a flight lifts off, it starts its next lifecycle — tracked, reported, and reconciled automatically until it lands and the cycle begins again.',
+  },
+]
+
 function Counter({ target, suffix = '' }) {
   const [val, setVal] = useState(0)
   const ref = useRef(null)
@@ -168,7 +206,8 @@ export default function LandingPage() {
         .ab4{width:320px;height:320px;background:#9d78f0;bottom:30%;left:20%;animation-delay:-6s;}
         .nav-wrap{position:fixed;top:0;left:0;right:0;z-index:1000;height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 var(--px);background:rgba(4,4,4,0.45);backdrop-filter:blur(32px) saturate(160%);border-bottom:1px solid rgba(255,255,255,0.04);transition:all .35s;}
         .nav-wrap.scrolled{background:rgba(4,4,4,0.97);border-color:rgba(255,255,255,0.09);box-shadow:0 2px 60px rgba(0,0,0,.95);}
-        .nav-brand{display:flex;align-items:center;gap:12px;font-family:var(--font-display);font-size:.85rem;font-weight:700;letter-spacing:2px;color:var(--white);text-transform:uppercase;}
+        .nav-brand{display:flex;align-items:center;gap:12px;font-family:var(--font-display);font-size:.85rem;font-weight:700;letter-spacing:2px;color:var(--white);text-transform:uppercase;cursor:pointer;}
+        .nav-logo-img{height:64px;width:auto;display:block;filter:drop-shadow(0 2px 12px rgba(0,0,0,.5));}
         .nav-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,rgba(255,255,255,0.14),rgba(255,255,255,0.05));border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;animation:planeBob 3.5s ease-in-out infinite;}
         .nav-links-desktop{display:none;align-items:center;gap:32px;}
         .nav-links-desktop a{font-family:var(--font-data);font-size:.82rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--subtle);transition:color .2s;position:relative;}
@@ -285,6 +324,19 @@ export default function LandingPage() {
         .cap-title{font-family:var(--font-display);font-size:.85rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--white);margin-bottom:10px;}
         .cap-desc{font-family:var(--font-body);font-size:.83rem;color:var(--muted);line-height:1.72;font-style:italic;}
         .cap-tag{display:inline-flex;align-items:center;gap:5px;margin-top:14px;font-family:var(--font-data);font-size:.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:50px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--accent);}
+        .zigzag{display:flex;flex-direction:column;gap:72px;margin-top:56px;}
+        .zz-row{display:flex;align-items:center;gap:60px;}
+        .zz-row.rev{flex-direction:row-reverse;}
+        .zz-media{flex:0 0 340px;width:340px;max-width:38%;aspect-ratio:3/4;border-radius:var(--r-xl);overflow:hidden;position:relative;border:1px solid var(--border-hi);box-shadow:0 30px 80px rgba(0,0,0,.55);}
+        .zz-media::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,4,4,0) 55%,rgba(4,4,4,.55) 100%);pointer-events:none;}
+        .zz-media img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.05) contrast(1.06) brightness(.96);transition:transform .7s cubic-bezier(.4,0,.2,1);}
+        .zz-row:hover .zz-media img{transform:scale(1.06);}
+        .zz-copy{flex:1;min-width:0;}
+        .zz-index{font-family:var(--font-display);font-size:.72rem;font-weight:700;letter-spacing:3px;color:var(--muted);}
+        .zz-tag{display:inline-flex;margin-top:12px;margin-bottom:16px;font-family:var(--font-data);font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 13px;border-radius:50px;background:rgba(212,201,168,0.07);border:1px solid rgba(212,201,168,0.2);color:var(--accent);}
+        .zz-copy h3{font-family:var(--font-display);font-size:clamp(1.3rem,2.6vw,2rem);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--white);line-height:1.25;margin-bottom:16px;}
+        .zz-copy p{font-family:var(--font-body);font-size:.94rem;color:var(--subtle);line-height:1.85;font-style:italic;max-width:460px;}
+        @media(max-width:899px){.zz-row,.zz-row.rev{flex-direction:column;gap:28px;}.zz-media{flex:none;width:100%;max-width:300px;}.zigzag{gap:56px;}}
         .alerts-section{position:relative;z-index:1;padding:96px var(--px);}
         .alerts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:52px;}
         .alert-card{padding:22px 24px;border-radius:var(--r-lg);background:rgba(14,14,14,0.7);border:1px solid var(--border);display:flex;gap:15px;align-items:flex-start;transition:all .3s;cursor:default;}
@@ -306,7 +358,8 @@ export default function LandingPage() {
         .timeline{position:relative;max-width:840px;margin:56px auto 0;}
         .timeline::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,rgba(255,255,255,0.12) 8%,rgba(255,255,255,0.12) 92%,transparent);transform:translateX(-50%);}
         .tl-item{display:flex;gap:36px;margin-bottom:52px;align-items:flex-start;}
-        .tl-item:nth-child(even){flex-direction:row-reverse;}
+        .tl-item.rev{flex-direction:row-reverse;}
+        .tl-item.rev .tl-content{text-align:right;}
         .tl-content{flex:1;padding:22px 24px;border-radius:var(--r-lg);background:rgba(14,14,14,0.7);border:1px solid var(--border);backdrop-filter:blur(22px);transition:border-color .3s;}
         .tl-content:hover{border-color:rgba(255,255,255,0.18);}
         .tl-dot{flex-shrink:0;width:14px;height:14px;border-radius:50%;background:var(--white);box-shadow:0 0 0 5px rgba(255,255,255,0.1);margin-top:24px;position:relative;z-index:2;}
@@ -328,6 +381,7 @@ export default function LandingPage() {
         .stxt{font-family:var(--font-data);font-size:.68rem;color:var(--muted);letter-spacing:.5px;}
         .footer-grid{display:grid;grid-template-columns:2.2fr 1fr 1fr 1.5fr;gap:46px;padding:50px 0 44px;border-bottom:1px solid var(--border);}
         .foot-brand-name{font-family:var(--font-display);font-size:.9rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--white);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+        .foot-logo-img{height:46px;width:auto;}
         .foot-brand>p{font-family:var(--font-body);font-size:.82rem;color:var(--muted);line-height:1.8;max-width:290px;margin-bottom:22px;font-style:italic;}
         .foot-socials{display:flex;gap:8px;margin-bottom:18px;}
         .social-btn{width:33px;height:33px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--muted);cursor:pointer;transition:all .2s;}
@@ -352,7 +406,7 @@ export default function LandingPage() {
         @media(max-width:1199px){.profile-grid{grid-template-columns:repeat(3,1fr);}.footer-grid{grid-template-columns:1.5fr 1fr 1fr;gap:28px;}.foot-contact{grid-column:1/-1;}.hero-board{display:none;}.metrics-grid{grid-template-columns:1fr 1fr;}.metric-big{grid-row:span 1;}}
         @media(max-width:959px){.stats-grid{grid-template-columns:repeat(2,1fr);}.profile-grid{grid-template-columns:repeat(2,1fr);}.footer-grid{grid-template-columns:1fr 1fr;}.capability-grid{grid-template-columns:repeat(2,1fr);}.alerts-grid{grid-template-columns:1fr;}.banner-img-strip{grid-template-columns:1fr;}}
         @media(max-width:767px){.section,.cta-section,.metrics-section,.alerts-section{padding:68px var(--px);}.stats-bar{padding:38px var(--px);}.footer-grid{grid-template-columns:1fr 1fr;}.profile-grid{grid-template-columns:repeat(2,1fr);}.capability-grid{grid-template-columns:1fr;}}
-        @media(max-width:599px){.hero-content{padding-top:108px;padding-bottom:64px;}.hero-actions{flex-direction:column;}.stats-grid{grid-template-columns:1fr 1fr;}.profile-grid{grid-template-columns:1fr;}.cta-btns{flex-direction:column;align-items:center;}.footer-grid{grid-template-columns:1fr;}.tl-item,.tl-item:nth-child(even){flex-direction:column;padding-left:38px;position:relative;}.tl-dot{position:absolute;left:8px;}}
+        @media(max-width:599px){.hero-content{padding-top:108px;padding-bottom:64px;}.hero-actions{flex-direction:column;}.stats-grid{grid-template-columns:1fr 1fr;}.profile-grid{grid-template-columns:1fr;}.cta-btns{flex-direction:column;align-items:center;}.footer-grid{grid-template-columns:1fr;}.tl-item,.tl-item.rev{flex-direction:column;padding-left:38px;position:relative;}.tl-item.rev .tl-content{text-align:left;}.tl-dot{position:absolute;left:8px;}}
       `}</style>
 
       <div className="land-page">
@@ -364,8 +418,8 @@ export default function LandingPage() {
 
         {/* NAV */}
         <nav className={`nav-wrap${scrolled ? ' scrolled' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-          <div className="nav-brand" style={{ flexShrink: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            <div className="nav-icon">✈</div>Airport Ops
+          <div className="nav-brand" style={{ flexShrink: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} onClick={() => navigate('/')}>
+            <img src="/brand/aeroground-logo-white.png" alt="AeroGround" className="nav-logo-img" />
           </div>
           <div className="nav-links nav-links-desktop">
             <a href="#" className="active">Home</a>
@@ -397,12 +451,6 @@ export default function LandingPage() {
 
         {/* HERO */}
         <section className="hero-banner">
-          <div className="banner-img-strip" aria-hidden="true">
-            <div className="banner-panel"><img src="/images/landing/cards/card-runway-fog.jpg" alt="" /></div>
-            <div className="banner-panel"><img src="/images/landing/cards/card-jet-contrail.jpg" alt="" /></div>
-            <div className="banner-panel"><img src="/images/landing/cards/card-bw-reflection.jpg" alt="" /></div>
-          </div>
-          <div className="banner-overlay" />
           <div className="scan-line" />
 
           {/* Live board */}
@@ -581,6 +629,30 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* GALLERY / ZIGZAG */}
+        <section className="section" id="gallery">
+          <div style={{ maxWidth: 640 }}>
+            <Reveal><div className="sec-label">Across the Skies</div></Reveal>
+            <Reveal><h2 className="sec-title">Ground Operations<br /><span className="italic">Never Really Stop</span></h2></Reveal>
+            <Reveal><p className="sec-sub">Every departure and arrival this platform coordinates plays out somewhere between a runway at dusk and a wing over a sleeping city.</p></Reveal>
+          </div>
+          <div className="zigzag">
+            {zigzagData.map((z, i) => (
+              <Reveal key={i}>
+                <div className={`zz-row${i % 2 === 1 ? ' rev' : ''}`}>
+                  <div className="zz-media"><img src={z.img} alt={z.title} loading="lazy" /></div>
+                  <div className="zz-copy">
+                    <span className="zz-index">{z.num}</span>
+                    <div className="zz-tag">{z.tag}</div>
+                    <h3>{z.title}</h3>
+                    <p>{z.desc}</p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
         {/* ALERTS */}
         <section className="alerts-section">
           <div style={{ maxWidth: 640, marginBottom: 0 }}>
@@ -638,7 +710,7 @@ export default function LandingPage() {
           <div className="timeline">
             {tlData.map((t, i) => (
               <Reveal key={i}>
-                <div className={`tl-item`}>
+                <div className={`tl-item${i % 2 === 1 ? ' rev' : ''}`}>
                   <div className="tl-content"><div className="tl-step">{t.step}</div><h3>{t.title}</h3><p>{t.desc}</p></div>
                   <div className="tl-dot" />
                   <div style={{ flex: 1 }} />
@@ -675,7 +747,7 @@ export default function LandingPage() {
           </div>
           <div className="footer-grid">
             <div className="foot-brand">
-              <div className="foot-brand-name"><span>✈</span>Airport Ops</div>
+              <div className="foot-brand-name"><img src="/brand/aeroground-logo-white.png" alt="AeroGround" className="foot-logo-img" />AeroGround</div>
               <p>A complete ground operations management platform for modern airports — built for reliability, real-time visibility, and total operational control.</p>
               <div className="foot-socials">
                 <span className="social-btn">⌥</span><span className="social-btn">in</span>
