@@ -101,7 +101,7 @@ export default function ShiftsTab() {
     fetchAll()
   }
 
-  if (loading) return <p className="text-gray-500 dark:text-neutral-400 p-4">Loading shifts...</p>
+  if (loading) return <p className="text-neutral-500 dark:text-neutral-400 p-4">Loading shifts...</p>
   if (error) return <p className="text-red-500 p-4">{error}</p>
 
   const sortedSchedules = [...schedules].sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -111,32 +111,32 @@ export default function ShiftsTab() {
       {/* Shift definitions */}
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">Shift Definitions</h3>
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Shift Definitions</h3>
           <button onClick={openCreateShift} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">+ Add Shift</button>
         </div>
 
         {showShiftForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 w-full max-w-sm shadow-xl">
-              <h4 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">{editShift ? 'Edit Shift' : 'Add Shift'}</h4>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="glass-strong rounded-2xl p-6 w-full max-w-sm">
+              <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">{editShift ? 'Edit Shift' : 'Add Shift'}</h4>
               <form onSubmit={handleShiftSubmit} className="space-y-3">
-                <input required placeholder="Shift Name (e.g. Morning)" value={shiftForm.shift_name} onChange={e => setShiftForm({ ...shiftForm, shift_name: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
-                <label className="block text-xs text-gray-500 dark:text-neutral-400">Start Time</label>
-                <input required type="time" value={shiftForm.start_time} onChange={e => setShiftForm({ ...shiftForm, start_time: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
-                <label className="block text-xs text-gray-500 dark:text-neutral-400">End Time</label>
-                <input required type="time" value={shiftForm.end_time} onChange={e => setShiftForm({ ...shiftForm, end_time: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
+                <input required placeholder="Shift Name (e.g. Morning)" value={shiftForm.shift_name} onChange={e => setShiftForm({ ...shiftForm, shift_name: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs text-neutral-500 dark:text-neutral-400">Start Time</label>
+                <input required type="time" value={shiftForm.start_time} onChange={e => setShiftForm({ ...shiftForm, start_time: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs text-neutral-500 dark:text-neutral-400">End Time</label>
+                <input required type="time" value={shiftForm.end_time} onChange={e => setShiftForm({ ...shiftForm, end_time: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
                 <div className="flex gap-2 pt-2">
                   <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Save</button>
-                  <button type="button" onClick={() => setShowShiftForm(false)} className="bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-white px-4 py-2 rounded text-sm hover:bg-gray-300 dark:hover:bg-neutral-600">Cancel</button>
+                  <button type="button" onClick={() => setShowShiftForm(false)} className="bg-black/5 dark:bg-white/10 text-neutral-800 dark:text-white px-4 py-2 rounded-lg text-sm hover:bg-black/10 dark:hover:bg-white/15">Cancel</button>
                 </div>
               </form>
             </div>
           </div>
         )}
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm">
-            <thead className="bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300">
+        <div className="glass rounded-2xl overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
               <tr>
                 <th className="px-4 py-2 text-left">Shift Name</th>
                 <th className="px-4 py-2 text-left">Start Time</th>
@@ -146,11 +146,11 @@ export default function ShiftsTab() {
             </thead>
             <tbody>
               {shifts.length === 0 && (
-                <tr><td colSpan={4} className="px-4 py-6 text-center text-gray-400 dark:text-neutral-500">No shifts defined yet.</td></tr>
+                <tr><td colSpan={4} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">No shifts defined yet.</td></tr>
               )}
               {shifts.map(s => (
-                <tr key={s.id} className="border-t border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 text-gray-800 dark:text-neutral-200">
-                  <td className="px-4 py-2 font-medium text-gray-900 dark:text-white">{s.shift_name}</td>
+                <tr key={s.id} className="border-t border-black/5 dark:border-white/5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] text-neutral-800 dark:text-neutral-200">
+                  <td className="px-4 py-2 font-medium text-neutral-900 dark:text-white">{s.shift_name}</td>
                   <td className="px-4 py-2">{formatTime(s.start_time)}</td>
                   <td className="px-4 py-2">{formatTime(s.end_time)}</td>
                   <td className="px-4 py-2 flex gap-2">
@@ -167,36 +167,36 @@ export default function ShiftsTab() {
       {/* Roster / schedule assignment */}
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">Staff Roster</h3>
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Staff Roster</h3>
           <button onClick={openCreateSchedule} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">+ Assign Shift</button>
         </div>
 
         {showScheduleForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 w-full max-w-sm shadow-xl">
-              <h4 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">Assign Shift</h4>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="glass-strong rounded-2xl p-6 w-full max-w-sm">
+              <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">Assign Shift</h4>
               <form onSubmit={handleScheduleSubmit} className="space-y-3">
-                <select required value={scheduleForm.staff} onChange={e => setScheduleForm({ ...scheduleForm, staff: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm">
+                <select required value={scheduleForm.staff} onChange={e => setScheduleForm({ ...scheduleForm, staff: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
                   <option value="">Select Staff</option>
                   {staffList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.employee_id})</option>)}
                 </select>
-                <select required value={scheduleForm.shift} onChange={e => setScheduleForm({ ...scheduleForm, shift: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm">
+                <select required value={scheduleForm.shift} onChange={e => setScheduleForm({ ...scheduleForm, shift: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
                   <option value="">Select Shift</option>
                   {shifts.map(s => <option key={s.id} value={s.id}>{s.shift_name} ({formatTime(s.start_time)} - {formatTime(s.end_time)})</option>)}
                 </select>
-                <input required type="date" value={scheduleForm.date} onChange={e => setScheduleForm({ ...scheduleForm, date: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
+                <input required type="date" value={scheduleForm.date} onChange={e => setScheduleForm({ ...scheduleForm, date: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
                 <div className="flex gap-2 pt-2">
                   <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Assign</button>
-                  <button type="button" onClick={() => setShowScheduleForm(false)} className="bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-white px-4 py-2 rounded text-sm hover:bg-gray-300 dark:hover:bg-neutral-600">Cancel</button>
+                  <button type="button" onClick={() => setShowScheduleForm(false)} className="bg-black/5 dark:bg-white/10 text-neutral-800 dark:text-white px-4 py-2 rounded-lg text-sm hover:bg-black/10 dark:hover:bg-white/15">Cancel</button>
                 </div>
               </form>
             </div>
           </div>
         )}
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm">
-            <thead className="bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300">
+        <div className="glass rounded-2xl overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
               <tr>
                 <th className="px-4 py-2 text-left">Date</th>
                 <th className="px-4 py-2 text-left">Staff</th>
@@ -207,15 +207,15 @@ export default function ShiftsTab() {
             </thead>
             <tbody>
               {sortedSchedules.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-6 text-center text-gray-400 dark:text-neutral-500">No roster assignments yet.</td></tr>
+                <tr><td colSpan={5} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">No roster assignments yet.</td></tr>
               )}
               {sortedSchedules.map(sc => {
                 const staffMember = staffList.find(s => s.id === sc.staff)
                 const shift = shifts.find(s => s.id === sc.shift)
                 return (
-                  <tr key={sc.id} className="border-t border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 text-gray-800 dark:text-neutral-200">
+                  <tr key={sc.id} className="border-t border-black/5 dark:border-white/5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] text-neutral-800 dark:text-neutral-200">
                     <td className="px-4 py-2">{sc.date}</td>
-                    <td className="px-4 py-2 font-medium text-gray-900 dark:text-white">{staffMember?.name ?? `#${sc.staff}`}</td>
+                    <td className="px-4 py-2 font-medium text-neutral-900 dark:text-white">{staffMember?.name ?? `#${sc.staff}`}</td>
                     <td className="px-4 py-2">{shift?.shift_name ?? `#${sc.shift}`}</td>
                     <td className="px-4 py-2">{shift ? `${formatTime(shift.start_time)} - ${formatTime(shift.end_time)}` : '-'}</td>
                     <td className="px-4 py-2">

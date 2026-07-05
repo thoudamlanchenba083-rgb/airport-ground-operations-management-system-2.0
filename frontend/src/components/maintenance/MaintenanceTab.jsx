@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 
 const PRIORITY_COLORS = {
-  LOW:    'bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300',
+  LOW:    'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300',
   MEDIUM: 'bg-yellow-100 text-yellow-700',
   HIGH:   'bg-red-100 text-red-700',
 }
@@ -14,7 +14,7 @@ const STATUS_COLORS = {
   REJECTED:         'bg-red-100 text-red-700',
   IN_PROGRESS:      'bg-purple-100 text-purple-700',
   RESOLVED:         'bg-teal-100 text-teal-700',
-  CLOSED:           'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-400',
+  CLOSED:           'bg-neutral-500/10 text-neutral-600 dark:text-neutral-400',
 }
 
 const STATUSES   = ['OPEN','PENDING_APPROVAL','APPROVED','REJECTED','IN_PROGRESS','RESOLVED','CLOSED']
@@ -97,7 +97,7 @@ export default function MaintenanceTab() {
     axiosClient.delete(`/maintenance/maintenance/${id}/`).then(load).catch(() => setError('Failed to delete.'))
   }
 
-  if (loading) return <p className="text-gray-500 dark:text-neutral-400 p-4">Loading maintenance...</p>
+  if (loading) return <p className="text-neutral-500 dark:text-neutral-400 p-4">Loading maintenance...</p>
 
   return (
     <div>
@@ -105,23 +105,23 @@ export default function MaintenanceTab() {
 
       {/* Log drawer */}
       {selected && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex justify-end">
-          <div className="bg-white dark:bg-neutral-900 w-full max-w-md h-full overflow-y-auto shadow-xl p-5">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-end">
+          <div className="glass-strong w-full max-w-md h-full overflow-y-auto p-5">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="font-bold text-gray-900 dark:text-white">Logs — Request #{selected.id}</h3>
-              <button onClick={() => setSelected(null)} className="text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-100 text-xl">✕</button>
+              <h3 className="font-bold text-neutral-900 dark:text-white">Logs — Request #{selected.id}</h3>
+              <button onClick={() => setSelected(null)} className="text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-100 text-xl">✕</button>
             </div>
-            <p className="text-xs text-gray-600 dark:text-neutral-400 mb-4 bg-gray-100 dark:bg-neutral-800 rounded p-2">{selected.issue_description}</p>
+            <p className="text-xs text-neutral-600 dark:text-neutral-400 mb-4 bg-black/5 dark:bg-white/10 rounded p-2">{selected.issue_description}</p>
 
             {/* Status quick-change */}
             <div className="mb-4">
-              <p className="text-xs text-gray-500 dark:text-neutral-400 mb-1 font-medium">Change Status</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1 font-medium">Change Status</p>
               <div className="flex flex-wrap gap-1">
                 {STATUSES.map(s => (
                   <button
                     key={s}
                     onClick={() => { updateStatus(selected, s); setSelected(prev => ({ ...prev, status: s })) }}
-                    className={`text-xs px-2 py-1 rounded border ${selected.status === s ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800'}`}
+                    className={`text-xs px-2 py-1 rounded border ${selected.status === s ? 'bg-blue-600 text-white border-blue-600' : 'border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10'}`}
                   >
                     {s.replace('_', ' ')}
                   </button>
@@ -130,19 +130,19 @@ export default function MaintenanceTab() {
             </div>
 
             {/* Add log */}
-            <div className="bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg p-3 mb-4 space-y-2">
+            <div className="glass rounded-xl p-3 mb-4 space-y-2">
               <textarea
                 placeholder="Action taken..."
                 value={logForm.action_taken}
                 onChange={e => setLogForm(f => ({ ...f, action_taken: e.target.value }))}
-                className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white rounded px-3 py-2 text-sm"
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
                 rows={3}
               />
               <input
                 type="datetime-local"
                 value={logForm.completed_at}
                 onChange={e => setLogForm(f => ({ ...f, completed_at: e.target.value }))}
-                className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white rounded px-3 py-2 text-sm"
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
               />
               <button
                 onClick={addLog}
@@ -155,12 +155,12 @@ export default function MaintenanceTab() {
             {/* Log history */}
             <div className="space-y-3">
               {logs.length === 0 ? (
-                <p className="text-gray-400 dark:text-neutral-500 text-sm text-center py-4">No logs yet.</p>
+                <p className="text-neutral-400 dark:text-neutral-500 text-sm text-center py-4">No logs yet.</p>
               ) : logs.map(l => (
-                <div key={l.id} className="border border-gray-200 dark:border-neutral-800 rounded-lg p-3">
-                  <p className="text-sm text-gray-900 dark:text-neutral-100">{l.action_taken}</p>
+                <div key={l.id} className="glass rounded-xl p-3">
+                  <p className="text-sm text-neutral-900 dark:text-neutral-100">{l.action_taken}</p>
                   {l.completed_at && (
-                    <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">
+                    <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
                       Completed: {new Date(l.completed_at).toLocaleString()}
                     </p>
                   )}
@@ -177,12 +177,12 @@ export default function MaintenanceTab() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by issue..."
-          className="border border-gray-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm flex-1 min-w-45 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm flex-1 min-w-45 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
         />
         <select
           value={filterStatus}
           onChange={e => setFilterStatus(e.target.value)}
-          className="border border-gray-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
+          className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
         >
           <option value="">All Statuses</option>
           {STATUSES.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
@@ -197,11 +197,11 @@ export default function MaintenanceTab() {
 
       {/* Add form */}
       {showForm && (
-        <div className="bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg p-4 mb-4 grid grid-cols-2 gap-3">
+        <div className="glass rounded-xl p-4 mb-4 grid grid-cols-2 gap-3">
           <select
             value={form.aircraft}
             onChange={e => setForm(f => ({ ...f, aircraft: e.target.value }))}
-            className="border border-gray-300 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white rounded px-3 py-2 text-sm"
+            className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           >
             <option value="">Select Aircraft</option>
             {aircraft.map(a => (
@@ -211,7 +211,7 @@ export default function MaintenanceTab() {
           <select
             value={form.priority}
             onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
-            className="border border-gray-300 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white rounded px-3 py-2 text-sm"
+            className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           >
             {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
@@ -219,7 +219,7 @@ export default function MaintenanceTab() {
             placeholder="Issue description..."
             value={form.issue_description}
             onChange={e => setForm(f => ({ ...f, issue_description: e.target.value }))}
-            className="col-span-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white rounded px-3 py-2 text-sm"
+            className="col-span-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
             rows={2}
           />
           <div className="col-span-2 flex justify-end">
@@ -235,9 +235,9 @@ export default function MaintenanceTab() {
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-neutral-700">
+      <div className="glass rounded-2xl overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300 uppercase text-xs">
+          <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
             <tr>
               <th className="px-4 py-3 text-left">#</th>
               <th className="px-4 py-3 text-left">Aircraft</th>
@@ -247,23 +247,23 @@ export default function MaintenanceTab() {
               <th className="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-neutral-800 bg-white dark:bg-neutral-900">
+          <tbody className="divide-y divide-black/5 dark:divide-white/5">
             {filtered.length === 0 ? (
-              <tr><td colSpan={6} className="text-center text-gray-400 dark:text-neutral-500 py-6">No maintenance requests found.</td></tr>
+              <tr><td colSpan={6} className="text-center text-neutral-400 dark:text-neutral-500 py-6">No maintenance requests found.</td></tr>
             ) : filtered.map(r => (
-              <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800">
-                <td className="px-4 py-3 text-gray-400 dark:text-neutral-500 text-xs">#{r.id}</td>
-                <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+              <tr key={r.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">
+                <td className="px-4 py-3 text-neutral-400 dark:text-neutral-500 text-xs">#{r.id}</td>
+                <td className="px-4 py-3 font-medium text-neutral-900 dark:text-white">
                   {aircraft.find(a => a.id === r.aircraft)?.registration_number ?? r.aircraft}
                 </td>
-                <td className="px-4 py-3 text-gray-600 dark:text-neutral-300 max-w-xs truncate">{r.issue_description}</td>
+                <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300 max-w-xs truncate">{r.issue_description}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${PRIORITY_COLORS[r.priority]}`}>
                     {r.priority}
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[r.status] ?? 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-400'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[r.status] ?? 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-400'}`}>
                     {r.status.replace('_', ' ')}
                   </span>
                 </td>

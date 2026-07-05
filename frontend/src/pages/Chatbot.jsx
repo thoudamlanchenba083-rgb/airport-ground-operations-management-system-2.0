@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import { Sparkles, Send, Trash2, FileSpreadsheet, X } from 'lucide-react'
 import axiosClient from '../api/axiosClient'
+import PageHeader from '../components/PageHeader'
+import usePageMeta from '../hooks/usePageMeta'
 
 function getSessionId() {
   let id = localStorage.getItem('chat_session_id')
@@ -97,42 +100,55 @@ export default function Chatbot() {
     }
   }
 
+  usePageMeta('AI Assistant', 'Ask the AI assistant about flight status, delays, gates, maintenance and staffing.')
+
   return (
-    <div className="p-6 h-screen flex flex-col">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">AI Assistant</h1>
-          <p className="text-sm text-gray-500 dark:text-neutral-400">Ask about flight status, delays, gates, maintenance, staffing, or load a schedule to ask "is there a flight at this time"</p>
-        </div>
-        <button
-          onClick={handleClear}
-          className="text-sm bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-800 dark:text-neutral-100 px-3 py-1.5 rounded-lg transition"
-        >
-          Clear Chat
-        </button>
+    <div className="p-6 h-screen flex flex-col max-w-[1400px] mx-auto w-full">
+      <div className="mb-5">
+        <PageHeader
+          icon={Sparkles}
+          chip="icon-chip-violet"
+          title="AI Assistant"
+          subtitle='Ask about flight status, delays, gates, maintenance, staffing, or "is there a flight at this time"'
+          actions={
+            <button
+              onClick={handleClear}
+              className="glass glass-interactive flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-200 px-4 py-2.5 rounded-xl"
+            >
+              <Trash2 size={15} />
+              Clear Chat
+            </button>
+          }
+        />
       </div>
 
-      <div className="mb-4 bg-gray-50 dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-4">
+      <div className="mb-4 glass rounded-2xl p-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white">Flight schedule sheet</p>
-            {schedule ? (
-              <p className="text-xs text-gray-500 dark:text-neutral-400 truncate">
-                Using <span className="text-gray-800 dark:text-neutral-200">{schedule.original_filename}</span> — {schedule.row_count} flight(s) loaded
-              </p>
-            ) : (
-              <p className="text-xs text-gray-500 dark:text-neutral-400">
-                No schedule loaded. Drop a .xlsx/.xls/.csv file into <code className="text-gray-700 dark:text-neutral-300">ai_module/schedule_data/</code> and
-                run <code className="text-gray-700 dark:text-neutral-300">python manage.py import_schedule</code>, then refresh this page.
-              </p>
-            )}
+          <div className="min-w-0 flex items-center gap-3">
+            <div className="icon-chip icon-chip-sky !w-10 !h-10 !rounded-xl shrink-0">
+              <FileSpreadsheet size={18} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-neutral-900 dark:text-white">Flight schedule sheet</p>
+              {schedule ? (
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                  Using <span className="text-neutral-800 dark:text-neutral-200">{schedule.original_filename}</span> — {schedule.row_count} flight(s) loaded
+                </p>
+              ) : (
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  No schedule loaded. Drop a .xlsx/.xls/.csv file into <code className="text-neutral-700 dark:text-neutral-300">ai_module/schedule_data/</code> and
+                  run <code className="text-neutral-700 dark:text-neutral-300">python manage.py import_schedule</code>, then refresh this page.
+                </p>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {schedule && (
               <button
                 onClick={handleRemoveSchedule}
-                className="text-sm bg-gray-200 dark:bg-neutral-800 hover:bg-gray-300 dark:hover:bg-neutral-700 text-gray-800 dark:text-neutral-200 px-3 py-1.5 rounded-lg transition"
+                className="flex items-center gap-1.5 text-sm bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 px-3 py-1.5 rounded-lg transition"
               >
+                <X size={13} />
                 Remove
               </button>
             )}
@@ -140,12 +156,12 @@ export default function Chatbot() {
         </div>
       </div>
 
-      <div className="flex-1 bg-white dark:bg-neutral-900 rounded-xl shadow border border-gray-200 dark:border-neutral-700 flex flex-col overflow-hidden">
+      <div className="flex-1 glass rounded-2xl flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {loading && <p className="text-sm text-gray-400 dark:text-neutral-500">Loading conversation...</p>}
+          {loading && <p className="text-sm text-neutral-400 dark:text-neutral-500">Loading conversation...</p>}
 
           {!loading && messages.length === 0 && (
-            <p className="text-sm text-gray-400 dark:text-neutral-500">
+            <p className="text-sm text-neutral-400 dark:text-neutral-500">
               No messages yet. Try "what's the status of AI202" or "show available gates".
             </p>
           )}
@@ -158,8 +174,8 @@ export default function Chatbot() {
               <div
                 className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap ${
                   m.role === 'user'
-                    ? 'bg-blue-600 text-white rounded-br-sm'
-                    : 'bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-bl-sm'
+                    ? 'bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-br-sm shadow-md shadow-blue-600/20'
+                    : 'glass-hairline bg-black/[0.03] dark:bg-white/[0.06] text-neutral-900 dark:text-white rounded-bl-sm'
                 }`}
               >
                 {m.content}
@@ -169,27 +185,30 @@ export default function Chatbot() {
 
           {sending && (
             <div className="flex justify-start">
-              <div className="bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 px-4 py-2 rounded-2xl rounded-bl-sm text-sm">
-                Thinking...
+              <div className="glass-hairline bg-black/[0.03] dark:bg-white/[0.06] text-neutral-500 dark:text-neutral-400 px-4 py-2 rounded-2xl rounded-bl-sm text-sm flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:-0.3s]"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:-0.15s]"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce"></span>
               </div>
             </div>
           )}
           <div ref={bottomRef} />
         </div>
 
-        <form onSubmit={handleSend} className="border-t border-gray-200 dark:border-neutral-700 p-3 flex gap-2">
+        <form onSubmit={handleSend} className="border-t border-black/5 dark:border-white/10 p-3 flex gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about a flight, gate, or delay..."
-            className="flex-1 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
           />
           <button
             type="submit"
             disabled={sending || !input.trim()}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+            className="flex items-center gap-1.5 bg-gradient-to-br from-blue-500 to-blue-700 hover:shadow-lg hover:shadow-blue-600/30 disabled:opacity-50 disabled:hover:shadow-none text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
           >
+            <Send size={14} />
             Send
           </button>
         </form>

@@ -17,6 +17,7 @@ from .ml.predictor import (
     predict_weather_risk,
     predict_staff,
     predict_best_gate,
+    predict_baggage_weight_risk,
 )
 from .ml.resource_optimizer import optimize_resources
 from .ml.dashboard_intelligence import get_dashboard_intelligence
@@ -45,6 +46,7 @@ PREDICTION_HANDLERS = {
     'STAFF': lambda f, d: predict_staff(f),
     'PASSENGER_RUSH': lambda f, d: predict_passenger_rush(f),
     'WEATHER_RISK': lambda f, d: predict_weather_risk(f),
+    'BAGGAGE_WEIGHT': lambda f, d: predict_baggage_weight_risk(f),
     'RESOURCE': lambda f, d: optimize_resources(),
 }
 

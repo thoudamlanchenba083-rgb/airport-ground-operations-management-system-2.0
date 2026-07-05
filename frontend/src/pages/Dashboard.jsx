@@ -1,5 +1,10 @@
 ﻿import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  Plane, Activity, Clock, XCircle, Target, TrendingUp, Cloud, Wrench,
+  Users, User, Moon, Sun, RefreshCw, ArrowRight, Sparkles, SlidersHorizontal,
+  MoreVertical, DoorOpen, Package, Bell, ChevronRight,
+} from 'lucide-react'
 import axiosClient from '../api/axiosClient'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -10,25 +15,25 @@ import usePageMeta from '../hooks/usePageMeta'
 // like 'On Time' / 'Landed' that never matched the actual status field,
 // so every badge silently fell through to the default gray style.
 const STATUS_STYLES = {
-  SCHEDULED:          'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300',
-  GATE_ASSIGNED:       'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300',
-  CREW_ASSIGNED:       'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300',
-  FUELING:             'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300',
-  CLEANING:            'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300',
-  BAGGAGE_LOADING:     'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300',
-  MAINTENANCE_CHECK:   'bg-yellow-100 text-yellow-700',
-  BOARDING:            'bg-blue-100 text-blue-700',
-  GATE_CLOSED:         'bg-blue-100 text-blue-700',
-  PUSHBACK:            'bg-blue-100 text-blue-700',
-  TAXIING:             'bg-blue-100 text-blue-700',
-  DEPARTED:            'bg-green-100 text-green-700',
-  AIRBORNE:            'bg-green-100 text-green-700',
-  LANDING:             'bg-green-100 text-green-700',
-  TAXI_TO_GATE:        'bg-green-100 text-green-700',
-  ARRIVED:             'bg-green-100 text-green-700',
-  DELAYED:             'bg-yellow-100 text-yellow-700',
-  CANCELLED:           'bg-red-100 text-red-700',
-  EMERGENCY:           'bg-red-100 text-red-700',
+  SCHEDULED:          'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300 border-neutral-500/20',
+  GATE_ASSIGNED:       'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300 border-neutral-500/20',
+  CREW_ASSIGNED:       'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300 border-neutral-500/20',
+  FUELING:             'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300 border-neutral-500/20',
+  CLEANING:            'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300 border-neutral-500/20',
+  BAGGAGE_LOADING:     'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300 border-neutral-500/20',
+  MAINTENANCE_CHECK:   'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+  BOARDING:            'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+  GATE_CLOSED:         'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+  PUSHBACK:            'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+  TAXIING:             'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+  DEPARTED:            'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+  AIRBORNE:            'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+  LANDING:             'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+  TAXI_TO_GATE:        'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+  ARRIVED:             'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+  DELAYED:             'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+  CANCELLED:           'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+  EMERGENCY:           'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
 }
 
 // Mirrors Flight.WORKFLOW_ORDER on the backend (see FlightsTab.jsx for the
@@ -54,24 +59,55 @@ function nextWorkflowStep(status) {
   return WORKFLOW_ORDER[idx + 1]
 }
 
-function StatCard({ label, value, color }) {
+// Decorative sparkline - purely visual texture under stat cards, tinted via
+// currentColor so it inherits each card's accent color.
+function Sparkline({ seed = 0 }) {
+  const paths = [
+    'M0,28 C10,26 18,14 28,16 C38,18 44,30 54,26 C64,22 70,6 80,10 C90,14 94,24 100,20',
+    'M0,20 C8,10 16,26 26,20 C36,14 42,4 52,10 C62,16 68,28 78,22 C88,16 94,8 100,14',
+    'M0,24 C10,30 16,10 26,12 C36,14 40,26 50,24 C60,22 66,8 76,12 C86,16 92,26 100,18',
+    'M0,16 C10,22 18,6 28,12 C38,18 42,28 52,22 C62,16 70,10 80,18 C90,26 94,14 100,20',
+    'M0,22 C8,14 16,28 24,22 C34,14 42,10 52,18 C62,26 70,20 80,12 C90,6 94,18 100,12',
+  ]
+  const d = paths[seed % paths.length]
   return (
-    <div className={`rounded-xl p-5 flex items-center gap-4 shadow-sm border ${color}`}>
+    <svg viewBox="0 0 100 32" preserveAspectRatio="none" className="w-full h-8 sparkline-fade">
+      <path d={d} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.55" />
+    </svg>
+  )
+}
+
+function StatCard({ icon: Icon, chip, label, value, accent, seed }) {
+  return (
+    <div className="glass glass-interactive rounded-2xl p-5 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div className={`icon-chip ${chip}`}>
+          <Icon strokeWidth={2.1} />
+        </div>
+      </div>
       <div>
-        <p className="text-sm font-medium opacity-70">{label}</p>
-        <p className="text-2xl font-bold">{value ?? '-'}</p>
+        <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">{label}</p>
+        <p className="text-2xl font-bold text-neutral-900 dark:text-white mt-0.5">{value ?? '—'}</p>
+      </div>
+      <div className={accent}>
+        <Sparkline seed={seed} />
       </div>
     </div>
   )
 }
 
-function IntelPanel({ title, badge, badgeTone, children }) {
+function IntelPanel({ icon: Icon, chip, title, badge, badgeTone, children }) {
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-700 p-5 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-neutral-900 dark:text-white text-sm">{title}</h3>
+    <div className="glass rounded-2xl p-5 flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={`icon-chip ${chip} !w-10 !h-10 !rounded-xl`}>
+            <Icon size={18} strokeWidth={2.1} />
+          </div>
+          <h3 className="font-semibold text-neutral-900 dark:text-white text-sm truncate">{title}</h3>
+        </div>
         {badge !== undefined && (
-          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badgeTone || 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'}`}>
+          <span className={`text-xs font-medium px-2.5 py-1 rounded-full border whitespace-nowrap ${badgeTone || 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300 border-neutral-500/20'}`}>
             {badge}
           </span>
         )}
@@ -84,6 +120,15 @@ function IntelPanel({ title, badge, badgeTone, children }) {
 function EmptyState({ text }) {
   return <p className="text-xs text-neutral-400 dark:text-neutral-500">{text}</p>
 }
+
+const QUICK_LINKS = [
+  { to: '/flights',       label: 'Flights',       icon: Plane,   chip: 'icon-chip-blue' },
+  { to: '/gates',         label: 'Gates',         icon: DoorOpen,chip: 'icon-chip-violet' },
+  { to: '/baggage',       label: 'Baggage',       icon: Package, chip: 'icon-chip-amber' },
+  { to: '/maintenance',   label: 'Maintenance',   icon: Wrench,  chip: 'icon-chip-rose' },
+  { to: '/staff',         label: 'Staff',         icon: Users,   chip: 'icon-chip-emerald' },
+  { to: '/notifications', label: 'Notifications', icon: Bell,    chip: 'icon-chip-sky' },
+]
 
 export default function Dashboard() {
   usePageMeta('Dashboard', 'Airport Ground Operations live dashboard - flights, gates, baggage and staff overview.')
@@ -157,55 +202,63 @@ export default function Dashboard() {
   const staff = intel?.staff_shortage
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
-            Welcome back{user?.username ? `, ${user.username}` : ''}
+          <h2 className="text-2xl font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+            Welcome back{user?.username ? `, ${user.username}` : ''} <span aria-hidden>👋</span>
           </h2>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
             {now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             {'  '}
             {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={toggleTheme}
-            className="text-sm bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 px-3 py-2 rounded-lg hover:border-blue-400 transition"
+            className="glass glass-interactive flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-200 px-4 py-2.5 rounded-xl"
           >
-            {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
           </button>
           <button
             onClick={loadIntel}
             disabled={intelLoading}
-            className="text-sm bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 px-3 py-2 rounded-lg hover:border-blue-400 disabled:opacity-50 transition"
+            className="glass glass-interactive flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-200 px-4 py-2.5 rounded-xl disabled:opacity-50"
           >
-            {intelLoading ? 'Refreshing...' : 'Refresh AI Insights'}
+            <RefreshCw size={16} className={intelLoading ? 'animate-spin' : ''} />
+            {intelLoading ? 'Refreshing…' : 'Refresh AI Insights'}
           </button>
-          <Link to="/flights" className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-            View All Flights &rarr;
+          <Link
+            to="/flights"
+            className="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all"
+          >
+            View All Flights <ArrowRight size={16} />
           </Link>
         </div>
       </div>
 
       {/* Live KPIs - from the AI dashboard endpoint's real DB counts */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard label="Flights Today"  value={kpis?.total_flights_today} color="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white" />
-        <StatCard label="Active"         value={kpis?.active_flights}      color="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 text-blue-600 dark:text-blue-300" />
-        <StatCard label="Delayed"        value={kpis?.delayed_flights}     color="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 text-yellow-600 dark:text-yellow-300" />
-        <StatCard label="Cancelled"      value={kpis?.cancelled_flights}   color="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 text-red-600 dark:text-red-300" />
+        <StatCard icon={Plane}    chip="icon-chip-blue"    label="Flights Today" value={kpis?.total_flights_today} accent="text-blue-500"    seed={0} />
+        <StatCard icon={Activity} chip="icon-chip-violet"  label="Active"        value={kpis?.active_flights}      accent="text-violet-500"  seed={1} />
+        <StatCard icon={Clock}    chip="icon-chip-amber"   label="Delayed"       value={kpis?.delayed_flights}     accent="text-amber-500"   seed={2} />
+        <StatCard icon={XCircle}  chip="icon-chip-rose"    label="Cancelled"     value={kpis?.cancelled_flights}   accent="text-rose-500"    seed={3} />
         <StatCard
-          label="On-Time %"
+          icon={Target} chip="icon-chip-emerald" label="On-Time %" accent="text-emerald-500" seed={4}
           value={kpis?.on_time_pct != null ? `${kpis.on_time_pct}%` : 'N/A'}
-          color="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 text-green-600 dark:text-green-300"
         />
       </div>
 
       {/* AI Intelligence panels */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-neutral-900 dark:text-white">AI Intelligence</h3>
+          <h3 className="font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+            <Sparkles size={17} className="text-blue-500" />
+            AI Intelligence
+          </h3>
           {intel?.generated_at && (
             <span className="text-xs text-neutral-400 dark:text-neutral-500">
               Updated {new Date(intel.generated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -213,13 +266,14 @@ export default function Dashboard() {
           )}
         </div>
 
-        {intelError && <p className="text-red-500 dark:text-red-400 text-sm mb-3">{intelError}</p>}
+        {intelError && <p className="text-rose-500 dark:text-rose-400 text-sm mb-3">{intelError}</p>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           <IntelPanel
+            icon={TrendingUp} chip="icon-chip-blue"
             title="Delay Forecast"
             badge={delay ? `${delay.high_risk_count} high risk` : undefined}
-            badgeTone={delay?.high_risk_count ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}
+            badgeTone={delay?.high_risk_count ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20'}
           >
             {!intel && !intelLoading && <EmptyState text="No data yet" />}
             {delay && (
@@ -232,7 +286,7 @@ export default function Dashboard() {
                   {delay.flagged_flights.map((f) => (
                     <li key={f.flight_number} className="text-xs text-neutral-700 dark:text-neutral-200 flex justify-between">
                       <span className="font-mono">{f.flight_number}</span>
-                      <span className="text-yellow-600 dark:text-yellow-400">+{f.estimated_delay_minutes} min</span>
+                      <span className="text-amber-600 dark:text-amber-400">+{f.estimated_delay_minutes} min</span>
                     </li>
                   ))}
                 </ul>
@@ -241,9 +295,10 @@ export default function Dashboard() {
           </IntelPanel>
 
           <IntelPanel
+            icon={Cloud} chip="icon-chip-sky"
             title="Weather Alerts"
             badge={weather ? `${weather.high_risk_count} high risk` : undefined}
-            badgeTone={weather?.high_risk_count ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}
+            badgeTone={weather?.high_risk_count ? 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20'}
           >
             {weather && (
               <>
@@ -252,10 +307,10 @@ export default function Dashboard() {
                   {weather.flights_analyzed > 0 && (
                     <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded whitespace-nowrap ${
                       weather.live_data_count === weather.flights_analyzed
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
                         : weather.live_data_count > 0
-                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
-                        : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400'
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300'
+                        : 'bg-neutral-500/10 text-neutral-500 dark:text-neutral-400'
                     }`}>
                       {weather.live_data_count === weather.flights_analyzed
                         ? '● Live'
@@ -270,7 +325,7 @@ export default function Dashboard() {
                   {weather.flagged_flights.map((f) => (
                     <li key={f.flight_number} className="text-xs text-neutral-700 dark:text-neutral-200 flex justify-between">
                       <span className="font-mono">{f.flight_number}</span>
-                      <span className="text-red-600 dark:text-red-400">
+                      <span className="text-rose-600 dark:text-rose-400">
                         {f.conditions}
                         {f.data_source !== 'OpenWeatherMap (live)' && (
                           <span className="text-neutral-400 dark:text-neutral-500 ml-1">(sim)</span>
@@ -284,9 +339,10 @@ export default function Dashboard() {
           </IntelPanel>
 
           <IntelPanel
+            icon={Wrench} chip="icon-chip-rose"
             title="Maintenance Alerts"
             badge={maintenance ? `${maintenance.high_priority_count} urgent` : undefined}
-            badgeTone={maintenance?.high_priority_count ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}
+            badgeTone={maintenance?.high_priority_count ? 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20'}
           >
             {maintenance && (
               <>
@@ -303,30 +359,41 @@ export default function Dashboard() {
             )}
           </IntelPanel>
 
-          <IntelPanel title="Passenger Rush Prediction">
+          <IntelPanel icon={Users} chip="icon-chip-violet" title="Passenger Rush Prediction">
             {passengers && (
-              <>
-                <p className="text-2xl font-bold text-neutral-900 dark:text-white">{passengers.total_expected_passengers}</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  expected passengers across {passengers.flights_analyzed} flight(s) today
-                  {passengers.high_rush_count > 0 && (
-                    <span className="text-yellow-600 dark:text-yellow-400"> - {passengers.high_rush_count} high-rush</span>
-                  )}
-                </p>
-              </>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{passengers.total_expected_passengers}</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    expected passengers across {passengers.flights_analyzed} flight(s) today
+                    {passengers.high_rush_count > 0 && (
+                      <span className="text-amber-600 dark:text-amber-400"> - {passengers.high_rush_count} high-rush</span>
+                    )}
+                  </p>
+                </div>
+                <div className="flex -space-x-2 shrink-0">
+                  {['icon-chip-violet', 'icon-chip-blue', 'icon-chip-sky', 'icon-chip-indigo'].map((c, i) => (
+                    <div key={i} className={`icon-chip ${c} !w-9 !h-9 !rounded-full border-2 border-white/40 dark:border-black/30`}>
+                      <User size={15} />
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </IntelPanel>
 
           <IntelPanel
+            icon={User} chip="icon-chip-blue"
             title="Staff Shortage Forecast"
             badge={staff ? `${Math.round((staff.confidence || 0) * 100)}% confidence` : undefined}
+            badgeTone="bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20"
           >
             {staff && (
               <>
-                {staff.recommendations.length === 0 && <EmptyState text="Staffing within forecast-safe range" />}
+                {staff.recommendations.length === 0 && <EmptyState text="All resources within forecast-safe range for the next 4h" />}
                 <ul className="space-y-1">
                   {staff.recommendations.map((rec, idx) => (
-                    <li key={idx} className="text-xs text-yellow-600 dark:text-yellow-300">{rec}</li>
+                    <li key={idx} className="text-xs text-amber-600 dark:text-amber-300">{rec}</li>
                   ))}
                 </ul>
               </>
@@ -335,49 +402,67 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-700 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200 dark:border-neutral-800">
-          <h3 className="font-semibold text-neutral-900 dark:text-white">Recent Flights</h3>
-          {loading && <span className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">Loading</span>}
+      {/* Recent flights */}
+      <div className="glass rounded-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-black/5 dark:border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="icon-chip icon-chip-blue !w-9 !h-9 !rounded-lg">
+              <Plane size={16} />
+            </div>
+            <h3 className="font-semibold text-neutral-900 dark:text-white">Recent Flights</h3>
+            {loading && <span className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">Loading…</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-neutral-600 dark:text-neutral-300 bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-black/5 dark:border-white/10">
+              <SlidersHorizontal size={13} /> All Flights
+            </button>
+            <button className="p-1.5 rounded-lg text-neutral-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+              <MoreVertical size={16} />
+            </button>
+          </div>
         </div>
-        {error && <p className="text-red-500 text-sm px-5 py-4">{error}</p>}
+        {error && <p className="text-rose-500 text-sm px-5 py-4">{error}</p>}
         {!loading && !error && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-white dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+              <thead className="text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
                 <tr>
-                  <th className="px-5 py-3">Flight No.</th>
-                  <th className="px-5 py-3">Airline</th>
-                  <th className="px-5 py-3">Origin</th>
-                  <th className="px-5 py-3">Destination</th>
-                  <th className="px-5 py-3">Status</th>
-                  {!isViewer && <th className="px-5 py-3">Actions</th>}
+                  <th className="px-5 py-3 font-medium">Flight No.</th>
+                  <th className="px-5 py-3 font-medium">Airline</th>
+                  <th className="px-5 py-3 font-medium">Origin</th>
+                  <th className="px-5 py-3 font-medium">Destination</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
+                  <th className="px-5 py-3 font-medium">Departure</th>
+                  {!isViewer && <th className="px-5 py-3 font-medium">Actions</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+              <tbody className="divide-y divide-black/5 dark:divide-white/5">
                 {recent.length === 0 && (
-                  <tr><td colSpan={isViewer ? 5 : 6} className="px-5 py-6 text-center text-neutral-400 dark:text-neutral-500">No flights available</td></tr>
+                  <tr><td colSpan={isViewer ? 6 : 7} className="px-5 py-6 text-center text-neutral-400 dark:text-neutral-500">No flights available</td></tr>
                 )}
                 {recent.map((f) => (
-                  <tr key={f.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900 transition">
+                  <tr key={f.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors">
                     <td className="px-5 py-3 font-mono font-semibold text-blue-600 dark:text-blue-400">{f.flight_number}</td>
                     <td className="px-5 py-3 text-neutral-900 dark:text-neutral-100">{f.airline_name || f.airline}</td>
                     <td className="px-5 py-3 text-neutral-600 dark:text-neutral-300">{f.origin || ''}</td>
                     <td className="px-5 py-3 text-neutral-600 dark:text-neutral-300">{f.destination || ''}</td>
                     <td className="px-5 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[f.status] || 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'}`}>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_STYLES[f.status] || 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300 border-neutral-500/20'}`}>
                         {f.status}
                       </span>
+                    </td>
+                    <td className="px-5 py-3 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
+                      {f.scheduled_departure ? new Date(f.scheduled_departure).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—'}
                     </td>
                     {!isViewer && (
                       <td className="px-5 py-3">
                         {nextWorkflowStep(f.status) ? (
                           <button
                             onClick={() => handleAdvance(f)}
-                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 text-xs font-medium transition whitespace-nowrap"
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium transition whitespace-nowrap"
                             title={`Advance to ${STEP_LABELS[nextWorkflowStep(f.status)]}`}
                           >
-                            Advance → {STEP_LABELS[nextWorkflowStep(f.status)]}
+                            Advance <ChevronRight size={13} /> {STEP_LABELS[nextWorkflowStep(f.status)]}
                           </button>
                         ) : (
                           <span className="text-xs text-neutral-400 dark:text-neutral-600">
@@ -392,25 +477,31 @@ export default function Dashboard() {
             </table>
           </div>
         )}
+        <div className="flex items-center justify-between px-5 py-3 border-t border-black/5 dark:border-white/5">
+          <span className="text-xs text-neutral-400 dark:text-neutral-500">Showing {recent.length} of {flights.length} flight{flights.length === 1 ? '' : 's'}</span>
+          <Link to="/flights" className="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition">
+            View All Flights <ArrowRight size={13} />
+          </Link>
+        </div>
       </div>
 
+      {/* Quick links */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {[
-          { to: '/flights',       label: 'Flights' },
-          { to: '/gates',         label: 'Gates' },
-          { to: '/baggage',       label: 'Baggage' },
-          { to: '/maintenance',   label: 'Maintenance' },
-          { to: '/staff',         label: 'Staff' },
-          { to: '/notifications', label: 'Notifications' },
-        ].map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            className="flex flex-col items-center justify-center gap-1 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl py-4 hover:border-blue-400 hover:shadow transition text-center"
-          >
-            <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">{item.label}</span>
-          </Link>
-        ))}
+        {QUICK_LINKS.map((item) => {
+          const Icon = item.icon
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="glass glass-interactive flex flex-col items-center justify-center gap-2 rounded-2xl py-5"
+            >
+              <div className={`icon-chip ${item.chip} !w-10 !h-10 !rounded-xl`}>
+                <Icon size={17} />
+              </div>
+              <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">{item.label}</span>
+            </Link>
+          )
+        })}
       </div>
     </div>
   )

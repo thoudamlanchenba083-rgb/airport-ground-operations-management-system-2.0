@@ -1,19 +1,26 @@
 ﻿import { NavLink, useNavigate } from 'react-router-dom'
+import {
+  LayoutDashboard, PlaneTakeoff, DoorOpen, Package, Wrench,
+  Settings2, Users, Bell, BarChart3, Sparkles, LineChart, LogOut, Plane,
+} from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { canAccessPage } from '../utils/roleAccess'
+import AmbientBackground from './AmbientBackground'
+
 const navItems = [
-  { to: '/dashboard',     label: 'Dashboard',    page: 'dashboard' },
-  { to: '/flights',       label: 'Flights',      page: 'flights' },
-  { to: '/gates',         label: 'Gates',        page: 'gates' },
-  { to: '/baggage',       label: 'Baggage',      page: 'baggage' },
-  { to: '/maintenance',   label: 'Maintenance',  page: 'maintenance' },
-  { to: '/equipment',     label: 'Equipment',    page: 'equipment' },
-  { to: '/staff',         label: 'Staff',        page: 'staff' },
-  { to: '/notifications', label: 'Notifications',page: 'notifications' },
-  { to: '/reports',       label: 'Reports',      page: 'reports' },
-  { to: '/chatbot',       label: 'AI Assistant', page: 'chatbot' },
-  { to: '/analytics',     label: 'Analytics',    page: 'analytics' },
+  { to: '/dashboard',     label: 'Dashboard',    page: 'dashboard',     icon: LayoutDashboard },
+  { to: '/flights',       label: 'Flights',      page: 'flights',       icon: PlaneTakeoff },
+  { to: '/gates',         label: 'Gates',        page: 'gates',         icon: DoorOpen },
+  { to: '/baggage',       label: 'Baggage',      page: 'baggage',       icon: Package },
+  { to: '/maintenance',   label: 'Maintenance',  page: 'maintenance',   icon: Wrench },
+  { to: '/equipment',     label: 'Equipment',    page: 'equipment',     icon: Settings2 },
+  { to: '/staff',         label: 'Staff',        page: 'staff',         icon: Users },
+  { to: '/notifications', label: 'Notifications',page: 'notifications', icon: Bell },
+  { to: '/reports',       label: 'Reports',      page: 'reports',       icon: BarChart3 },
+  { to: '/chatbot',       label: 'AI Assistant', page: 'chatbot',       icon: Sparkles },
+  { to: '/analytics',     label: 'Analytics',    page: 'analytics',     icon: LineChart },
 ]
+
 export default function Layout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -23,49 +30,71 @@ export default function Layout({ children }) {
     navigate('/', { replace: true })
   }
   return (
-    <div className="min-h-screen flex bg-white dark:bg-[#171717]">
-      <aside className="w-60 h-screen flex flex-col shrink-0 sticky top-0 bg-gray-50 dark:bg-[#0f0f0f] border-r border-black/10 dark:border-white/10">
-        <div className="px-5 py-5 border-b border-black/10 dark:border-white/10 flex items-center gap-2 shrink-0">
-          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">&#9992;</div>
-          <div>
-            <h1 className="text-sm font-bold text-gray-900 dark:text-white leading-tight">AeroGround</h1>
-            <p className="text-xs text-gray-500 dark:text-slate-400">Ops Management</p>
-          </div>
-        </div>
-        <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-4 space-y-0.5">
-          {visibleNavItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                  isActive
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white'
-                }`
-              }
-            >
-              <span className="text-base">{item.icon}</span>
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="px-4 py-3 border-t border-black/10 dark:border-white/10 shrink-0">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
-              {user?.username?.[0]?.toUpperCase() || 'U'}
+    <div className="min-h-screen relative flex">
+      <AmbientBackground />
+
+      <aside className="relative z-10 w-64 h-screen shrink-0 sticky top-0 p-3">
+        <div className="glass h-full rounded-3xl flex flex-col overflow-hidden">
+          <div className="px-4 py-5 flex items-center gap-3 shrink-0">
+            <div className="!w-10 !h-10 !rounded-2xl icon-chip icon-chip-blue">
+              <Plane size={18} strokeWidth={2.25} />
             </div>
-            <p className="text-xs text-gray-700 dark:text-slate-300 truncate">{user?.username || 'User'}</p>
+            <div>
+              <h1 className="text-sm font-bold text-neutral-900 dark:text-white leading-tight tracking-tight">AeroGround</h1>
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Ops Management</p>
+            </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full text-sm bg-red-600/80 hover:bg-red-600 text-white py-1.5 rounded-lg transition"
-          >
-            Logout
-          </button>
+
+          <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-2 space-y-1">
+            {visibleNavItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-blue-600/90 text-white shadow-lg shadow-blue-600/25'
+                        : 'text-neutral-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10 hover:text-neutral-900 dark:hover:text-white'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icon size={17} strokeWidth={2} className={isActive ? 'text-white' : 'text-neutral-400 dark:text-neutral-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors'} />
+                      <span className="truncate">{item.label}</span>
+                    </>
+                  )}
+                </NavLink>
+              )
+            })}
+          </nav>
+
+          <div className="px-3 pb-3 pt-2 shrink-0">
+            <div className="glass rounded-2xl p-3">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="!w-8 !h-8 !rounded-xl icon-chip icon-chip-indigo shrink-0">
+                  <span className="text-xs font-bold">{user?.username?.[0]?.toUpperCase() || 'U'}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate">{user?.username || 'User'}</p>
+                  <p className="text-[10px] text-neutral-500 dark:text-neutral-500 truncate">{user?.role || 'Member'}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-1.5 text-sm font-medium bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 py-2 rounded-xl transition-colors border border-red-500/20"
+              >
+                <LogOut size={14} />
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
       </aside>
-      <main className="flex-1 overflow-y-auto bg-white dark:bg-[#171717]">
+
+      <main className="relative z-10 flex-1 overflow-y-auto">
         {children}
       </main>
     </div>

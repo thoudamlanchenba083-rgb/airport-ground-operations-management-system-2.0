@@ -135,44 +135,44 @@ export default function PayrollTab() {
   const totalNet = payroll.reduce((sum, p) => sum + Number(p.net_salary || 0), 0)
   const totalPending = payroll.filter(p => p.status !== 'paid').reduce((sum, p) => sum + Number(p.net_salary || 0), 0)
 
-  if (loading) return <p className="text-gray-500 dark:text-neutral-400 p-4">Loading payroll...</p>
+  if (loading) return <p className="text-neutral-500 dark:text-neutral-400 p-4">Loading payroll...</p>
   if (error) return <p className="text-red-500 p-4">{error}</p>
 
   return (
     <div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
-        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg p-4">
-          <p className="text-xs text-gray-500 dark:text-neutral-400">Total Records</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{payroll.length}</p>
+        <div className="glass rounded-xl p-4">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">Total Records</p>
+          <p className="text-xl font-bold text-neutral-900 dark:text-white">{payroll.length}</p>
         </div>
-        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg p-4">
-          <p className="text-xs text-gray-500 dark:text-neutral-400">Total Net Payout</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{currency(totalNet)}</p>
+        <div className="glass rounded-xl p-4">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">Total Net Payout</p>
+          <p className="text-xl font-bold text-neutral-900 dark:text-white">{currency(totalNet)}</p>
         </div>
-        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg p-4">
-          <p className="text-xs text-gray-500 dark:text-neutral-400">Pending Payout</p>
+        <div className="glass rounded-xl p-4">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">Pending Payout</p>
           <p className="text-xl font-bold text-yellow-600">{currency(totalPending)}</p>
         </div>
       </div>
 
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">Salary / Payroll</h3>
+        <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Salary / Payroll</h3>
         <div className="flex gap-2">
-          <button onClick={() => setShowGenerate(true)} className="bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-neutral-700 text-sm border border-gray-300 dark:border-neutral-600">Generate for Month</button>
+          <button onClick={() => setShowGenerate(true)} className="bg-black/5 dark:bg-white/10 text-neutral-800 dark:text-white px-4 py-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/15 text-sm border border-black/10 dark:border-white/10">Generate for Month</button>
           <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">+ Add Payroll Record</button>
         </div>
       </div>
 
       {showGenerate && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 w-full max-w-sm shadow-xl">
-            <h4 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">Generate Payroll</h4>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="glass-strong rounded-2xl p-6 w-full max-w-sm">
+            <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">Generate Payroll</h4>
             <form onSubmit={handleGenerate} className="space-y-3">
-              <p className="text-sm text-gray-500 dark:text-neutral-400">Creates a pending payroll record for every staff member for the selected month (skips staff who already have one).</p>
-              <input required type="month" value={genMonth} onChange={e => setGenMonth(e.target.value)} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">Creates a pending payroll record for every staff member for the selected month (skips staff who already have one).</p>
+              <input required type="month" value={genMonth} onChange={e => setGenMonth(e.target.value)} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
               <div className="flex gap-2 pt-2">
                 <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Generate</button>
-                <button type="button" onClick={() => setShowGenerate(false)} className="bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-white px-4 py-2 rounded text-sm hover:bg-gray-300 dark:hover:bg-neutral-600">Cancel</button>
+                <button type="button" onClick={() => setShowGenerate(false)} className="bg-black/5 dark:bg-white/10 text-neutral-800 dark:text-white px-4 py-2 rounded-lg text-sm hover:bg-black/10 dark:hover:bg-white/15">Cancel</button>
               </div>
             </form>
           </div>
@@ -180,41 +180,41 @@ export default function PayrollTab() {
       )}
 
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 w-full max-w-md shadow-xl">
-            <h4 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">{editItem ? 'Edit Payroll Record' : 'Add Payroll Record'}</h4>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="glass-strong rounded-2xl p-6 w-full max-w-md">
+            <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">{editItem ? 'Edit Payroll Record' : 'Add Payroll Record'}</h4>
             <form onSubmit={handleSubmit} className="space-y-3">
-              <select required value={form.staff} onChange={e => setForm({ ...form, staff: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm">
+              <select required value={form.staff} onChange={e => setForm({ ...form, staff: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
                 <option value="">Select Staff</option>
                 {staffList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.employee_id})</option>)}
               </select>
-              <input required type="month" placeholder="Month" value={form.month?.slice(0,7) ?? ''} onChange={e => setForm({ ...form, month: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
-              <input required type="number" step="0.01" min="0" placeholder="Base Salary" value={form.base_salary} onChange={e => setForm({ ...form, base_salary: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
+              <input required type="month" placeholder="Month" value={form.month?.slice(0,7) ?? ''} onChange={e => setForm({ ...form, month: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+              <input required type="number" step="0.01" min="0" placeholder="Base Salary" value={form.base_salary} onChange={e => setForm({ ...form, base_salary: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
               <div className="grid grid-cols-2 gap-3">
-                <input type="number" step="0.01" min="0" max="999" placeholder="Overtime Hours (max 999)" value={form.overtime_hours} onChange={e => setForm({ ...form, overtime_hours: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
-                <input type="number" step="0.01" min="0" placeholder="Overtime Rate/hr" value={form.overtime_rate} onChange={e => setForm({ ...form, overtime_rate: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
+                <input type="number" step="0.01" min="0" max="999" placeholder="Overtime Hours (max 999)" value={form.overtime_hours} onChange={e => setForm({ ...form, overtime_hours: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+                <input type="number" step="0.01" min="0" placeholder="Overtime Rate/hr" value={form.overtime_rate} onChange={e => setForm({ ...form, overtime_rate: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <input type="number" step="0.01" min="0" placeholder="Bonus" value={form.bonus} onChange={e => setForm({ ...form, bonus: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
-                <input type="number" step="0.01" min="0" placeholder="Deductions" value={form.deductions} onChange={e => setForm({ ...form, deductions: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
+                <input type="number" step="0.01" min="0" placeholder="Bonus" value={form.bonus} onChange={e => setForm({ ...form, bonus: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+                <input type="number" step="0.01" min="0" placeholder="Deductions" value={form.deductions} onChange={e => setForm({ ...form, deductions: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
               </div>
-              <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm">
+              <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
                 <option value="pending">Pending</option>
                 <option value="processed">Processed</option>
                 <option value="paid">Paid</option>
               </select>
               <div className="flex gap-2 pt-2">
                 <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Save</button>
-                <button type="button" onClick={() => setShowForm(false)} className="bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-white px-4 py-2 rounded text-sm hover:bg-gray-300 dark:hover:bg-neutral-600">Cancel</button>
+                <button type="button" onClick={() => setShowForm(false)} className="bg-black/5 dark:bg-white/10 text-neutral-800 dark:text-white px-4 py-2 rounded-lg text-sm hover:bg-black/10 dark:hover:bg-white/15">Cancel</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm">
-          <thead className="bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300">
+      <div className="glass rounded-2xl overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
             <tr>
               <th className="px-4 py-2 text-left">Staff</th>
               <th className="px-4 py-2 text-left">Month</th>
@@ -229,19 +229,19 @@ export default function PayrollTab() {
           </thead>
           <tbody>
             {payroll.length === 0 && (
-              <tr><td colSpan={9} className="px-4 py-6 text-center text-gray-400 dark:text-neutral-500">No payroll records found.</td></tr>
+              <tr><td colSpan={9} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">No payroll records found.</td></tr>
             )}
             {payroll.map(p => (
-              <tr key={p.id} className="border-t border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 text-gray-800 dark:text-neutral-200">
-                <td className="px-4 py-2 font-medium text-gray-900 dark:text-white">{p.staff_name}</td>
+              <tr key={p.id} className="border-t border-black/5 dark:border-white/5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] text-neutral-800 dark:text-neutral-200">
+                <td className="px-4 py-2 font-medium text-neutral-900 dark:text-white">{p.staff_name}</td>
                 <td className="px-4 py-2">{monthLabel(p.month)}</td>
                 <td className="px-4 py-2">{currency(p.base_salary)}</td>
                 <td className="px-4 py-2">{currency((p.overtime_hours || 0) * (p.overtime_rate || 0))}</td>
                 <td className="px-4 py-2">{currency(p.bonus)}</td>
                 <td className="px-4 py-2 text-red-500">-{currency(p.deductions)}</td>
-                <td className="px-4 py-2 font-semibold text-gray-900 dark:text-white">{currency(p.net_salary)}</td>
+                <td className="px-4 py-2 font-semibold text-neutral-900 dark:text-white">{currency(p.net_salary)}</td>
                 <td className="px-4 py-2">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[p.status] ?? 'bg-gray-100 text-gray-700'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[p.status] ?? 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300'}`}>
                     {p.status_display ?? p.status}
                   </span>
                 </td>
