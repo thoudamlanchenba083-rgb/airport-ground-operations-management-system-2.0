@@ -47,7 +47,7 @@ export default function GatesTab() {
     axiosClient.delete(`/gates/gates/${id}/`).then(load).catch(() => setError('Failed to delete.'))
   }
 
-  if (loading) return <p className="text-gray-500 dark:text-neutral-400 p-4">Loading gates...</p>
+  if (loading) return <p className="text-neutral-500 dark:text-neutral-400 p-4">Loading gates...</p>
 
   return (
     <div>
@@ -58,7 +58,7 @@ export default function GatesTab() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search gate or terminal..."
-          className="border border-gray-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
         />
         {!isViewer && (
           <button
@@ -71,23 +71,23 @@ export default function GatesTab() {
       </div>
 
       {showForm && (
-        <div className="bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg p-4 mb-4 grid grid-cols-3 gap-3">
+        <div className="glass rounded-xl p-4 mb-4 grid grid-cols-3 gap-3">
           <input
             placeholder="Gate Number (e.g. A1)"
             value={form.gate_number}
             onChange={e => setForm(f => ({ ...f, gate_number: e.target.value }))}
-            className="border border-gray-300 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white rounded px-3 py-2 text-sm"
+            className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           />
           <input
             placeholder="Terminal (e.g. Terminal 1)"
             value={form.terminal}
             onChange={e => setForm(f => ({ ...f, terminal: e.target.value }))}
-            className="border border-gray-300 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white rounded px-3 py-2 text-sm"
+            className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           />
           <select
             value={form.is_available}
             onChange={e => setForm(f => ({ ...f, is_available: e.target.value === 'true' }))}
-            className="border border-gray-300 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white rounded px-3 py-2 text-sm"
+            className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           >
             <option value="true">Available</option>
             <option value="false">Unavailable</option>
@@ -104,9 +104,9 @@ export default function GatesTab() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-neutral-700">
+      <div className="glass rounded-2xl overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300 uppercase text-xs">
+          <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
             <tr>
               <th className="px-4 py-3 text-left">Gate</th>
               <th className="px-4 py-3 text-left">Terminal</th>
@@ -114,13 +114,13 @@ export default function GatesTab() {
               <th className="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-neutral-800 bg-white dark:bg-neutral-900">
+          <tbody className="divide-y divide-black/5 dark:divide-white/5">
             {filtered.length === 0 ? (
-              <tr><td colSpan={4} className="text-center text-gray-400 dark:text-neutral-500 py-6">No gates found.</td></tr>
+              <tr><td colSpan={4} className="text-center text-neutral-400 dark:text-neutral-500 py-6">No gates found.</td></tr>
             ) : filtered.map(g => (
-              <tr key={g.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800">
-                <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">{g.gate_number}</td>
-                <td className="px-4 py-3 text-gray-600 dark:text-neutral-300">{g.terminal}</td>
+              <tr key={g.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">
+                <td className="px-4 py-3 font-semibold text-neutral-900 dark:text-white">{g.gate_number}</td>
+                <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">{g.terminal}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${g.is_available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
                     {g.is_available ? 'Available' : 'Unavailable'}

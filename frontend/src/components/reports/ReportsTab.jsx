@@ -30,9 +30,9 @@ function SummaryView({ summary }) {
       {scalarEntries.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {scalarEntries.map(([key, value]) => (
-            <div key={key} className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg p-3">
-              <p className="text-xs text-gray-500 dark:text-neutral-400">{prettyLabel(key)}</p>
-              <p className="text-lg font-bold text-gray-900 dark:text-white">{String(value)}</p>
+            <div key={key} className="glass rounded-xl p-3">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">{prettyLabel(key)}</p>
+              <p className="text-lg font-bold text-neutral-900 dark:text-white">{String(value)}</p>
             </div>
           ))}
         </div>
@@ -40,9 +40,9 @@ function SummaryView({ summary }) {
 
       {tableEntries.map(([key, obj]) => (
         <div key={key} className="overflow-x-auto">
-          <p className="text-xs font-semibold text-gray-600 dark:text-neutral-300 mb-1">{prettyLabel(key)}</p>
-          <table className="min-w-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm">
-            <thead className="bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300">
+          <p className="text-xs font-semibold text-neutral-600 dark:text-neutral-300 mb-1">{prettyLabel(key)}</p>
+          <table className="min-w-full text-sm">
+            <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
               <tr>
                 <th className="px-4 py-2 text-left">Category</th>
                 <th className="px-4 py-2 text-left">Count</th>
@@ -50,7 +50,7 @@ function SummaryView({ summary }) {
             </thead>
             <tbody>
               {Object.entries(obj).map(([label, count]) => (
-                <tr key={label} className="border-t border-gray-200 dark:border-neutral-800 text-gray-800 dark:text-neutral-200">
+                <tr key={label} className="border-t border-black/5 dark:border-white/5 text-neutral-800 dark:text-neutral-200">
                   <td className="px-4 py-2">{label}</td>
                   <td className="px-4 py-2 font-medium">{count}</td>
                 </tr>
@@ -119,33 +119,33 @@ export default function ReportsTab() {
     fetchReports()
   }
 
-  if (loading) return <p className="text-gray-500 dark:text-neutral-400 p-4">Loading reports...</p>
+  if (loading) return <p className="text-neutral-500 dark:text-neutral-400 p-4">Loading reports...</p>
   if (error) return <p className="text-red-500 p-4">{error}</p>
 
   return (
     <div>
       {/* Summary Cards */}
       <div className="mb-6">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-neutral-100 mb-3">Live Summaries</h3>
+        <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-3">Live Summaries</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {['FLIGHT', 'BAGGAGE', 'MAINTENANCE', 'STAFF'].map(type => (
             <button
               key={type}
               onClick={() => fetchSummary(type)}
-              className={`rounded-lg border p-3 text-left hover:shadow transition-shadow ${summaryType === type ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700'}`}
+              className={`rounded-lg border p-3 text-left hover:shadow transition-shadow ${summaryType === type ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'glass-hairline bg-transparent'}`}
             >
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${TYPE_COLORS[type]}`}>
                 {REPORT_TYPES.find(r => r.value === type)?.label}
               </span>
-              <p className="text-xs text-gray-500 dark:text-neutral-400 mt-2">Click to load summary</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">Click to load summary</p>
             </button>
           ))}
         </div>
 
-        {loadingSummary && <p className="text-sm text-gray-500 dark:text-neutral-500 mt-3">Loading summary...</p>}
+        {loadingSummary && <p className="text-sm text-neutral-500 dark:text-neutral-500 mt-3">Loading summary...</p>}
         {summary && !loadingSummary && (
-          <div className="mt-3 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-neutral-100 mb-3">{summaryType} Summary</h4>
+          <div className="mt-3 glass rounded-xl p-4">
+            <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-3">{summaryType} Summary</h4>
             <SummaryView summary={summary} />
           </div>
         )}
@@ -153,23 +153,23 @@ export default function ReportsTab() {
 
       {/* Reports List */}
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-neutral-100">Saved Reports</h3>
+        <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">Saved Reports</h3>
         <button onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">+ New Report</button>
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 w-full max-w-lg shadow-xl">
-            <h4 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">Create Report</h4>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="glass-strong rounded-2xl p-6 w-full max-w-lg">
+            <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">Create Report</h4>
             <form onSubmit={handleSubmit} className="space-y-3">
-              <input required placeholder="Report Title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm" />
-              <select value={form.report_type} onChange={e => setForm({ ...form, report_type: e.target.value })} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm">
+              <input required placeholder="Report Title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+              <select value={form.report_type} onChange={e => setForm({ ...form, report_type: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
                 {REPORT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
-              <textarea required placeholder="Report content..." value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={5} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded px-3 py-2 text-sm resize-none" />
+              <textarea required placeholder="Report content..." value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={5} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm resize-none" />
               <div className="flex gap-2 pt-2">
                 <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Save</button>
-                <button type="button" onClick={() => setShowForm(false)} className="bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-white px-4 py-2 rounded text-sm hover:bg-gray-300 dark:hover:bg-neutral-600">Cancel</button>
+                <button type="button" onClick={() => setShowForm(false)} className="bg-black/5 dark:bg-white/10 text-neutral-800 dark:text-white px-4 py-2 rounded-lg text-sm hover:bg-black/10 dark:hover:bg-white/15">Cancel</button>
               </div>
             </form>
           </div>
@@ -177,18 +177,18 @@ export default function ReportsTab() {
       )}
 
       <div className="space-y-3">
-        {reports.length === 0 && <p className="text-center text-gray-400 dark:text-neutral-500 py-8">No reports yet.</p>}
+        {reports.length === 0 && <p className="text-center text-neutral-400 dark:text-neutral-500 py-8">No reports yet.</p>}
         {reports.map(r => (
-          <div key={r.id} className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg p-4 flex justify-between items-start gap-4">
+          <div key={r.id} className="glass rounded-xl p-4 flex justify-between items-start gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${TYPE_COLORS[r.report_type] ?? 'bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300'}`}>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${TYPE_COLORS[r.report_type] ?? 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300'}`}>
                   {REPORT_TYPES.find(t => t.value === r.report_type)?.label ?? r.report_type}
                 </span>
-                <span className="text-xs text-gray-400 dark:text-neutral-500">{new Date(r.created_at).toLocaleString()}</span>
+                <span className="text-xs text-neutral-400 dark:text-neutral-500">{new Date(r.created_at).toLocaleString()}</span>
               </div>
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">{r.title}</p>
-              <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1 line-clamp-2">{r.content}</p>
+              <p className="text-sm font-semibold text-neutral-900 dark:text-white">{r.title}</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2">{r.content}</p>
             </div>
             <button onClick={() => handleDelete(r.id)} className="text-xs text-red-500 hover:underline shrink-0">Delete</button>
           </div>

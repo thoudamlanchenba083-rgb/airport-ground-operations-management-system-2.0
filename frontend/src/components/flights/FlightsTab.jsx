@@ -136,7 +136,7 @@ export default function FlightsTab() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search flights, airline, route…"
-          className="border border-gray-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
         />
         {!isViewer && (
           <button
@@ -150,48 +150,48 @@ export default function FlightsTab() {
 
       {/* Add form */}
       {showForm && (
-        <form onSubmit={handleAdd} className="bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl p-5 shadow-sm">
-          <h4 className="font-semibold text-gray-900 dark:text-neutral-100 mb-4">New Flight</h4>
+        <form onSubmit={handleAdd} className="glass rounded-2xl p-5">
+          <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-4">New Flight</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
             <div>
-              <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Flight Number</label>
-              <input name="flight_number" value={form.flight_number} onChange={handleChange} required placeholder="e.g. AI202" className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Flight Number</label>
+              <input name="flight_number" value={form.flight_number} onChange={handleChange} required placeholder="e.g. AI202" className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Airline</label>
-              <select name="airline" value={form.airline} onChange={handleChange} required className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Airline</label>
+              <select name="airline" value={form.airline} onChange={handleChange} required className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option value="">Select airline</option>
                 {airlines.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Aircraft</label>
-              <select name="aircraft" value={form.aircraft} onChange={handleChange} required className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Aircraft</label>
+              <select name="aircraft" value={form.aircraft} onChange={handleChange} required className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option value="">Select aircraft</option>
                 {aircraft.map(a => <option key={a.id} value={a.id}>{a.registration_number} — {a.aircraft_type}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Origin</label>
-              <input name="origin" value={form.origin} onChange={handleChange} required placeholder="e.g. DEL" className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Origin</label>
+              <input name="origin" value={form.origin} onChange={handleChange} required placeholder="e.g. DEL" className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Destination</label>
-              <input name="destination" value={form.destination} onChange={handleChange} required placeholder="e.g. BOM" className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Destination</label>
+              <input name="destination" value={form.destination} onChange={handleChange} required placeholder="e.g. BOM" className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Status</label>
-              <select name="status" value={form.status} onChange={handleChange} className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Status</label>
+              <select name="status" value={form.status} onChange={handleChange} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Departure Time</label>
-              <input type="datetime-local" name="departure_time" value={form.departure_time} onChange={handleChange} required className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Departure Time</label>
+              <input type="datetime-local" name="departure_time" value={form.departure_time} onChange={handleChange} required className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Arrival Time</label>
-              <input type="datetime-local" name="arrival_time" value={form.arrival_time} onChange={handleChange} required className="w-full border border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Arrival Time</label>
+              <input type="datetime-local" name="arrival_time" value={form.arrival_time} onChange={handleChange} required className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
           </div>
           {formError && <p className="text-red-500 text-xs mt-3">{formError}</p>}
@@ -204,14 +204,14 @@ export default function FlightsTab() {
       )}
 
       {/* Table */}
-      {loading && <p className="text-sm text-gray-500 dark:text-neutral-500 animate-pulse">Loading flights…</p>}
+      {loading && <p className="text-sm text-neutral-500 dark:text-neutral-500 animate-pulse">Loading flights…</p>}
       {error   && <p className="text-sm text-red-500">{error}</p>}
 
       {!loading && !error && (
-        <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
+        <div className="glass rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+              <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
                 <tr>
                   <th className="px-5 py-3">Flight No.</th>
                   <th className="px-5 py-3">Airline</th>
@@ -222,19 +222,19 @@ export default function FlightsTab() {
                   {!isViewer && <th className="px-5 py-3">Actions</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
+              <tbody className="divide-y divide-black/5 dark:divide-white/5">
                 {filtered.length === 0 && (
-                  <tr><td colSpan="7" className="px-5 py-6 text-center text-gray-400 dark:text-neutral-500">No flights found</td></tr>
+                  <tr><td colSpan="7" className="px-5 py-6 text-center text-neutral-400 dark:text-neutral-500">No flights found</td></tr>
                 )}
                 {filtered.map(f => (
-                  <tr key={f.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800 transition">
+                  <tr key={f.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition">
                     <td className="px-5 py-3 font-mono font-semibold text-blue-700">{f.flight_number}</td>
-                    <td className="px-5 py-3 text-gray-900 dark:text-neutral-100">{f.airline_name || f.airline}</td>
-                    <td className="px-5 py-3 text-gray-600 dark:text-neutral-300">{f.origin} → {f.destination}</td>
-                    <td className="px-5 py-3 text-gray-600 dark:text-neutral-300">{fmt(f.departure_time)}</td>
-                    <td className="px-5 py-3 text-gray-600 dark:text-neutral-300">{fmt(f.arrival_time)}</td>
+                    <td className="px-5 py-3 text-neutral-900 dark:text-neutral-100">{f.airline_name || f.airline}</td>
+                    <td className="px-5 py-3 text-neutral-600 dark:text-neutral-300">{f.origin} → {f.destination}</td>
+                    <td className="px-5 py-3 text-neutral-600 dark:text-neutral-300">{fmt(f.departure_time)}</td>
+                    <td className="px-5 py-3 text-neutral-600 dark:text-neutral-300">{fmt(f.arrival_time)}</td>
                     <td className="px-5 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[f.status] || 'bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[f.status] || 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300'}`}>
                         {f.status}
                       </span>
                     </td>
@@ -250,7 +250,7 @@ export default function FlightsTab() {
                               Advance → {STEP_LABELS[nextWorkflowStep(f.status)]}
                             </button>
                           ) : (
-                            <span className="text-xs text-gray-400 dark:text-neutral-600">
+                            <span className="text-xs text-neutral-400 dark:text-neutral-600">
                               {f.status === 'ARRIVED' ? 'Completed' : '—'}
                             </span>
                           )}
@@ -265,7 +265,7 @@ export default function FlightsTab() {
               </tbody>
             </table>
           </div>
-          <div className="px-5 py-3 border-t border-gray-200 dark:border-neutral-800 text-xs text-gray-400 dark:text-neutral-500">
+          <div className="px-5 py-3 border-t border-black/5 dark:border-white/5 text-xs text-neutral-400 dark:text-neutral-500">
             {filtered.length} of {flights.length} flights
           </div>
         </div>

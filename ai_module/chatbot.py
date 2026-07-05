@@ -51,6 +51,7 @@ INTENTS = {
     'maintenance': ['maintenance', 'repair', 'service due', 'grounded'],
     'staff_count': ['staff', 'crew', 'how many staff', 'ground crew'],
     'weather': ['weather', 'visibility', 'wind', 'storm', 'fog'],
+    'baggage_weight': ['baggage weight', 'luggage weight', 'overweight', 'weight limit', 'reduce weight', 'weight check'],
     'greeting': ['hello', 'hi', 'hey', 'good morning', 'good evening'],
     'help': ['help', 'what can you do', 'commands'],
 }
@@ -343,7 +344,7 @@ def _check_schedule(text, text_lower):
 
 FLIGHT_DEPENDENT_INTENTS = {
     'flight_status', 'delay_prediction', 'gate_info',
-    'maintenance', 'staff_count', 'weather',
+    'maintenance', 'staff_count', 'weather', 'baggage_weight',
 }
 
 INTENT_LABELS = {
@@ -353,6 +354,7 @@ INTENT_LABELS = {
     'maintenance': 'maintenance check',
     'staff_count': 'staffing numbers',
     'weather': 'weather risk',
+    'baggage_weight': 'baggage weight check',
 }
 
 
@@ -525,6 +527,21 @@ class ChatbotEngine:
                     f"- Delay likely: {'Yes' if result['delay_likely'] else 'No'}"
                 )
             return "Which flight's weather risk do you want to check?"
+
+        if intent == 'baggage_weight':
+            from .ml.predictor import predict_baggage_weight_risk
+            if flight:
+                result, confidence = predict_baggage_weight_risk(flight)
+                flag = "⚠ ACTION REQUIRED" if result['action_required'] else "OK"
+                return note(
+                    f"Baggage weight check for {flight.flight_number} [{flag}]\n"
+                    f"- Total baggage: {result['total_baggage_kg']} kg\n"
+                    f"- Weather-adjusted safe limit: {result['safe_limit_kg']} kg "
+                    f"(nominal {result['nominal_limit_kg']} kg, reduced {result['weight_reduction_pct']}% "
+                    f"for {result['weather_risk_level'].lower()}-risk weather: {result['weather_conditions']})\n"
+                    f"- Recommendation: {result['recommendation']}"
+                )
+            return "Which flight's baggage weight do you want checked against weather conditions?"
 
         # fallback
         if flight:

@@ -1,4 +1,4 @@
-﻿from django.utils import timezone
+from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -137,6 +137,29 @@ class FlightViewSet(viewsets.ModelViewSet):
                         {'error': f'Baggage {bag.baggage_tag} is not yet loaded. Cannot start boarding.'},
                         status=status.HTTP_400_BAD_REQUEST
                     )
+
+            # Rule: in bad weather, the safe baggage weight limit shrinks
+            # (mirrors real reduced-payload restrictions). Block boarding
+            # if the actual load is over that weather-adjusted limit.
+            from ai_module.ml.predictor import predict_baggage_weight_risk
+            try:
+                weight_result, _ = predict_baggage_weight_risk(flight)
+                if weight_result['action_required']:
+                    return Response(
+                        {'error': (
+                            f"Cannot start boarding: total baggage weight "
+                            f"({weight_result['total_baggage_kg']}kg) exceeds the weather-adjusted "
+                            f"safe limit ({weight_result['safe_limit_kg']}kg) due to "
+                            f"{weight_result['weather_risk_level'].lower()}-risk weather "
+                            f"({weight_result['weather_conditions']}). "
+                            f"Reduce baggage by {weight_result['over_limit_by_kg']}kg before boarding."
+                        )},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            except Exception:
+                # Don't block boarding if the weather/weight check itself fails
+                # (e.g. models not trained yet) - fail open, not closed.
+                pass
 
         # Rule: cannot close gate before boarding has started
         if step == 'GATE_CLOSED' and flight.status != 'BOARDING':

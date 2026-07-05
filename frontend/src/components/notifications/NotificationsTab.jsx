@@ -12,7 +12,7 @@ const TYPE_COLORS = {
   FLIGHT: 'bg-blue-100 text-blue-700',
   MAINTENANCE: 'bg-yellow-100 text-yellow-700',
   BAGGAGE: 'bg-purple-100 text-purple-700',
-  GENERAL: 'bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300',
+  GENERAL: 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300',
 }
 
 export default function NotificationsTab() {
@@ -62,14 +62,14 @@ export default function NotificationsTab() {
 
   const unreadCount = notifications.filter(n => !n.is_read).length
 
-  if (loading) return <p className="text-gray-500 dark:text-neutral-400 p-4">Loading notifications...</p>
+  if (loading) return <p className="text-neutral-500 dark:text-neutral-400 p-4">Loading notifications...</p>
   if (error) return <p className="text-red-500 p-4">{error}</p>
 
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">Notifications</h3>
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Notifications</h3>
           {unreadCount > 0 && (
             <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{unreadCount} unread</span>
           )}
@@ -85,7 +85,7 @@ export default function NotificationsTab() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${filter === f ? 'bg-blue-600 text-white border-blue-600' : 'bg-white dark:bg-neutral-900 text-gray-600 dark:text-neutral-300 border-gray-300 dark:border-neutral-700 hover:border-blue-400'}`}
+            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${filter === f ? 'bg-blue-600 text-white border-blue-600' : 'bg-black/5 dark:bg-white/5 text-neutral-600 dark:text-neutral-300 border-black/10 dark:border-white/10 hover:border-blue-400'}`}
           >
             {f === 'ALL' ? 'All' : f === 'UNREAD' ? 'Unread' : TYPE_LABELS[f]}
           </button>
@@ -94,19 +94,19 @@ export default function NotificationsTab() {
 
       <div className="space-y-3">
         {filtered.length === 0 && (
-          <div className="text-center text-gray-400 dark:text-neutral-500 py-10">No notifications found.</div>
+          <div className="text-center text-neutral-400 dark:text-neutral-500 py-10">No notifications found.</div>
         )}
         {filtered.map(n => (
-          <div key={n.id} className={`flex items-start gap-4 p-4 rounded-lg border ${n.is_read ? 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700' : 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800'}`}>
+          <div key={n.id} className={`flex items-start gap-4 p-4 rounded-lg border ${n.is_read ? 'glass-hairline bg-transparent' : 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800'}`}>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[n.type] ?? 'bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[n.type] ?? 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300'}`}>
                   {TYPE_LABELS[n.type] ?? n.type}
                 </span>
                 {!n.is_read && <span className="w-2 h-2 bg-blue-500 rounded-full inline-block" title="Unread" />}
               </div>
-              <p className="text-sm text-gray-900 dark:text-white">{n.message}</p>
-              <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">{new Date(n.created_at).toLocaleString()}</p>
+              <p className="text-sm text-neutral-900 dark:text-white">{n.message}</p>
+              <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">{new Date(n.created_at).toLocaleString()}</p>
             </div>
             <div className="flex flex-col gap-1 items-end shrink-0">
               {!n.is_read && (
