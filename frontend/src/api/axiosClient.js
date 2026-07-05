@@ -2,6 +2,11 @@ import axios from 'axios'
 
 const axiosClient = axios.create({
   baseURL: 'http://localhost:8000/api',
+  // Without this, a slow/hung backend call (e.g. the AI dashboard endpoint
+  // waiting on an external weather API) leaves the UI spinning forever with
+  // no feedback. 20s is generous enough for real requests but still bails
+  // out instead of hanging indefinitely.
+  timeout: 20000,
 })
 
 axiosClient.interceptors.request.use((config) => {

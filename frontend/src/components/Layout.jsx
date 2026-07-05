@@ -1,7 +1,7 @@
 ﻿import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, PlaneTakeoff, DoorOpen, Package, Wrench,
-  Settings2, Users, Bell, BarChart3, Sparkles, LineChart, LogOut, Plane,
+  Settings2, Users, Bell, BarChart3, Sparkles, LineChart, LogOut,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { canAccessPage } from '../utils/roleAccess'
@@ -17,7 +17,7 @@ const navItems = [
   { to: '/staff',         label: 'Staff',        page: 'staff',         icon: Users },
   { to: '/notifications', label: 'Notifications',page: 'notifications', icon: Bell },
   { to: '/reports',       label: 'Reports',      page: 'reports',       icon: BarChart3 },
-  { to: '/chatbot',       label: 'AI Assistant', page: 'chatbot',       icon: Sparkles },
+  { to: '/chatbot',       label: 'AeroGround AI', page: 'chatbot',      icon: Sparkles },
   { to: '/analytics',     label: 'Analytics',    page: 'analytics',     icon: LineChart },
 ]
 
@@ -36,8 +36,8 @@ export default function Layout({ children }) {
       <aside className="relative z-10 w-64 h-screen shrink-0 sticky top-0 p-3">
         <div className="glass h-full rounded-3xl flex flex-col overflow-hidden">
           <div className="px-4 py-5 flex items-center gap-3 shrink-0">
-            <div className="!w-10 !h-10 !rounded-2xl icon-chip icon-chip-blue">
-              <Plane size={18} strokeWidth={2.25} />
+            <div className="!w-11 !h-11 !rounded-2xl glass !bg-white/90 dark:!bg-white/95 flex items-center justify-center shrink-0 p-1.5 overflow-hidden">
+              <img src="/brand/aeroground-logo.png" alt="AeroGround" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="text-sm font-bold text-neutral-900 dark:text-white leading-tight tracking-tight">AeroGround</h1>

@@ -100,7 +100,7 @@ export default function Chatbot() {
     }
   }
 
-  usePageMeta('AI Assistant', 'Ask the AI assistant about flight status, delays, gates, maintenance and staffing.')
+  usePageMeta('AeroGround AI', 'Ask AeroGround AI about flight status, delays, gates, maintenance and staffing.')
 
   return (
     <div className="p-6 h-screen flex flex-col max-w-[1400px] mx-auto w-full">
@@ -108,7 +108,7 @@ export default function Chatbot() {
         <PageHeader
           icon={Sparkles}
           chip="icon-chip-violet"
-          title="AI Assistant"
+          title="AeroGround AI"
           subtitle='Ask about flight status, delays, gates, maintenance, staffing, or "is there a flight at this time"'
           actions={
             <button

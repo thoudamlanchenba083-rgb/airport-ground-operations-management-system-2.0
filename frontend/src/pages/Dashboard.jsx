@@ -181,7 +181,17 @@ export default function Dashboard() {
         setIntel(res.data)
         setIntelError('')
       })
-      .catch(() => setIntelError('Failed to load AI dashboard intelligence.'))
+      .catch((err) => {
+        let message = 'Failed to load AI dashboard intelligence.'
+        if (err.code === 'ECONNABORTED') {
+          message = 'AI dashboard intelligence timed out - the backend took too long to respond.'
+        } else if (err.response) {
+          message = `AI dashboard intelligence failed (server returned ${err.response.status}).`
+        } else if (err.request) {
+          message = 'AI dashboard intelligence failed - no response from the backend. Is the Django server running?'
+        }
+        setIntelError(message)
+      })
       .finally(() => setIntelLoading(false))
   }, [])
 

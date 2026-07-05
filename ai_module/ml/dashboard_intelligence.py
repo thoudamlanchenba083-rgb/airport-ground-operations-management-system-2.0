@@ -14,6 +14,7 @@ upcoming flights rather than running across everything.
 """
 from django.utils import timezone
 from datetime import timedelta
+from concurrent.futures import ThreadPoolExecutor
 
 from .predictor import predict_delay, predict_weather_risk, predict_passenger_rush
 from .resource_optimizer import optimize_resources
@@ -110,19 +111,31 @@ def _weather_alerts(flights):
     if not flights:
         return {'flights_analyzed': 0, 'high_risk_count': 0, 'flagged_flights': []}
 
-    high_risk = []
-    for flight in flights:
+    # predict_weather_risk() can make a live HTTP call per flight (see
+    # weather_service.get_live_weather, timeout=5s each). Run those calls
+    # concurrently instead of in a serial loop - up to MAX_FLIGHTS_FOR_FORECAST
+    # (15) flights in a loop meant a slow/unreachable weather API could block
+    # the whole dashboard load for up to ~75s. Threaded, the worst case is
+    # ~5s total (bounded by the single slowest call) regardless of sample size.
+    def _safe_predict(flight):
         try:
-            result, confidence = predict_weather_risk(flight)
+            return flight, predict_weather_risk(flight)
         except Exception:
-            continue
-        if result['risk_level'] == 'HIGH':
-            high_risk.append({
-                'flight_number': flight.flight_number,
-                'departure_time': flight.departure_time.isoformat(),
-                'conditions': result['conditions'],
-                'visibility_km': result['visibility_km'],
-            })
+            return flight, None
+
+    high_risk = []
+    with ThreadPoolExecutor(max_workers=min(len(flights), 15)) as pool:
+        for flight, prediction in pool.map(_safe_predict, flights):
+            if prediction is None:
+                continue
+            result, confidence = prediction
+            if result['risk_level'] == 'HIGH':
+                high_risk.append({
+                    'flight_number': flight.flight_number,
+                    'departure_time': flight.departure_time.isoformat(),
+                    'conditions': result['conditions'],
+                    'visibility_km': result['visibility_km'],
+                })
 
     return {
         'flights_analyzed': len(flights),
@@ -179,8 +192,28 @@ def _passenger_prediction(todays_flights):
     }
 
 
+DASHBOARD_CACHE_KEY = 'ai_dashboard_intelligence'
+DASHBOARD_CACHE_SECONDS = 25
+
+
 def get_dashboard_intelligence():
-    """Single entry point - returns the full dashboard payload."""
+    """Single entry point - returns the full dashboard payload.
+
+    Cached briefly: this recomputes every ML prediction (delay, weather,
+    passenger rush, staff/equipment forecasts) from scratch on every call.
+    The dashboard already polls this every 2 minutes on its own, and a
+    manual "Refresh" click can land seconds after that poll - without a
+    cache, both pay the full cost every time, which is what occasionally
+    pushed a call slow enough to hit the frontend's request timeout. A
+    short cache means only the first caller in any 25s window computes it;
+    everyone else in that window gets the same result back instantly.
+    """
+    from django.core.cache import cache
+
+    cached = cache.get(DASHBOARD_CACHE_KEY)
+    if cached is not None:
+        return cached
+
     todays = _todays_flights()
     upcoming_sample = _upcoming_flights_sample()
 
@@ -190,7 +223,7 @@ def get_dashboard_intelligence():
         if 'forecast' in r.lower() or 'shortage' in r.lower()
     ]
 
-    return {
+    payload = {
         'generated_at': timezone.now().isoformat(),
         'live_kpis': _live_kpis(todays),
         'delay_forecast': _delay_forecast(upcoming_sample),
@@ -203,3 +236,5 @@ def get_dashboard_intelligence():
             'confidence': resource_confidence,
         },
     }
+    cache.set(DASHBOARD_CACHE_KEY, payload, DASHBOARD_CACHE_SECONDS)
+    return payload
