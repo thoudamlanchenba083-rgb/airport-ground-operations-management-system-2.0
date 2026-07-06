@@ -6,7 +6,7 @@ import {
   MoreVertical, DoorOpen, Package, Bell, ChevronRight, Gauge, BarChart3,
 } from 'lucide-react'
 import {
-  PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
 } from 'recharts'
 import axiosClient from '../api/axiosClient'
@@ -188,6 +188,14 @@ export default function Dashboard() {
   const [error, setError] = useState('')
   const [now, setNow] = useState(new Date())
 
+  // Secondary datasets purely for the Analytics Overview section below -
+  // kept separate from `loading`/`error` (which gate the main flights table)
+  // so a slow gates/staff/maintenance fetch never blocks the rest of the page.
+  const [gates, setGates] = useState([])
+  const [staffList, setStaffList] = useState([])
+  const [maintenanceList, setMaintenanceList] = useState([])
+  const [analyticsLoading, setAnalyticsLoading] = useState(true)
+
   const [intel, setIntel] = useState(null)
   const [intelLoading, setIntelLoading] = useState(true)
   const [intelError, setIntelError] = useState('')
@@ -210,6 +218,22 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => { loadFlights() }, [loadFlights])
+
+  useEffect(() => {
+    setAnalyticsLoading(true)
+    Promise.all([
+      axiosClient.get('/gates/gates/'),
+      axiosClient.get('/staff/staff/'),
+      axiosClient.get('/maintenance/maintenance/'),
+    ])
+      .then(([g, s, m]) => {
+        setGates(Array.isArray(g.data) ? g.data : g.data.results ?? [])
+        setStaffList(Array.isArray(s.data) ? s.data : s.data.results ?? [])
+        setMaintenanceList(Array.isArray(m.data) ? m.data : m.data.results ?? [])
+      })
+      .catch(() => {}) // non-critical for the rest of the dashboard - charts just show empty state
+      .finally(() => setAnalyticsLoading(false))
+  }, [])
 
   const handleAdvance = async (flight) => {
     const step = nextWorkflowStep(flight.status)
@@ -292,6 +316,28 @@ export default function Dashboard() {
       return acc
     }, {})
   ).slice(-7).map(([date, count]) => ({ date, count }))
+
+  // Gate model only has is_available (boolean), no status field.
+  const gateData = [
+    { name: 'Available', value: gates.filter(g => g.is_available === true).length },
+    { name: 'Occupied',  value: gates.filter(g => g.is_available === false).length },
+  ].filter(d => d.value > 0)
+
+  const staffRoleData = Object.entries(
+    staffList.reduce((acc, s) => {
+      const r = s.staff_type || 'Unknown'
+      acc[r] = (acc[r] || 0) + 1
+      return acc
+    }, {})
+  ).map(([name, value]) => ({ name, value }))
+
+  const maintStatusData = Object.entries(
+    maintenanceList.reduce((acc, m) => {
+      const s = m.status || 'Unknown'
+      acc[s] = (acc[s] || 0) + 1
+      return acc
+    }, {})
+  ).map(([name, value]) => ({ name, value }))
 
   const chartGridStroke = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'
   const chartTickColor  = isDark ? '#9ca3af' : '#6b7280'
@@ -707,6 +753,38 @@ export default function Dashboard() {
           </Link>
         </div>
 
+        {/* Quick counts across every module, at a glance */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+          <div className="glass glass-interactive rounded-2xl p-4 flex items-center gap-3">
+            <div className="icon-chip icon-chip-blue !w-11 !h-11 !rounded-xl"><Plane size={18} /></div>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Total Flights</p>
+              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{flights.length}</p>
+            </div>
+          </div>
+          <div className="glass glass-interactive rounded-2xl p-4 flex items-center gap-3">
+            <div className="icon-chip icon-chip-violet !w-11 !h-11 !rounded-xl"><DoorOpen size={18} /></div>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Total Gates</p>
+              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? '—' : gates.length}</p>
+            </div>
+          </div>
+          <div className="glass glass-interactive rounded-2xl p-4 flex items-center gap-3">
+            <div className="icon-chip icon-chip-amber !w-11 !h-11 !rounded-xl"><Users size={18} /></div>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Staff Members</p>
+              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? '—' : staffList.length}</p>
+            </div>
+          </div>
+          <div className="glass glass-interactive rounded-2xl p-4 flex items-center gap-3">
+            <div className="icon-chip icon-chip-rose !w-11 !h-11 !rounded-xl"><Wrench size={18} /></div>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Maintenance Jobs</p>
+              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? '—' : maintenanceList.length}</p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <MiniChartCard title="Flight Status Breakdown">
             {flightStatusData.length === 0 ? (
@@ -723,27 +801,92 @@ export default function Dashboard() {
             )}
           </MiniChartCard>
 
-          <MiniChartCard title="Flights Over Time">
-            {flightsByDate.length === 0 ? (
-              <p style={{ color: chartEmptyColor }} className="text-[13px]">No timeline data yet.</p>
+          <MiniChartCard title="Gate Utilization">
+            {gateData.length === 0 ? (
+              <p style={{ color: chartEmptyColor }} className="text-[13px]">No gate data yet.</p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
-                <AreaChart data={flightsByDate}>
+                <BarChart data={gateData}>
                   <defs>
-                    <linearGradient id="dashFlightsAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.45} />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
+                    {CHART_COLORS.map((c, i) => (
+                      <linearGradient key={i} id={`dashGateGrad${i}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={c} stopOpacity={0.95} />
+                        <stop offset="100%" stopColor={c} stopOpacity={0.55} />
+                      </linearGradient>
+                    ))}
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke={chartGridStroke} vertical={false} />
-                  <XAxis dataKey="date" tick={{ fill: chartTickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="name" tick={{ fill: chartTickColor, fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: chartTickColor, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip contentStyle={chartTooltip} />
-                  <Area type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2.5} fill="url(#dashFlightsAreaGrad)" dot={{ fill: '#3b82f6', strokeWidth: 0, r: 3 }} activeDot={{ r: 5 }} />
-                </AreaChart>
+                  <Tooltip contentStyle={chartTooltip} cursor={{ fill: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.03)' }} />
+                  <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={64}>
+                    {gateData.map((_, i) => <Cell key={i} fill={`url(#dashGateGrad${i})`} />)}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             )}
           </MiniChartCard>
+
+          <MiniChartCard title="Staff by Role">
+            {staffRoleData.length === 0 ? (
+              <p style={{ color: chartEmptyColor }} className="text-[13px]">No staff data yet.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie data={staffRoleData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={48} outerRadius={78} paddingAngle={2}>
+                    {staffRoleData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} stroke="none" />)}
+                  </Pie>
+                  <Tooltip contentStyle={chartTooltip} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </MiniChartCard>
+
+          <MiniChartCard title="Maintenance by Status">
+            {maintStatusData.length === 0 ? (
+              <p style={{ color: chartEmptyColor }} className="text-[13px]">No maintenance data yet.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={maintStatusData}>
+                  <defs>
+                    <linearGradient id="dashMaintGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.95} />
+                      <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.5} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGridStroke} vertical={false} />
+                  <XAxis dataKey="name" tick={{ fill: chartTickColor, fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: chartTickColor, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={chartTooltip} cursor={{ fill: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.03)' }} />
+                  <Bar dataKey="value" fill="url(#dashMaintGrad)" radius={[8, 8, 0, 0]} maxBarSize={64} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </MiniChartCard>
+
+          <div className="lg:col-span-2">
+            <MiniChartCard title="Flights Over Time (last 7 days)">
+              {flightsByDate.length === 0 ? (
+                <p style={{ color: chartEmptyColor }} className="text-[13px]">No timeline data yet.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <AreaChart data={flightsByDate}>
+                    <defs>
+                      <linearGradient id="dashFlightsAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.45} />
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartGridStroke} vertical={false} />
+                    <XAxis dataKey="date" tick={{ fill: chartTickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: chartTickColor, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip contentStyle={chartTooltip} />
+                    <Area type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2.5} fill="url(#dashFlightsAreaGrad)" dot={{ fill: '#3b82f6', strokeWidth: 0, r: 3 }} activeDot={{ r: 5 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </MiniChartCard>
+          </div>
         </div>
       </div>
 
