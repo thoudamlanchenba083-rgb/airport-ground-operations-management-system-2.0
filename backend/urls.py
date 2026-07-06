@@ -37,7 +37,12 @@ urlpatterns = [
     path('api/notifications/', include('notifications.urls')),
     path('api/reports/', include('reports.urls')),
     path('api/core/', include('core_app.urls')),
+    path('api/turnaround/', include('turnaround.urls')),
     path('api/ground-equipment/', include('ground_equipment.urls')),
     path('api/hr/', include('hr_management.urls')),  
+    path('api/fuel/', include('fuel_management.urls')),
+    path('api/cleaning/', include('aircraft_cleaning.urls')),
+    path('api/water-lavatory/', include('water_lavatory_service.urls')),
+    path('api/catering/', include('catering.urls')),
     path('api/ai/', include('ai_module.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
