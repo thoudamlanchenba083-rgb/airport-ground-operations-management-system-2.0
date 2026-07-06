@@ -60,7 +60,7 @@ export default function AircraftTab() {
             onClick={() => setShowForm(!showForm)}
             className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
           >
-            {showForm ? '? Cancel' : '+ Add Aircraft'}
+            {showForm ? 'Cancel' : '+ Add Aircraft'}
           </button>
         )}
       </div>

@@ -367,6 +367,16 @@ def _last_context_intent(user, session_id):
     return None
 
 
+def _recently_asked_schedule_check(user, session_id):
+    """Was the user's last message in this session a schedule_check query
+    (e.g. "check any flights tomorrow?")? Lets a bare follow-up like "day
+    after tomorrow?" or "what about 6pm?" - which has no "flight" keyword of
+    its own - be understood as still asking about the schedule."""
+    for msg in _recent_user_messages(user, session_id, limit=1):
+        return _score_intent(msg.content.lower()) == 'schedule_check'
+    return False
+
+
 class ChatbotEngine:
 
     @staticmethod
@@ -384,6 +394,15 @@ class ChatbotEngine:
 
         day_ref = _extract_day_reference(text_lower)
         if intent is None and 'flight' in text_lower and (_extract_time_range(text) or _extract_time_of_day(text) or day_ref):
+            intent = 'schedule_check'
+
+        # Bare follow-up to a schedule check, e.g. user asked "check any
+        # flights tomorrow?" then just "day after tomorrow?" or "what about
+        # 6pm?" next - no "flight" keyword, but it's clearly continuing the
+        # same schedule question.
+        if (intent is None and not flight and not gate
+                and (day_ref or _extract_time_range(text) or _extract_time_of_day(text))
+                and _recently_asked_schedule_check(user, session_id)):
             intent = 'schedule_check'
 
         # Shortcut replies: a bare flight mention with no intent keywords,

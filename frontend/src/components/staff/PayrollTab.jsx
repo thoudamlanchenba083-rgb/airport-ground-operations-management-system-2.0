@@ -185,8 +185,8 @@ export default function PayrollTab() {
             <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">{editItem ? 'Edit Payroll Record' : 'Add Payroll Record'}</h4>
             <form onSubmit={handleSubmit} className="space-y-3">
               <select required value={form.staff} onChange={e => setForm({ ...form, staff: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
-                <option value="">Select Staff</option>
-                {staffList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.employee_id})</option>)}
+                <option value="" className="text-black">Select Staff</option>
+                {staffList.map(s => <option key={s.id} value={s.id} className="text-black">{s.name} ({s.employee_id})</option>)}
               </select>
               <input required type="month" placeholder="Month" value={form.month?.slice(0,7) ?? ''} onChange={e => setForm({ ...form, month: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
               <input required type="number" step="0.01" min="0" placeholder="Base Salary" value={form.base_salary} onChange={e => setForm({ ...form, base_salary: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
@@ -199,9 +199,9 @@ export default function PayrollTab() {
                 <input type="number" step="0.01" min="0" placeholder="Deductions" value={form.deductions} onChange={e => setForm({ ...form, deductions: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
               </div>
               <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
-                <option value="pending">Pending</option>
-                <option value="processed">Processed</option>
-                <option value="paid">Paid</option>
+                <option value="pending" className="text-black">Pending</option>
+                <option value="processed" className="text-black">Processed</option>
+                <option value="paid" className="text-black">Paid</option>
               </select>
               <div className="flex gap-2 pt-2">
                 <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Save</button>

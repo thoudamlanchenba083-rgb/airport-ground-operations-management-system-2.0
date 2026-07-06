@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   Search, Fuel, Truck, Zap, Package, Snowflake, UtensilsCrossed, Repeat,
   Wrench, CheckCircle2, AlertTriangle, XCircle, Gauge, RefreshCw,
+  Plus, Pencil, Trash2, X,
 } from 'lucide-react'
 import axiosClient from '../../api/axiosClient'
+import { useAuth } from '../../context/AuthContext'
 
 // Icon + accent per equipment type, matched by the human-readable display
 // name the backend already sends us (equipment_type_display).
@@ -40,6 +42,22 @@ const STATUS_TABS = [
   { key: 'damaged',     label: 'Damaged' },
 ]
 
+const STATUS_OPTIONS = [
+  { value: 'available',   label: 'Available' },
+  { value: 'in_use',      label: 'In Use' },
+  { value: 'maintenance', label: 'Under Maintenance' },
+  { value: 'damaged',     label: 'Damaged' },
+]
+
+const EMPTY_FORM = { equipment_type: '', equipment_id: '', status: 'available', location: '', last_maintenance: '' }
+
+function toLocalInput(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const pad = n => String(n).padStart(2, '0')
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes())
+}
+
 function SummaryCard({ icon: Icon, chip, label, value }) {
   return (
     <div className="glass glass-interactive rounded-2xl p-4 flex items-center gap-3">
@@ -67,7 +85,11 @@ function RowSkeleton() {
 }
 
 export default function EquipmentTab() {
+  const { user } = useAuth()
+  const canWrite = !['GROUND_STAFF', 'VIEWER'].includes(user?.role)
+
   const [equipment, setEquipment] = useState([])
+  const [types,     setTypes]     = useState([])
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState('')
   const [search,    setSearch]    = useState('')
@@ -75,15 +97,88 @@ export default function EquipmentTab() {
   const [predictions, setPredictions] = useState({})
   const [predicting,  setPredicting]  = useState(null)
 
+  const [showModal, setShowModal] = useState(false)
+  const [editing,   setEditing]   = useState(null)
+  const [form,      setForm]      = useState(EMPTY_FORM)
+  const [saving,    setSaving]    = useState(false)
+  const [formError, setFormError] = useState('')
+
   const load = () => {
     setLoading(true)
-    axiosClient.get('/ground-equipment/equipment/')
-      .then(r => setEquipment(r.data.results ?? r.data))
+    Promise.all([
+      axiosClient.get('/ground-equipment/equipment/'),
+      axiosClient.get('/ground-equipment/equipment-types/'),
+    ])
+      .then(([eq, ty]) => {
+        setEquipment(eq.data.results ?? eq.data)
+        setTypes(ty.data.results ?? ty.data)
+      })
       .catch(() => setError('Failed to load equipment.'))
       .finally(() => setLoading(false))
   }
 
   useEffect(() => { load() }, [])
+
+  const openAdd = () => {
+    setEditing(null)
+    setForm(EMPTY_FORM)
+    setFormError('')
+    setShowModal(true)
+  }
+
+  const openEdit = (item) => {
+    setEditing(item)
+    setForm({
+      equipment_type: item.equipment_type,
+      equipment_id: item.equipment_id,
+      status: item.status,
+      location: item.location || '',
+      last_maintenance: toLocalInput(item.last_maintenance),
+    })
+    setFormError('')
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setEditing(null)
+    setForm(EMPTY_FORM)
+    setFormError('')
+  }
+
+  const handleSubmit = () => {
+    if (!form.equipment_type || !form.equipment_id.trim()) {
+      setFormError('Equipment type and ID are required.')
+      return
+    }
+    setSaving(true)
+    setFormError('')
+    const payload = {
+      ...form,
+      last_maintenance: form.last_maintenance ? new Date(form.last_maintenance).toISOString() : null,
+    }
+    const req = editing
+      ? axiosClient.patch('/ground-equipment/equipment/' + editing.id + '/', payload)
+      : axiosClient.post('/ground-equipment/equipment/', payload)
+
+    req
+      .then(() => { load(); closeModal() })
+      .catch(err => {
+        const data = err.response?.data
+        const msg = data && typeof data === 'object'
+          ? Object.values(data).flat().join(' ')
+          : 'Failed to save equipment.'
+        setFormError(msg)
+      })
+      .finally(() => setSaving(false))
+  }
+
+  const deleteEquipment = (item) => {
+    if (!window.confirm('Delete equipment ' + item.equipment_id + '?')) return
+    axiosClient.delete('/ground-equipment/equipment/' + item.id + '/')
+      .then(load)
+      .catch(() => setError('Failed to delete equipment.'))
+  }
 
   const filtered = equipment.filter(e => {
     const matchSearch = e.equipment_id.toLowerCase().includes(search.toLowerCase())
@@ -159,6 +254,14 @@ export default function EquipmentTab() {
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
         </button>
+        {canWrite && (
+          <button
+            onClick={openAdd}
+            className="flex items-center justify-center gap-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-2.5 rounded-xl shrink-0 transition-colors"
+          >
+            <Plus size={15} /> Add Equipment
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -219,14 +322,34 @@ export default function EquipmentTab() {
                         <span className="text-neutral-400 dark:text-neutral-500 text-xs">Not checked</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        className="text-xs font-medium bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-neutral-800 dark:text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-                        disabled={predicting === item.id}
-                        onClick={() => predictFailure(item)}
-                      >
-                        {predicting === item.id ? 'Checking…' : 'Predict Failure'}
-                      </button>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          className="text-xs font-medium bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-neutral-800 dark:text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                          disabled={predicting === item.id}
+                          onClick={() => predictFailure(item)}
+                        >
+                          {predicting === item.id ? 'Checking…' : 'Predict Failure'}
+                        </button>
+                        {canWrite && (
+                          <>
+                            <button
+                              onClick={() => openEdit(item)}
+                              title="Edit"
+                              className="p-1.5 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-neutral-600 dark:text-neutral-300 transition-colors"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => deleteEquipment(item)}
+                              title="Delete"
+                              className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition-colors"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 )
@@ -242,6 +365,107 @@ export default function EquipmentTab() {
           </div>
         )}
       </div>
+
+      {/* Add / Edit modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="glass-strong w-full max-w-md rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-neutral-900 dark:text-white text-base">
+                {editing ? `Edit Equipment — ${editing.equipment_id}` : 'Add Equipment'}
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-100"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {formError && (
+              <div className="mb-3 text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 rounded-lg px-3 py-2">
+                {formError}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Equipment Type</label>
+                <select
+                  value={form.equipment_type}
+                  onChange={e => setForm(f => ({ ...f, equipment_type: e.target.value }))}
+                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                >
+                  <option value="">Select type…</option>
+                  {types.map(t => (
+                    <option key={t.id} value={t.id}>{t.name_display || t.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Equipment ID</label>
+                <input
+                  placeholder="e.g. EQ002"
+                  value={form.equipment_id}
+                  onChange={e => setForm(f => ({ ...f, equipment_id: e.target.value }))}
+                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Status</label>
+                  <select
+                    value={form.status}
+                    onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
+                    className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  >
+                    {STATUS_OPTIONS.map(s => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Location</label>
+                  <input
+                    placeholder="e.g. chennai"
+                    value={form.location}
+                    onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
+                    className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Last Maintenance</label>
+                <input
+                  type="datetime-local"
+                  value={form.last_maintenance}
+                  onChange={e => setForm(f => ({ ...f, last_maintenance: e.target.value }))}
+                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-5">
+              <button
+                onClick={closeModal}
+                className="text-sm font-medium text-neutral-600 dark:text-neutral-300 px-4 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={saving}
+                className="text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {saving ? 'Saving…' : editing ? 'Save Changes' : 'Add Equipment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

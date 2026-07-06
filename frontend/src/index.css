@@ -7,6 +7,19 @@
 
 html {
   scroll-behavior: smooth;
+  /* Tells the browser to render native form UI (select dropdown popups,
+     datetime-local calendar/clock pickers, checkboxes, scrollbars) using
+     the light palette by default. Without this, those browser-drawn
+     controls ignore our .dark theme entirely and always render light,
+     which is why a <select> popup can show up as a jarring white box
+     inside an otherwise dark page. */
+  color-scheme: light;
+}
+
+.dark {
+  /* Same as above, but for dark mode — makes native dropdowns/date
+     pickers render dark instead of defaulting to white. */
+  color-scheme: dark;
 }
 
 body {
