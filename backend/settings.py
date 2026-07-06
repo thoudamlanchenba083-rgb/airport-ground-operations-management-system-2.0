@@ -38,12 +38,18 @@ INSTALLED_APPS = [
     'staff',
     'maintenance',
     'baggage',
+    'turnaround',
+    'fuel_management',
+    'catering',
+    'aircraft_cleaning',
+    'water_lavatory_service',
     'notifications',
     'reports',
     'core_app',
-    'ground_equipment',  # ADD THIS
-    'hr_management',  
-    'ai_module'
+    'ground_equipment',
+    'hr_management',
+    'ai_module',
+    'passenger_boarding',
 ]
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
