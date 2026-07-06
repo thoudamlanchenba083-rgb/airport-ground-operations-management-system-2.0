@@ -8,9 +8,10 @@ const STATUS_COLORS = {
   DEPARTED:  'bg-yellow-100 text-yellow-700',
   ARRIVED:   'bg-green-100 text-green-700',
   CANCELLED: 'bg-red-100 text-red-700',
+  DELAYED:   'bg-orange-100 text-orange-700',
 }
 
-const STATUSES = ['SCHEDULED','BOARDING','DEPARTED','ARRIVED','CANCELLED']
+const STATUSES = ['SCHEDULED','BOARDING','DEPARTED','ARRIVED','DELAYED','CANCELLED']
 
 // Mirrors Flight.WORKFLOW_ORDER on the backend. Used to figure out the next
 // step for the "Advance" button, and to render a readable label for it.
@@ -147,7 +148,7 @@ export default function FlightsTab() {
             onClick={() => setShowForm(!showForm)}
             className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
           >
-            {showForm ? '? Cancel' : '+ Add Flight'}
+            {showForm ? 'Cancel' : '+ Add Flight'}
           </button>
         )}
       </div>
@@ -164,15 +165,15 @@ export default function FlightsTab() {
             <div>
               <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Airline</label>
               <select name="airline" value={form.airline} onChange={handleChange} required className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                <option value="">Select airline</option>
-                {airlines.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
+                <option value="" className="text-black">Select airline</option>
+                {airlines.map(a => <option key={a.id} value={a.id} className="text-black">{a.name} ({a.code})</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Aircraft</label>
               <select name="aircraft" value={form.aircraft} onChange={handleChange} required className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                <option value="">Select aircraft</option>
-                {aircraft.map(a => <option key={a.id} value={a.id}>{a.registration_number} — {a.aircraft_type}</option>)}
+                <option value="" className="text-black">Select aircraft</option>
+                {aircraft.map(a => <option key={a.id} value={a.id} className="text-black">{a.registration_number} — {a.aircraft_type}</option>)}
               </select>
             </div>
             <div>
@@ -186,7 +187,7 @@ export default function FlightsTab() {
             <div>
               <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Status</label>
               <select name="status" value={form.status} onChange={handleChange} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                {STATUSES.map(s => <option key={s} value={s} className="text-black">{s}</option>)}
               </select>
             </div>
             <div>

@@ -2,9 +2,11 @@
 from .models import EquipmentType, GroundEquipment, EquipmentAssignment
 
 class EquipmentTypeSerializer(serializers.ModelSerializer):
+    name_display = serializers.CharField(source='get_name_display', read_only=True)
+
     class Meta:
         model = EquipmentType
-        fields = ['id', 'name', 'description']
+        fields = ['id', 'name', 'name_display', 'description']
 
 class GroundEquipmentSerializer(serializers.ModelSerializer):
     equipment_type_display = serializers.CharField(source='equipment_type.get_name_display', read_only=True)

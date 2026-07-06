@@ -102,7 +102,7 @@ export default function BaggageTab() {
                 onChange={e => setTrackForm(f => ({ ...f, status: e.target.value }))}
                 className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
               >
-                {STATUSES.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
+                {STATUSES.map(s => <option key={s} value={s} className="text-black">{s.replace('_', ' ')}</option>)}
               </select>
               <input
                 placeholder="Location"
@@ -191,9 +191,9 @@ export default function BaggageTab() {
             onChange={e => setForm(f => ({ ...f, flight: e.target.value }))}
             className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           >
-            <option value="">Select Flight</option>
+            <option value="" className="text-black">Select Flight</option>
             {flights.map(fl => (
-              <option key={fl.id} value={fl.id}>{fl.flight_number}</option>
+              <option key={fl.id} value={fl.id} className="text-black">{fl.flight_number}</option>
             ))}
           </select>
           <div className="col-span-2 flex justify-end">

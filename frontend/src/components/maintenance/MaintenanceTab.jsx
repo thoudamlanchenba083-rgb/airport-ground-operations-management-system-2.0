@@ -184,8 +184,8 @@ export default function MaintenanceTab() {
           onChange={e => setFilterStatus(e.target.value)}
           className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
         >
-          <option value="">All Statuses</option>
-          {STATUSES.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
+          <option value="" className="text-black">All Statuses</option>
+          {STATUSES.map(s => <option key={s} value={s} className="text-black">{s.replace('_', ' ')}</option>)}
         </select>
         <button
           onClick={() => setShowForm(v => !v)}
@@ -203,9 +203,9 @@ export default function MaintenanceTab() {
             onChange={e => setForm(f => ({ ...f, aircraft: e.target.value }))}
             className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           >
-            <option value="">Select Aircraft</option>
+            <option value="" className="text-black">Select Aircraft</option>
             {aircraft.map(a => (
-              <option key={a.id} value={a.id}>{a.registration_number} — {a.model}</option>
+              <option key={a.id} value={a.id} className="text-black">{a.registration_number} — {a.model}</option>
             ))}
           </select>
           <select
@@ -213,7 +213,7 @@ export default function MaintenanceTab() {
             onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
             className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           >
-            {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
+            {PRIORITIES.map(p => <option key={p} value={p} className="text-black">{p}</option>)}
           </select>
           <textarea
             placeholder="Issue description..."
