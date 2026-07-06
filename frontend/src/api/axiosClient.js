@@ -38,6 +38,18 @@ const resolvePending = (error, token = null) => {
 axiosClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // The backend's custom_exception_handler wraps every DRF error response
+    // as { error: true, status_code, message: <the real DRF error body> }.
+    // Every component across the app (FlightsTab, GatesTab, etc.) was
+    // written expecting the raw DRF shape directly on error.response.data
+    // (e.g. { flight_number: ["..."] }), so without this, every validation
+    // error in the app rendered as literal "true 400 [object Object]"
+    // instead of the actual message. Unwrap it once, here, so every
+    // existing err.response.data usage across the app just works.
+    if (error.response?.data && typeof error.response.data === 'object' && 'message' in error.response.data && 'status_code' in error.response.data) {
+      error.response.data = error.response.data.message
+    }
+
     const originalRequest = error.config
     const status = error.response?.status
     const isAuthEndpoint =

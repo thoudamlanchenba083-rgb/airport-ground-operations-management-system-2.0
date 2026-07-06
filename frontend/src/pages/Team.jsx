@@ -50,11 +50,15 @@ const crew = [
 export default function Team() {
   usePageMeta('Team', 'Meet the crew building and operating AeroGround.')
   return (
-    <div style={{ backgroundColor: '#171717', minHeight: '100vh', color: '#f0ede8' }}>
+    <div style={{ backgroundColor: '#040404', minHeight: '100vh', color: '#f0ede8' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IM+Fell+English:ital@1&family=Rajdhani:wght@500;600;700&display=swap');
 
         .team-page{position:relative;overflow:hidden;}
+        .team-aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+        .team-ab{position:absolute;border-radius:50%;filter:blur(150px);opacity:.05;}
+        .team-ab1{width:620px;height:620px;background:#d4c9a8;top:-160px;left:-120px;}
+        .team-ab2{width:480px;height:480px;background:#4e8fcc;bottom:-140px;right:-80px;}
 
         .team-hero{position:relative;z-index:1;text-align:center;padding:108px 2rem 20px;}
         .team-eyebrow{display:inline-flex;align-items:center;gap:10px;padding:6px 18px;border-radius:50px;font-family:'Rajdhani',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#d4c9a8;border:1px solid rgba(212,201,168,0.2);background:rgba(212,201,168,0.06);backdrop-filter:blur(10px);margin-bottom:22px;}
@@ -88,6 +92,10 @@ export default function Team() {
       `}</style>
 
       <div className="team-page">
+        <div className="team-aurora">
+          <div className="team-ab team-ab1" />
+          <div className="team-ab team-ab2" />
+        </div>
 
         <PublicNavbar active="team" />
 
