@@ -10,7 +10,7 @@ from core_app.permissions import HasRole
 class FuelCompanyViewSet(viewsets.ModelViewSet):
     queryset = FuelCompany.objects.all()
     serializer_class = FuelCompanySerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR')]
+    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'FUEL_SUPERVISOR')]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['name']
 
@@ -18,7 +18,7 @@ class FuelCompanyViewSet(viewsets.ModelViewSet):
 class FuelTruckViewSet(viewsets.ModelViewSet):
     queryset = FuelTruck.objects.select_related('fuel_company').all()
     serializer_class = FuelTruckSerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'GROUND_STAFF')]
+    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'FUEL_SUPERVISOR', 'GROUND_STAFF')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'fuel_company']
     search_fields = ['truck_code']
@@ -27,7 +27,7 @@ class FuelTruckViewSet(viewsets.ModelViewSet):
 class FuelOperationViewSet(viewsets.ModelViewSet):
     queryset = FuelOperation.objects.select_related('flight', 'fuel_truck', 'fuel_company', 'fuel_operator').all()
     serializer_class = FuelOperationSerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'GROUND_STAFF')]
+    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'FUEL_SUPERVISOR', 'GROUND_STAFF')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['flight', 'status', 'fuel_truck', 'fuel_company']
     search_fields = ['flight__flight_number']

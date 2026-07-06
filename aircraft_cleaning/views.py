@@ -11,7 +11,7 @@ from core_app.permissions import HasRole
 class CleaningTaskViewSet(viewsets.ModelViewSet):
     queryset = CleaningTask.objects.select_related('flight', 'assigned_staff').all()
     serializer_class = CleaningTaskSerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'GROUND_STAFF')]
+    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'CLEANING_SUPERVISOR', 'GROUND_STAFF')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['flight', 'status', 'cabin_ready']
     search_fields = ['flight__flight_number']

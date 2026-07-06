@@ -10,7 +10,7 @@ from core_app.permissions import HasRole
 class ULDViewSet(viewsets.ModelViewSet):
     queryset = ULD.objects.select_related('flight').all()
     serializer_class = ULDSerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'GROUND_STAFF')]
+    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'CARGO_SUPERVISOR', 'GROUND_STAFF')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'uld_type', 'flight']
     search_fields = ['uld_id', 'position']
@@ -34,7 +34,7 @@ class ULDViewSet(viewsets.ModelViewSet):
 class CargoManifestViewSet(viewsets.ModelViewSet):
     queryset = CargoManifest.objects.select_related('flight').prefetch_related('items').all()
     serializer_class = CargoManifestSerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'GROUND_STAFF')]
+    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'CARGO_SUPERVISOR', 'GROUND_STAFF')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['flight', 'is_finalized']
     search_fields = ['manifest_number', 'flight__flight_number']
@@ -58,7 +58,7 @@ class CargoManifestViewSet(viewsets.ModelViewSet):
 class CargoItemViewSet(viewsets.ModelViewSet):
     queryset = CargoItem.objects.select_related('manifest', 'uld').all()
     serializer_class = CargoItemSerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'GROUND_STAFF')]
+    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'CARGO_SUPERVISOR', 'GROUND_STAFF')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['manifest', 'status', 'is_dangerous_goods', 'uld']
     search_fields = ['awb_number', 'description']

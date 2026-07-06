@@ -13,6 +13,25 @@ class User(AbstractUser):
         ('BAGGAGE_SUPERVISOR', 'Baggage Supervisor'),
         ('SECURITY_OFFICER', 'Security Officer'),
         ('VIEWER', 'Viewer'),
+        # Ramp & apron roles
+        ('RAMP_SUPERVISOR', 'Ramp Supervisor'),
+        ('RAMP_AGENT', 'Ramp Agent'),
+        ('APRON_CONTROLLER', 'Apron Controller'),
+        # Ops control & dispatch roles
+        ('DISPATCHER', 'Dispatcher'),
+        ('LOAD_CONTROLLER', 'Load Controller'),
+        ('FLIGHT_COORDINATOR', 'Flight Coordinator'),
+        ('OCC_MANAGER', 'Operations Control Center Manager'),
+        # Service supervisor roles
+        ('FUEL_SUPERVISOR', 'Fuel Supervisor'),
+        ('CATERING_SUPERVISOR', 'Catering Supervisor'),
+        ('CLEANING_SUPERVISOR', 'Cleaning Supervisor'),
+        ('CARGO_SUPERVISOR', 'Cargo Supervisor'),
+        # Passenger-facing / regulatory roles
+        ('IMMIGRATION_OFFICER', 'Immigration Officer'),
+        ('CUSTOMS_OFFICER', 'Customs Officer'),
+        # Airside vehicle roles
+        ('AIRSIDE_DRIVER', 'Airside Driver'),
         # Legacy roles kept for backward compatibility with existing data
         ('SUPERVISOR', 'Supervisor (legacy)'),
         ('MAINTENANCE', 'Maintenance (legacy)'),

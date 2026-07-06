@@ -47,5 +47,6 @@ urlpatterns = [
     path('api/catering/', include('catering.urls')),
     path('api/incidents/', include('incident_management.urls')),
     path('api/cargo/', include('cargo_management.urls')),
+    path('api/ramp-operations/', include('ramp_operations.urls')),
     path('api/ai/', include('ai_module.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
