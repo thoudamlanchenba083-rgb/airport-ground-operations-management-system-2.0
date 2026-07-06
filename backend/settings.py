@@ -50,6 +50,10 @@ INSTALLED_APPS = [
     'hr_management',
     'ai_module',
     'passenger_boarding',
+    'incident_management',
+    'cargo_management',
+        'ramp_operations',
+
 ]
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
