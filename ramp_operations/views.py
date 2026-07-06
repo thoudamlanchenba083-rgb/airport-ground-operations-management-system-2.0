@@ -11,7 +11,7 @@ from core_app.permissions import HasRole
 class RampInspectionViewSet(viewsets.ModelViewSet):
     queryset = RampInspection.objects.select_related('flight', 'inspector').all()
     serializer_class = RampInspectionSerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'GROUND_STAFF')]
+    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'RAMP_SUPERVISOR', 'GROUND_STAFF')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'stand', 'flight']
     search_fields = ['stand', 'flight__flight_number']
@@ -39,7 +39,7 @@ class RampInspectionViewSet(viewsets.ModelViewSet):
 class PushbackOperationViewSet(viewsets.ModelViewSet):
     queryset = PushbackOperation.objects.select_related('flight', 'marshaller', 'approved_by').all()
     serializer_class = PushbackOperationSerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'GROUND_STAFF')]
+    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'RAMP_SUPERVISOR', 'GROUND_STAFF')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'flight']
     search_fields = ['flight__flight_number', 'tow_vehicle_code']

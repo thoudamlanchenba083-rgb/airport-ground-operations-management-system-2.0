@@ -11,7 +11,7 @@ from core_app.permissions import HasRole
 class CateringCompanyViewSet(viewsets.ModelViewSet):
     queryset = CateringCompany.objects.all()
     serializer_class = CateringCompanySerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR')]
+    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'CATERING_SUPERVISOR')]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['name']
 
@@ -19,7 +19,7 @@ class CateringCompanyViewSet(viewsets.ModelViewSet):
 class CateringOrderViewSet(viewsets.ModelViewSet):
     queryset = CateringOrder.objects.select_related('flight', 'catering_company').all()
     serializer_class = CateringOrderSerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'GROUND_STAFF')]
+    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'CATERING_SUPERVISOR', 'GROUND_STAFF')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['flight', 'status', 'meal_type', 'catering_company', 'is_special_meal']
     search_fields = ['flight__flight_number']
