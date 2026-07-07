@@ -21,6 +21,9 @@ from .ml.predictor import (
 from .ml.resource_optimizer import optimize_resources
 from .ml.dashboard_intelligence import get_dashboard_intelligence
 from .chatbot import ChatbotEngine
+from . import llm_engine
+from . import gemini_engine
+from django.conf import settings
 def recommend_gate(flight):
     gates = list(Gate.objects.filter(is_available=True)[:10])
     if not gates:
@@ -122,6 +125,24 @@ class AIChatViewSet(viewsets.ViewSet):
         return Response(AIChatMessageSerializer(bot_msg).data, status=201)
 
     def _generate_reply(self, message, user=None, session_id=''):
+        # Try LLM providers in priority order (Claude, then Gemini), and
+        # fall back to the offline rule-based engine if none are configured
+        # or all of them fail (network error, bad key, rate limit, etc).
+        # This means the assistant always answers - with an API if one is
+        # set up, without one otherwise.
+        providers = []
+        if getattr(settings, "ANTHROPIC_API_KEY", ""):
+            providers.append(llm_engine.get_reply)
+        if getattr(settings, "GEMINI_API_KEY", ""):
+            providers.append(gemini_engine.get_reply)
+
+        for provider in providers:
+            try:
+                return provider(message, user=user, session_id=session_id)
+            except Exception as e:
+                print(f"[AI DEBUG] {provider.__module__} failed: {e}")
+                continue  # try the next provider, or fall through to offline
+
         try:
             return ChatbotEngine.respond(message, user=user, session_id=session_id)
         except Exception as e:

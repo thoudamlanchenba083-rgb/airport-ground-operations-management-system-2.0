@@ -162,6 +162,15 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Airport Ops <noreply@
 # --- Weather (used by ai_module for live flight-delay predictions) ---
 OPENWEATHER_API_KEY = config('OPENWEATHER_API_KEY', default='')
 
+# LLM-backed AI Assistant (ai_module/llm_engine.py, ai_module/gemini_engine.py).
+# If neither key is set (or both fail), the assistant falls back to the
+# offline rule-based engine (ai_module/chatbot.py). If both are set, Claude
+# is tried first, then Gemini.
+ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
+AI_CHAT_MODEL = config('AI_CHAT_MODEL', default='claude-sonnet-4-6')
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+GEMINI_CHAT_MODEL = config('GEMINI_CHAT_MODEL', default='gemini-2.5-flash')
+
 
 # --- Swagger: require auth (not fully public) ---
 SWAGGER_SETTINGS = {

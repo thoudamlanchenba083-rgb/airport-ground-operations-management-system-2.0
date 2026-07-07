@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from flights.models import Flight
+from ground_equipment.models import GroundEquipment
 
 
 class TurnaroundTask(models.Model):
@@ -47,6 +48,19 @@ class TurnaroundTask(models.Model):
         'TAKEOFF_READY',
     ]
 
+    DELAY_REASON_CHOICES = [
+        ('NONE', 'No Delay'),
+        ('FUEL', 'Fuel'),
+        ('WEATHER', 'Weather'),
+        ('CLEANING', 'Cleaning'),
+        ('CREW', 'Crew'),
+        ('GATE_UNAVAILABLE', 'Gate Unavailable'),
+        ('EQUIPMENT_UNAVAILABLE', 'Equipment Unavailable'),
+        ('BAGGAGE', 'Baggage Handling'),
+        ('CATERING', 'Catering'),
+        ('OTHER', 'Other'),
+    ]
+
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
         ('IN_PROGRESS', 'In Progress'),
@@ -72,6 +86,18 @@ class TurnaroundTask(models.Model):
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='turnaround_tasks'
+    )
+    assigned_equipment = models.ForeignKey(
+        GroundEquipment,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='turnaround_tasks'
+    )
+    delay_reason = models.CharField(
+        max_length=30,
+        choices=DELAY_REASON_CHOICES,
+        blank=True,
+        default='NONE'
     )
     completed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

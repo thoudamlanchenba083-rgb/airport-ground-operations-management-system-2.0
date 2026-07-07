@@ -176,13 +176,13 @@ export default function ShiftsTab() {
             <div className="glass-strong rounded-2xl p-6 w-full max-w-sm">
               <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">Assign Shift</h4>
               <form onSubmit={handleScheduleSubmit} className="space-y-3">
-                <select required value={scheduleForm.staff} onChange={e => setScheduleForm({ ...scheduleForm, staff: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
-                  <option value="" className="text-black">Select Staff</option>
-                  {staffList.map(s => <option key={s.id} value={s.id} className="text-black">{s.name} ({s.employee_id})</option>)}
+                <select style={{ colorScheme: 'dark' }} required value={scheduleForm.staff} onChange={e => setScheduleForm({ ...scheduleForm, staff: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
+                  <option value="" className="bg-neutral-800 text-white">Select Staff</option>
+                  {staffList.map(s => <option key={s.id} value={s.id} className="bg-neutral-800 text-white">{s.name} ({s.employee_id})</option>)}
                 </select>
-                <select required value={scheduleForm.shift} onChange={e => setScheduleForm({ ...scheduleForm, shift: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
-                  <option value="" className="text-black">Select Shift</option>
-                  {shifts.map(s => <option key={s.id} value={s.id} className="text-black">{s.shift_name} ({formatTime(s.start_time)} - {formatTime(s.end_time)})</option>)}
+                <select style={{ colorScheme: 'dark' }} required value={scheduleForm.shift} onChange={e => setScheduleForm({ ...scheduleForm, shift: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
+                  <option value="" className="bg-neutral-800 text-white">Select Shift</option>
+                  {shifts.map(s => <option key={s.id} value={s.id} className="bg-neutral-800 text-white">{s.shift_name} ({formatTime(s.start_time)} - {formatTime(s.end_time)})</option>)}
                 </select>
                 <input required type="date" value={scheduleForm.date} onChange={e => setScheduleForm({ ...scheduleForm, date: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
                 <div className="flex gap-2 pt-2">
