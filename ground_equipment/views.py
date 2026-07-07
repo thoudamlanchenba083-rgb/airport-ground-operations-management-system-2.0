@@ -1,4 +1,4 @@
-﻿from rest_framework import viewsets, status
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -162,6 +162,18 @@ class GroundEquipmentViewSet(viewsets.ModelViewSet):
             'prediction': result,
             'confidence': confidence,
         })
+    @action(detail=False, methods=['get'], url_path='health-scores')
+    def health_scores(self, request):
+        """
+        GET /api/ground-equipment/equipment/health-scores/
+        Fleet-wide health scores for every unit (respects existing filters,
+        e.g. ?status=available or ?equipment_type=3).
+        """
+        from .health_utils import compute_equipment_health
+        qs = self.filter_queryset(self.get_queryset())
+        data = [compute_equipment_health(e) for e in qs]
+        data.sort(key=lambda d: d['health_score'])
+        return Response(data)
 
 class EquipmentAssignmentViewSet(viewsets.ModelViewSet):
     queryset = EquipmentAssignment.objects.all()
