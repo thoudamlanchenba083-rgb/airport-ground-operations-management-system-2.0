@@ -391,7 +391,7 @@ export default function EquipmentTab() {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Equipment Type</label>
-                <select
+                <select style={{ colorScheme: 'dark' }}
                   value={form.equipment_type}
                   onChange={e => setForm(f => ({ ...f, equipment_type: e.target.value }))}
                   className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
@@ -416,7 +416,7 @@ export default function EquipmentTab() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Status</label>
-                  <select
+                  <select style={{ colorScheme: 'dark' }}
                     value={form.status}
                     onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
                     className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"

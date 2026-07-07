@@ -10,6 +10,7 @@ import {
   Tooltip, ResponsiveContainer,
 } from 'recharts'
 import axiosClient from '../api/axiosClient'
+import DelayCausesCard from '../components/DelayCausesCard'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import usePageMeta from '../hooks/usePageMeta'
@@ -886,6 +887,10 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               )}
             </MiniChartCard>
+          </div>
+
+          <div className="lg:col-span-2">
+            <DelayCausesCard />
           </div>
         </div>
       </div>

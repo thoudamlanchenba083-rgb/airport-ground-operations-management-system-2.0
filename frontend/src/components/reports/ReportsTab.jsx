@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axiosClient from '../../api/axiosClient'
+import DelayCausesCard from '../DelayCausesCard'
 
 const REPORT_TYPES = [
   { value: 'FLIGHT', label: 'Flight Report' },
@@ -124,6 +125,12 @@ export default function ReportsTab() {
 
   return (
     <div>
+      {/* Delay Intelligence */}
+      <div className="mb-6">
+        <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-3">Delay Intelligence</h3>
+        <DelayCausesCard />
+      </div>
+
       {/* Summary Cards */}
       <div className="mb-6">
         <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-3">Live Summaries</h3>
@@ -163,8 +170,8 @@ export default function ReportsTab() {
             <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">Create Report</h4>
             <form onSubmit={handleSubmit} className="space-y-3">
               <input required placeholder="Report Title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
-              <select value={form.report_type} onChange={e => setForm({ ...form, report_type: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
-                {REPORT_TYPES.map(t => <option key={t.value} value={t.value} className="text-black">{t.label}</option>)}
+              <select style={{ colorScheme: 'dark' }} value={form.report_type} onChange={e => setForm({ ...form, report_type: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
+                {REPORT_TYPES.map(t => <option key={t.value} value={t.value} className="bg-neutral-800 text-white">{t.label}</option>)}
               </select>
               <textarea required placeholder="Report content..." value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={5} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm resize-none" />
               <div className="flex gap-2 pt-2">

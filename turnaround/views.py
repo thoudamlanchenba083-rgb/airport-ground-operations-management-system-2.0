@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.db import models
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -71,4 +72,46 @@ class TurnaroundTaskViewSet(viewsets.ModelViewSet):
             'delayed': delayed,
             'pending': pending,
             'progress_percent': progress_percent,
+        })
+
+    @action(detail=False, methods=['get'], url_path='delay-causes')
+    def delay_causes(self, request):
+        """
+        GET /api/turnaround/turnaround-tasks/delay-causes/
+        Returns a percentage breakdown of delay reasons across tasks that
+        were ever marked DELAYED or carry a non-NONE delay_reason.
+        Powers the 'Top Delay Causes' chart on the dashboard.
+        """
+        qs = self.get_queryset().exclude(delay_reason='NONE')
+
+        days = request.query_params.get('days')
+        if days:
+            try:
+                since = timezone.now() - timezone.timedelta(days=int(days))
+                qs = qs.filter(updated_at__gte=since)
+            except ValueError:
+                pass
+
+        total = qs.count()
+        breakdown = (
+            qs.values('delay_reason')
+            .annotate(count=models.Count('id'))
+            .order_by('-count')
+        )
+
+        reason_labels = dict(TurnaroundTask.DELAY_REASON_CHOICES)
+
+        results = [
+            {
+                'reason': row['delay_reason'],
+                'reason_display': reason_labels.get(row['delay_reason'], row['delay_reason']),
+                'count': row['count'],
+                'percent': round((row['count'] / total) * 100, 1) if total else 0,
+            }
+            for row in breakdown
+        ]
+
+        return Response({
+            'total_delayed_tasks': total,
+            'breakdown': results,
         })

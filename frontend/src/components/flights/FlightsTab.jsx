@@ -164,16 +164,16 @@ export default function FlightsTab() {
             </div>
             <div>
               <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Airline</label>
-              <select name="airline" value={form.airline} onChange={handleChange} required className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                <option value="" className="text-black">Select airline</option>
-                {airlines.map(a => <option key={a.id} value={a.id} className="text-black">{a.name} ({a.code})</option>)}
+              <select style={{ colorScheme: 'dark' }} name="airline" value={form.airline} onChange={handleChange} required className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <option value="" className="bg-neutral-800 text-white">Select airline</option>
+                {airlines.map(a => <option key={a.id} value={a.id} className="bg-neutral-800 text-white">{a.name} ({a.code})</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Aircraft</label>
-              <select name="aircraft" value={form.aircraft} onChange={handleChange} required className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                <option value="" className="text-black">Select aircraft</option>
-                {aircraft.map(a => <option key={a.id} value={a.id} className="text-black">{a.registration_number} — {a.aircraft_type}</option>)}
+              <select style={{ colorScheme: 'dark' }} name="aircraft" value={form.aircraft} onChange={handleChange} required className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <option value="" className="bg-neutral-800 text-white">Select aircraft</option>
+                {aircraft.map(a => <option key={a.id} value={a.id} className="bg-neutral-800 text-white">{a.registration_number} — {a.aircraft_type}</option>)}
               </select>
             </div>
             <div>
@@ -186,8 +186,8 @@ export default function FlightsTab() {
             </div>
             <div>
               <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Status</label>
-              <select name="status" value={form.status} onChange={handleChange} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                {STATUSES.map(s => <option key={s} value={s} className="text-black">{s}</option>)}
+              <select style={{ colorScheme: 'dark' }} name="status" value={form.status} onChange={handleChange} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                {STATUSES.map(s => <option key={s} value={s} className="bg-neutral-800 text-white">{s}</option>)}
               </select>
             </div>
             <div>

@@ -84,13 +84,13 @@ export default function GatesTab() {
             onChange={e => setForm(f => ({ ...f, terminal: e.target.value }))}
             className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           />
-          <select
+          <select style={{ colorScheme: 'dark' }}
             value={form.is_available}
             onChange={e => setForm(f => ({ ...f, is_available: e.target.value === 'true' }))}
             className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           >
-            <option value="true" className="text-black">Available</option>
-            <option value="false" className="text-black">Unavailable</option>
+            <option value="true" className="bg-neutral-800 text-white">Available</option>
+            <option value="false" className="bg-neutral-800 text-white">Unavailable</option>
           </select>
           <div className="col-span-3 flex justify-end">
             <button

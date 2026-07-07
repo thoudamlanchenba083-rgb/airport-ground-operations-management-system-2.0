@@ -179,13 +179,13 @@ export default function MaintenanceTab() {
           placeholder="Search by issue..."
           className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm flex-1 min-w-45 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
         />
-        <select
+        <select style={{ colorScheme: 'dark' }}
           value={filterStatus}
           onChange={e => setFilterStatus(e.target.value)}
           className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
         >
-          <option value="" className="text-black">All Statuses</option>
-          {STATUSES.map(s => <option key={s} value={s} className="text-black">{s.replace('_', ' ')}</option>)}
+          <option value="" className="bg-neutral-800 text-white">All Statuses</option>
+          {STATUSES.map(s => <option key={s} value={s} className="bg-neutral-800 text-white">{s.replace('_', ' ')}</option>)}
         </select>
         <button
           onClick={() => setShowForm(v => !v)}
@@ -198,22 +198,22 @@ export default function MaintenanceTab() {
       {/* Add form */}
       {showForm && (
         <div className="glass rounded-xl p-4 mb-4 grid grid-cols-2 gap-3">
-          <select
+          <select style={{ colorScheme: 'dark' }}
             value={form.aircraft}
             onChange={e => setForm(f => ({ ...f, aircraft: e.target.value }))}
             className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           >
-            <option value="" className="text-black">Select Aircraft</option>
+            <option value="" className="bg-neutral-800 text-white">Select Aircraft</option>
             {aircraft.map(a => (
-              <option key={a.id} value={a.id} className="text-black">{a.registration_number} — {a.model}</option>
+              <option key={a.id} value={a.id} className="bg-neutral-800 text-white">{a.registration_number} — {a.model}</option>
             ))}
           </select>
-          <select
+          <select style={{ colorScheme: 'dark' }}
             value={form.priority}
             onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
             className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
           >
-            {PRIORITIES.map(p => <option key={p} value={p} className="text-black">{p}</option>)}
+            {PRIORITIES.map(p => <option key={p} value={p} className="bg-neutral-800 text-white">{p}</option>)}
           </select>
           <textarea
             placeholder="Issue description..."
