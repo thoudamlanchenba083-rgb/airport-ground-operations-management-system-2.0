@@ -12,7 +12,7 @@ class GroundEquipmentAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.admin = User.objects.create_superuser(username='admin', password='admin123', email='admin@test.com')
-        self.user = User.objects.create_user(username='staffuser', password='staff123')
+        self.user = User.objects.create_user(username='staffuser', password='staff123', role='RAMP_AGENT')
 
         self.equipment_type = EquipmentType.objects.create(name='fuel_truck', description='Standard fuel truck')
         self.equipment = GroundEquipment.objects.create(
@@ -71,7 +71,7 @@ class GroundEquipmentAPITest(TestCase):
 class EquipmentAssignmentAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username='assignuser', password='assign123')
+        self.user = User.objects.create_user(username='assignuser', password='assign123', role='RAMP_AGENT')
 
         self.equipment_type = EquipmentType.objects.create(name='pushback_tractor', description='Tractor')
         self.equipment = GroundEquipment.objects.create(
@@ -191,7 +191,7 @@ class PredictFailureAPITest(TestCase):
 class InvalidAssignmentScenariosTest(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username='invaliduser', password='invalid123')
+        self.user = User.objects.create_user(username='invaliduser', password='invalid123', role='RAMP_AGENT')
 
         self.equipment_type = EquipmentType.objects.create(name='tow_vehicle', description='Tow vehicle')
         self.equipment = GroundEquipment.objects.create(
