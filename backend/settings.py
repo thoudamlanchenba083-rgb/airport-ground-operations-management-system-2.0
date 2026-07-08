@@ -54,9 +54,9 @@ INSTALLED_APPS = [
     'passenger_boarding',
     'incident_management',
     'cargo_management',
-        'ramp_operations',
-        'digital_twin', 
-
+     'ramp_operations',
+    'digital_twin',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
