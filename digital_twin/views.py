@@ -143,3 +143,25 @@ class GateHeatmapView(APIView):
             'average_score': avg_score,
             'busiest_gate': busiest['gate_number'] if busiest else None,
         })
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from gates.models import Gate
+from .simulation import simulate_gate_closure
+
+
+class WhatIfGateClosureView(APIView):
+    """
+    GET /api/digital-twin/what-if/gate-closure/<gate_number>/
+
+    Manager asks "what if Gate 4 closes?" - this returns the predicted
+    impact: delayed flights, reassigned gates, staff changes, and
+    equipment that needs to move. Read-only, nothing is actually changed.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, gate_number):
+        gate = get_object_or_404(Gate, gate_number=gate_number)
+        result = simulate_gate_closure(gate)
+        return Response(result)

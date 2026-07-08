@@ -251,23 +251,69 @@ def _extract_route(text_lower):
     return None, None
 
 
+TASK_DELAY_PHRASING = {
+    'CHOCKS_ON': ('Chocks-on', 'happened'),
+    'DEBOARDING': ('Deboarding', 'finished'),
+    'BAGGAGE_UNLOADING': ('Baggage unloading', 'finished'),
+    'CABIN_CLEANING': ('Cleaning', 'finished'),
+    'WATER_SERVICE': ('Water service', 'finished'),
+    'LAVATORY_SERVICE': ('Lavatory service', 'finished'),
+    'CATERING': ('Catering', 'arrived'),
+    'FUELING': ('Fuel truck', 'arrived'),
+    'CARGO_LOADING': ('Cargo loading', 'finished'),
+    'BAGGAGE_LOADING': ('Baggage loading', 'finished'),
+    'BOARDING_COMPLETE': ('Boarding', 'finished'),
+    'DOORS_CLOSED': ('Doors closing', 'happened'),
+    'PUSHBACK_READY': ('Pushback readiness', 'happened'),
+    'PUSHBACK': ('Pushback', 'happened'),
+    'TAKEOFF_READY': ('Takeoff readiness', 'happened'),
+}
+
+
+def _task_lateness_minutes(task):
+    """Minutes a task ran (or is currently running) behind its scheduled_time,
+    or None if there's nothing to compare against or it isn't late."""
+    if not task.scheduled_time:
+        return None
+    reference = task.actual_end_time or task.actual_start_time
+    if reference:
+        delta = reference - task.scheduled_time
+    else:
+        now = timezone.now()
+        if now <= task.scheduled_time:
+            return None
+        delta = now - task.scheduled_time
+    minutes = round(delta.total_seconds() / 60)
+    return minutes if minutes > 0 else None
+
+
+def _task_delay_sentence(task):
+    subject, verb = TASK_DELAY_PHRASING.get(task.task_type, (task.get_task_type_display(), 'happened'))
+    minutes = _task_lateness_minutes(task)
+    if minutes:
+        unit = 'minute' if minutes == 1 else 'minutes'
+        return f"{subject} {verb} {minutes} {unit} late."
+    return f"{subject} {verb} late."
+
+
 def _explain_flight_delay(flight):
     """Real (non-ML) delay explanation, using actual recorded turnaround
-    task delay reasons - what answers 'why is AI204 delayed'."""
+    task timing - what answers 'why is AI204 delayed'."""
     delayed_tasks = list(flight.turnaround_tasks.filter(status='DELAYED').order_by('scheduled_time'))
     if not delayed_tasks:
         return (
             f"Flight {flight.flight_number} has no delayed turnaround tasks recorded — "
             f"it's currently on schedule for {flight.departure_time.strftime('%d %b %Y, %H:%M')}."
         )
-    lines = [f"- {t.get_task_type_display()}: {t.get_delay_reason_display()}" for t in delayed_tasks]
-    estimated_delay = len(delayed_tasks) * 15
-    new_eta = flight.departure_time + timedelta(minutes=estimated_delay)
+
+    lines = [_task_delay_sentence(t) for t in delayed_tasks]
+    known_minutes = [m for m in (_task_lateness_minutes(t) for t in delayed_tasks) if m]
+    estimated_delay = max(known_minutes) if known_minutes else len(delayed_tasks) * 15
+    new_departure = flight.departure_time + timedelta(minutes=estimated_delay)
+
     return (
-        f"Flight {flight.flight_number} is delayed. Causes:\n"
-        + "\n".join(lines)
-        + f"\n\nNew expected departure: {new_eta.strftime('%d %b %Y, %H:%M')} "
-        + f"(+{estimated_delay} min vs scheduled {flight.departure_time.strftime('%H:%M')})"
+        "\n".join(lines)
+        + f"\n\nExpected departure\n{new_departure.strftime('%H:%M')}"
     )
 
 
