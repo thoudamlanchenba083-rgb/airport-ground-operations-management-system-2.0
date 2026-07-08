@@ -39,7 +39,8 @@ class MaintenanceAPITest(TestCase):
         response = self.client.get('/api/maintenance/maintenance/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_user_cannot_create_maintenance_request(self):
+    def test_maintenance_engineer_can_create_but_not_approve(self):
+        """Maintenance staff can report issues; only supervisors/admin can approve them."""
         token = self.get_token('staffuser', 'staff123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
         response = self.client.post('/api/maintenance/maintenance/', {
@@ -47,7 +48,11 @@ class MaintenanceAPITest(TestCase):
             'issue_description': 'Tire check',
             'priority': 'LOW'
         })
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['status'], 'PENDING_APPROVAL')
+
+        approve_response = self.client.post(f'/api/maintenance/maintenance/{response.data["id"]}/approve/')
+        self.assertEqual(approve_response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_admin_can_add_maintenance_log(self):
         token = self.get_token('admin', 'admin123')
