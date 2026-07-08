@@ -38,10 +38,10 @@ export default function Layout({ children }) {
     <div className="min-h-screen relative flex">
       <AmbientBackground />
 
-      <aside className="relative z-10 w-64 h-screen shrink-0 sticky top-0 p-3">
-        <div className="glass h-full rounded-[32px] flex flex-col overflow-hidden">
+      <aside className="z-10 w-64 h-screen shrink-0 sticky top-0 p-3">
+        <div className="glass h-full rounded-4xl flex flex-col overflow-hidden">
           <div className="px-4 py-5 flex items-center gap-3 shrink-0">
-            <div className="w-11! h-11! !rounded-[26px] glass bg-white!/90 dark:bg-white!/95 flex items-center justify-center shrink-0 p-1.5 overflow-hidden">
+            <div className="w-11! h-11! rounded-[26px]! glass bg-white!/90 dark:bg-white!/95 flex items-center justify-center shrink-0 p-1.5 overflow-hidden">
               <img src="/brand/aeroground-logo.png" alt="AeroGround" className="w-full h-full object-contain" />
             </div>
             <div>
@@ -55,7 +55,7 @@ export default function Layout({ children }) {
               <NavLink
                 to={aiNavItem.to}
                 className={({ isActive }) =>
-                  `group relative flex flex-col gap-2 px-3.5 py-3 rounded-[24px] overflow-hidden transition-all duration-300 border ${
+                  `group relative flex flex-col gap-2 px-3.5 py-3 rounded-3xl overflow-hidden transition-all duration-300 border ${
                     isActive
                       ? 'border-white/70 shadow-lg shadow-sky-200/40'
                       : 'border-white/40 dark:border-white/15 hover:shadow-lg hover:shadow-sky-200/30'
@@ -64,7 +64,7 @@ export default function Layout({ children }) {
               >
                 {({ isActive }) => (
                   <>
-                    <div className={`absolute inset-0 bg-gradient-to-br from-white via-sky-50 to-white dark:from-white/15 dark:via-sky-200/10 dark:to-white/5 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`} />
+                    <div className={`absolute inset-0 bg-linear-to-br from-white via-sky-50 to-white dark:from-white/15 dark:via-sky-200/10 dark:to-white/5 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`} />
                     <div className="relative z-10 flex items-center gap-3">
                       <div className="w-8! h-8! rounded-xl! flex items-center justify-center shrink-0 bg-sky-500/90 shadow-sm shadow-sky-500/30">
                         <Sparkles size={16} className="text-white" strokeWidth={2.2} />
@@ -90,7 +90,7 @@ export default function Layout({ children }) {
                   className={({ isActive }) =>
                     `group relative flex items-center gap-3 px-3 py-2.5 rounded-[26px] text-sm font-medium transition-all duration-300 overflow-hidden ${
                       isActive
-                        ? 'bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-600/30 before:content-[\'\'] before:absolute before:inset-0 before:bg-[radial-gradient(120%_80%_at_20%_-10%,rgba(255,255,255,0.45),transparent_55%)]'
+                        ? 'bg-linear-to-br from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-600/30 before:content-[\'\'] before:absolute before:inset-0 before:bg-[radial-gradient(120%_80%_at_20%_-10%,rgba(255,255,255,0.45),transparent_55%)]'
                         : 'text-neutral-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10 hover:text-neutral-900 dark:hover:text-white'
                     }`
                   }
