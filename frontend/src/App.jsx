@@ -21,7 +21,9 @@ import Reports from './pages/Reports'
 import Chatbot from './pages/Chatbot'
 import Analytics from './pages/Analytics'
 import AeroGroundAIIntro from './pages/AeroGroundAIIntro'
-
+import DigitalTwin from './pages/DigitalTwin'
+import HeatMap from './pages/HeatMap'
+import EquipmentHealth from './pages/EquipmentHealth'
 function withLayout(Component, page) {
   return (
     <ProtectedRoute page={page}>
@@ -56,6 +58,9 @@ function App() {
             <Route path="/chatbot" element={withLayout(Chatbot, 'chatbot')} />
             <Route path="/analytics" element={withLayout(Analytics, 'analytics')} />
             <Route path="/ai-intro" element={withLayout(AeroGroundAIIntro, 'ai-intro')} />
+            <Route path="/digital-twin" element={withLayout(DigitalTwin, 'digital-twin')} />
+            <Route path="/heat-map" element={withLayout(HeatMap, 'heat-map')} />
+            <Route path="/equipment-health" element={withLayout(EquipmentHealth, 'equipment-health')} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

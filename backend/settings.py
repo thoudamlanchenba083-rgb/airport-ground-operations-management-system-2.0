@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'incident_management',
     'cargo_management',
         'ramp_operations',
+        'digital_twin', 
 
 ]
 MIDDLEWARE = [
