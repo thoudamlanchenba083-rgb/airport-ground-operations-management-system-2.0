@@ -11,7 +11,7 @@ from .models import Gate, GateAssignment
 from .serializers import GateSerializer, GateAssignmentSerializer
 from core_app.utils import log_action
 from core_app.permissions import IsGateManager
-from core_app.business_rules import BusinessRuleValidator
+from .services import GateAssignmentService, GateAssignmentError
 from flights.models import Flight
 
 logger = logging.getLogger('gates')
@@ -40,8 +40,6 @@ class GateViewSet(viewsets.ModelViewSet):
         log_action(self.request.user, 'DELETE', 'Gate', instance.id,
                    f'Deleted gate {instance.gate_number}', self.request)
         instance.delete()
-
-
 class GateAssignmentViewSet(viewsets.ModelViewSet):
     queryset = GateAssignment.objects.all()
     serializer_class = GateAssignmentSerializer
@@ -54,31 +52,17 @@ class GateAssignmentViewSet(viewsets.ModelViewSet):
         gate = serializer.validated_data['gate']
         flight = serializer.validated_data['flight']
 
-        # Full conflict check (Phase 2 #3 — AI Conflict Detection), not just
-        # the is_available flag: time overlap, domestic/international
-        # mismatch, aircraft-vs-gate size, and maintenance status.
-        can_assign, reason = BusinessRuleValidator.can_assign_gate_to_flight(gate, flight)
-        if not can_assign:
-            logger.warning(
-                f"Gate assignment failed: {reason} (attempted by {self.request.user})"
-            )
-            raise ValidationError({'gate': reason})
+        try:
+            instance = GateAssignmentService.assign(gate, flight, self.request.user)
+        except GateAssignmentError as e:
+            raise ValidationError({'gate': e.message})
 
-        instance = serializer.save()
-        gate.is_available = False
-        gate.save()
-        logger.info(
-            f"Gate {gate.gate_number} assigned to flight {instance.flight} "
-            f"by {self.request.user}"
-        )
         log_action(self.request.user, 'CREATE', 'GateAssignment', instance.id,
                    f'Assigned gate {gate.gate_number} to flight {instance.flight}',
                    self.request)
 
     def perform_destroy(self, instance):
-        gate = instance.gate
-        gate.is_available = True
-        gate.save()
+        GateAssignmentService.release(instance)
         log_action(self.request.user, 'DELETE', 'GateAssignment', instance.id,
                    f'Removed gate assignment {instance.id}', self.request)
         instance.delete()
@@ -88,14 +72,6 @@ class GateAssignmentViewSet(viewsets.ModelViewSet):
         """
         POST /api/gates/gate-assignments/auto-assign/
         Body: { "flight": <flight_id> }
-
-        AI Gate Recommendation (Phase 2 #4) + Conflict Detection (Phase 2 #3):
-        picks the best available gate for a flight without the user manually
-        browsing/selecting one. Candidates are filtered to matching
-        gate_type + available + not-under-maintenance, ordered smallest-fit
-        first (keeps larger gates free for bigger aircraft), then each is
-        walked through the full BusinessRuleValidator check (this also
-        catches time-overlap conflicts the initial filter can't).
         """
         flight_id = request.data.get('flight')
         if not flight_id:
@@ -106,43 +82,20 @@ class GateAssignmentViewSet(viewsets.ModelViewSet):
         except Flight.DoesNotExist:
             return Response({'error': 'Flight not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        candidates = Gate.objects.filter(
-            is_available=True,
-            is_under_maintenance=False,
-            gate_type=flight.flight_type,
-        ).order_by('width', 'length', 'gate_number')
-
-        chosen = None
-        reasons_tried = []
-        for gate in candidates:
-            ok, reason = BusinessRuleValidator.can_assign_gate_to_flight(gate, flight)
-            if ok:
-                chosen = gate
-                break
-            reasons_tried.append(f'{gate.gate_number}: {reason}')
-
-        if chosen is None:
+        try:
+            instance = GateAssignmentService.auto_assign(flight, request.user)
+        except GateAssignmentError as e:
             return Response(
-                {
-                    'error': f'No available {flight.get_flight_type_display()} gate currently fits this flight without a conflict.',
-                    'checked': reasons_tried,
-                },
+                {'error': e.message, 'checked': e.details},
                 status=status.HTTP_409_CONFLICT
             )
 
-        instance = GateAssignment.objects.create(flight=flight, gate=chosen)
-        chosen.is_available = False
-        chosen.save()
-        logger.info(
-            f"Gate {chosen.gate_number} auto-assigned to flight {flight.flight_number} "
-            f"by {request.user}"
-        )
         log_action(request.user, 'CREATE', 'GateAssignment', instance.id,
-                   f'Auto-assigned gate {chosen.gate_number} to flight {flight.flight_number}',
+                   f'Auto-assigned gate {instance.gate.gate_number} to flight {flight.flight_number}',
                    request)
 
         return Response({
             'assignment_id': instance.id,
-            'assigned_gate': GateSerializer(chosen).data,
+            'assigned_gate': GateSerializer(instance.gate).data,
             'flight': flight.flight_number,
         })
