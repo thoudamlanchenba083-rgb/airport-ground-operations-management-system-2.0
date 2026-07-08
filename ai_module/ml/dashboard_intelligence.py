@@ -20,7 +20,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 from .predictor import predict_delay, predict_weather_risk, predict_passenger_rush
 from .resource_optimizer import optimize_resources
-from .resource_optimizer import optimize_resources
 
 
 def _ops_snapshot():
@@ -42,21 +41,21 @@ def _ops_snapshot():
 
     gates_total = Gate.objects.count()
     gates_occupied = Gate.objects.filter(is_available=False).count()
-    gate_occupancy_pct = round(gates_occupied / gates_total * 100, 1) if gates_total else None
+    gate_occupancy_pct = round(
+        gates_occupied / gates_total * 100,
+        1) if gates_total else None
 
     # Average turnaround: per flight, time from CHOCKS_ON actually starting
     # to TAKEOFF_READY actually finishing, averaged across the most recent
     # completed turnarounds (last 50) rather than "today only", so the
     # number stays meaningful even on a light test dataset.
     chocks = {
-        t.flight_id: t.actual_start_time
-        for t in TurnaroundTask.objects.filter(task_type='CHOCKS_ON', actual_start_time__isnull=False)
-    }
-    takeoffs = (
-        TurnaroundTask.objects
-        .filter(task_type='TAKEOFF_READY', status='COMPLETED', actual_end_time__isnull=False)
-        .order_by('-actual_end_time')[:50]
-    )
+        t.flight_id: t.actual_start_time for t in TurnaroundTask.objects.filter(
+            task_type='CHOCKS_ON',
+            actual_start_time__isnull=False)}
+    takeoffs = (TurnaroundTask.objects .filter(task_type='TAKEOFF_READY',
+                                               status='COMPLETED',
+                                               actual_end_time__isnull=False) .order_by('-actual_end_time')[:50])
     durations = []
     for t in takeoffs:
         start = chocks.get(t.flight_id)
@@ -64,10 +63,13 @@ def _ops_snapshot():
             minutes = (t.actual_end_time - start).total_seconds() / 60
             if minutes > 0:
                 durations.append(minutes)
-    avg_turnaround_min = round(sum(durations) / len(durations), 1) if durations else None
+    avg_turnaround_min = round(
+        sum(durations) / len(durations),
+        1) if durations else None
 
     from incident_management.models import Incident
-    incidents_open = Incident.objects.filter(status__in=['REPORTED', 'INVESTIGATING']).count()
+    incidents_open = Incident.objects.filter(
+        status__in=['REPORTED', 'INVESTIGATING']).count()
 
     return {
         'equipment_active': equipment_active,
@@ -80,6 +82,8 @@ def _ops_snapshot():
         'turnarounds_analyzed': len(durations),
         'incidents_open': incidents_open,
     }
+
+
 # Cap on how many flights we run the per-flight ML forecasts (delay,
 # weather, passenger rush) against, to keep a dashboard load fast.
 MAX_FLIGHTS_FOR_FORECAST = 15
@@ -104,9 +108,11 @@ def _todays_flights():
     start_of_day = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_day = start_of_day + timedelta(days=1)
     return list(
-        Flight.objects.filter(departure_time__gte=start_of_day, departure_time__lt=end_of_day)
-        .select_related('aircraft', 'airline')
-    )
+        Flight.objects.filter(
+            departure_time__gte=start_of_day,
+            departure_time__lt=end_of_day) .select_related(
+            'aircraft',
+            'airline'))
 
 
 def _upcoming_flights_sample():
@@ -128,14 +134,15 @@ def _live_kpis(todays_flights):
     delayed = sum(1 for f in todays_flights if f.status == 'DELAYED')
     cancelled = sum(1 for f in todays_flights if f.status == 'CANCELLED')
     arrived = sum(1 for f in todays_flights if f.status == 'ARRIVED')
-    departed_or_later = sum(
-        1 for f in todays_flights
-        if f.status in ('DEPARTED', 'AIRBORNE', 'LANDING', 'TAXI_TO_GATE', 'ARRIVED')
-    )
+    departed_or_later = sum(1 for f in todays_flights if f.status in (
+        'DEPARTED', 'AIRBORNE', 'LANDING', 'TAXI_TO_GATE', 'ARRIVED'))
     active = total - delayed - cancelled - arrived
 
-    resolved = departed_or_later + cancelled  # flights whose outcome is known so far today
-    on_time_pct = round((departed_or_later - delayed) / resolved * 100, 1) if resolved else None
+    # flights whose outcome is known so far today
+    resolved = departed_or_later + cancelled
+    on_time_pct = round(
+        (departed_or_later - delayed) / resolved * 100,
+        1) if resolved else None
 
     return {
         'total_flights_today': total,
@@ -149,7 +156,11 @@ def _live_kpis(todays_flights):
 
 def _delay_forecast(flights):
     if not flights:
-        return {'flights_analyzed': 0, 'high_risk_count': 0, 'avg_estimated_delay_min': 0, 'flagged_flights': []}
+        return {
+            'flights_analyzed': 0,
+            'high_risk_count': 0,
+            'avg_estimated_delay_min': 0,
+            'flagged_flights': []}
 
     high_risk = []
     delays = []
@@ -178,7 +189,10 @@ def _delay_forecast(flights):
 
 def _weather_alerts(flights):
     if not flights:
-        return {'flights_analyzed': 0, 'high_risk_count': 0, 'flagged_flights': []}
+        return {
+            'flights_analyzed': 0,
+            'high_risk_count': 0,
+            'flagged_flights': []}
 
     # predict_weather_risk() can make a live HTTP call per flight (see
     # weather_service.get_live_weather, timeout=5s each). Run those calls
@@ -217,25 +231,21 @@ def _maintenance_alerts():
     from maintenance.models import MaintenanceRequest
 
     open_statuses = ('OPEN', 'PENDING_APPROVAL', 'APPROVED', 'IN_PROGRESS')
-    urgent = list(
-        MaintenanceRequest.objects.filter(status__in=open_statuses, priority='HIGH')
-        .select_related('aircraft')
-        .order_by('-created_at')[:5]
-    )
-    total_open = MaintenanceRequest.objects.filter(status__in=open_statuses).count()
+    urgent = list(MaintenanceRequest.objects.filter(status__in=open_statuses,
+                                                    priority='HIGH') .select_related('aircraft') .order_by('-created_at')[:5])
+    total_open = MaintenanceRequest.objects.filter(
+        status__in=open_statuses).count()
 
-    return {
-        'total_open_requests': total_open,
-        'high_priority_count': MaintenanceRequest.objects.filter(status__in=open_statuses, priority='HIGH').count(),
-        'flagged_requests': [
-            {
-                'aircraft': r.aircraft.registration_number,
-                'issue': r.issue_description[:80],
-                'status': r.status,
+    return {'total_open_requests': total_open,
+            'high_priority_count': MaintenanceRequest.objects.filter(status__in=open_statuses,
+                                                                     priority='HIGH').count(),
+            'flagged_requests': [{'aircraft': r.aircraft.registration_number,
+                                  'issue': r.issue_description[:80],
+                                  'status': r.status,
+                                  } for r in urgent],
             }
-            for r in urgent
-        ],
-    }
+
+
 def _live_ticker(limit=8):
     """
     Operations Control Center - live status ticker: currently active
@@ -259,10 +269,13 @@ def _live_ticker(limit=8):
     entries = []
     for flight in flights:
         task = (
-            TurnaroundTask.objects.filter(flight=flight, status='DELAYED').order_by('scheduled_time').first()
-            or TurnaroundTask.objects.filter(flight=flight, status='IN_PROGRESS').order_by('scheduled_time').first()
-            or TurnaroundTask.objects.filter(flight=flight, status='PENDING').order_by('scheduled_time').first()
-        )
+            TurnaroundTask.objects.filter(
+                flight=flight,
+                status='DELAYED').order_by('scheduled_time').first() or TurnaroundTask.objects.filter(
+                flight=flight,
+                status='IN_PROGRESS').order_by('scheduled_time').first() or TurnaroundTask.objects.filter(
+                flight=flight,
+                status='PENDING').order_by('scheduled_time').first())
         if task and task.status == 'DELAYED':
             label = f"{task.get_task_type_display()} delayed"
         elif task and task.status == 'IN_PROGRESS':
@@ -279,10 +292,14 @@ def _live_ticker(limit=8):
         })
     return entries
 
+
 def _passenger_prediction(todays_flights):
     sample = todays_flights[:MAX_FLIGHTS_FOR_FORECAST]
     if not sample:
-        return {'flights_analyzed': 0, 'total_expected_passengers': 0, 'high_rush_count': 0}
+        return {
+            'flights_analyzed': 0,
+            'total_expected_passengers': 0,
+            'high_rush_count': 0}
 
     total_passengers = 0
     high_rush = 0
