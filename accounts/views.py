@@ -107,3 +107,11 @@ class LogoutView(APIView):
                 {'detail': 'Invalid or expired token.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        except AttributeError:
+            # Raised if 'rest_framework_simplejwt.token_blacklist' is ever
+            # missing from INSTALLED_APPS — fail with a clear message
+            # instead of an opaque 500.
+            return Response(
+                {'detail': 'Logout is temporarily unavailable. Please contact an administrator.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
