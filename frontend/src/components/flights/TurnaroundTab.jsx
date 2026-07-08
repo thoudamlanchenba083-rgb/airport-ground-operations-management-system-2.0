@@ -1,7 +1,8 @@
 ﻿import { useEffect, useState, useCallback } from 'react'
+import { LayoutList, GitBranch } from 'lucide-react'
 import axiosClient from '../../api/axiosClient'
 import { useAuth } from '../../context/AuthContext'
-
+import TurnaroundTimeline from './TurnaroundTimeline'
 // Mirrors turnaround/models.py TASK_SEQUENCE — keep in sync if the backend changes.
 const TASK_SEQUENCE = [
   ['CHOCKS_ON', 'Chocks On'],
@@ -85,6 +86,7 @@ export default function TurnaroundTab() {
   const [autoAssigningStaffTaskId, setAutoAssigningStaffTaskId] = useState(null)
   const [note, setNote] = useState('')
   const [error, setError] = useState('')
+  const [viewMode, setViewMode] = useState('timeline') // 'timeline' | 'table'
 
   const [gateAssignment, setGateAssignment] = useState(null)
   const [gateLoading, setGateLoading] = useState(false)
@@ -360,99 +362,143 @@ export default function TurnaroundTab() {
       )}
 
       {!loading && tasks.length > 0 && (
-        <div className="glass rounded-2xl overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-black/3 dark:bg-white/4 border-b border-black/5 dark:border-white/10 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
-              <tr>
-                <th className="px-4 py-2">Task</th>
-                <th className="px-4 py-2">Status</th>
-                <th className="px-4 py-2">Staff</th>
-                <th className="px-4 py-2">Equipment</th>
-                <th className="px-4 py-2">Delay Reason</th>
-                <th className="px-4 py-2">Duration</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tasks.map((t) => (
-                <tr key={t.id} className="border-b border-black/5 dark:border-white/5 text-neutral-800 dark:text-neutral-200">
-                  <td className="px-4 py-2">{TASK_SEQUENCE.find(x => x[0] === t.task_type)?.[1] || t.task_type}</td>
-                  <td className="px-4 py-2">
-                    <select
-                      value={t.status}
-                      disabled={!canWrite}
-                      onChange={(e) => updateTask(t.id, { status: e.target.value })}
-                      style={{ colorScheme: 'dark' }}
-                      className={`rounded px-2 py-1 text-xs border-0 ${STATUS_STYLES[t.status]}`}
-                    >
-                      {STATUS_CHOICES.map(s => <option key={s} value={s} className="bg-neutral-800 text-white">{s}</option>)}
-                    </select>
-                  </td>
-                  <td className="px-4 py-2">
-                    <div className="flex items-center gap-1.5">
-                      <select
-                        value={t.assigned_staff || ''}
-                        disabled={!canWrite}
-                        onChange={(e) => updateTask(t.id, { assigned_staff: e.target.value || null })}
-                        style={{ colorScheme: 'dark' }}
-                        className="bg-neutral-100 dark:bg-neutral-800 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded px-2 py-1 text-xs"
-                      >
-                        <option value="" className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">Unassigned</option>
-                        {staffList.map(s => <option key={s.id} value={s.id} className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">{s.name}</option>)}
-                      </select>
-                      {canWrite && (
-                        <button
-                          onClick={() => autoAssignStaff(t)}
-                          disabled={autoAssigningStaffTaskId === t.id}
-                          title={`Auto-assign available ${TASK_STAFF_MAP[t.task_type] || 'GROUND'} staff (conflict-checked)`}
-                          className="text-[10px] font-semibold px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+        <div className="space-y-3">
+          <div className="flex justify-end gap-1.5">
+            <button
+              onClick={() => setViewMode('timeline')}
+              className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                viewMode === 'timeline'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-black/5 dark:bg-white/10 text-neutral-600 dark:text-neutral-300'
+              }`}
+            >
+              <GitBranch size={13} /> Timeline
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                viewMode === 'table'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-black/5 dark:bg-white/10 text-neutral-600 dark:text-neutral-300'
+              }`}
+            >
+              <LayoutList size={13} /> Table
+            </button>
+          </div>
+
+          {viewMode === 'timeline' ? (
+            <TurnaroundTimeline
+              tasks={tasks}
+              taskSequence={TASK_SEQUENCE}
+              canWrite={canWrite}
+              staffList={staffList}
+              equipmentList={equipmentList}
+              taskEquipmentMap={TASK_EQUIPMENT_MAP}
+              taskStaffMap={TASK_STAFF_MAP}
+              delayReasons={DELAY_REASONS}
+              statusChoices={STATUS_CHOICES}
+              onUpdateTask={updateTask}
+              onAutoAssignStaff={autoAssignStaff}
+              onAutoAssignEquipment={autoAssignEquipment}
+              autoAssigningTaskId={autoAssigningTaskId}
+              autoAssigningStaffTaskId={autoAssigningStaffTaskId}
+            />
+          ) : (
+            <div className="glass rounded-2xl overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-black/3 dark:bg-white/4 border-b border-black/5 dark:border-white/10 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+                  <tr>
+                    <th className="px-4 py-2">Task</th>
+                    <th className="px-4 py-2">Status</th>
+                    <th className="px-4 py-2">Staff</th>
+                    <th className="px-4 py-2">Equipment</th>
+                    <th className="px-4 py-2">Delay Reason</th>
+                    <th className="px-4 py-2">Duration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tasks.map((t) => (
+                    <tr key={t.id} className="border-b border-black/5 dark:border-white/5 text-neutral-800 dark:text-neutral-200">
+                      <td className="px-4 py-2">{TASK_SEQUENCE.find(x => x[0] === t.task_type)?.[1] || t.task_type}</td>
+                      <td className="px-4 py-2">
+                        <select
+                          value={t.status}
+                          disabled={!canWrite}
+                          onChange={(e) => updateTask(t.id, { status: e.target.value })}
+                          style={{ colorScheme: 'dark' }}
+                          className={`rounded px-2 py-1 text-xs border-0 ${STATUS_STYLES[t.status]}`}
                         >
-                          {autoAssigningStaffTaskId === t.id ? '...' : 'Auto'}
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2">
-                    <div className="flex items-center gap-1.5">
-                      <select
-                        value={t.assigned_equipment || ''}
-                        disabled={!canWrite}
-                        onChange={(e) => updateTask(t.id, { assigned_equipment: e.target.value || null })}
-                        style={{ colorScheme: 'dark' }}
-                        className="bg-neutral-100 dark:bg-neutral-800 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded px-2 py-1 text-xs"
-                      >
-                        <option value="" className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">None</option>
-                        {equipmentList.map(eq => <option key={eq.id} value={eq.id} className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">{eq.equipment_id}</option>)}
-                      </select>
-                      {canWrite && TASK_EQUIPMENT_MAP[t.task_type] && (
-                        <button
-                          onClick={() => autoAssignEquipment(t)}
-                          disabled={autoAssigningTaskId === t.id}
-                          title="Auto-assign nearest available equipment"
-                          className="text-[10px] font-semibold px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+                          {STATUS_CHOICES.map(s => <option key={s} value={s} className="bg-neutral-800 text-white">{s}</option>)}
+                        </select>
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            value={t.assigned_staff || ''}
+                            disabled={!canWrite}
+                            onChange={(e) => updateTask(t.id, { assigned_staff: e.target.value || null })}
+                            style={{ colorScheme: 'dark' }}
+                            className="bg-neutral-100 dark:bg-neutral-800 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded px-2 py-1 text-xs"
+                          >
+                            <option value="" className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">Unassigned</option>
+                            {staffList.map(s => <option key={s.id} value={s.id} className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">{s.name}</option>)}
+                          </select>
+                          {canWrite && (
+                            <button
+                              onClick={() => autoAssignStaff(t)}
+                              disabled={autoAssigningStaffTaskId === t.id}
+                              title={`Auto-assign available ${TASK_STAFF_MAP[t.task_type] || 'GROUND'} staff (conflict-checked)`}
+                              className="text-[10px] font-semibold px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+                            >
+                              {autoAssigningStaffTaskId === t.id ? '...' : 'Auto'}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            value={t.assigned_equipment || ''}
+                            disabled={!canWrite}
+                            onChange={(e) => updateTask(t.id, { assigned_equipment: e.target.value || null })}
+                            style={{ colorScheme: 'dark' }}
+                            className="bg-neutral-100 dark:bg-neutral-800 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded px-2 py-1 text-xs"
+                          >
+                            <option value="" className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">None</option>
+                            {equipmentList.map(eq => <option key={eq.id} value={eq.id} className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">{eq.equipment_id}</option>)}
+                          </select>
+                          {canWrite && TASK_EQUIPMENT_MAP[t.task_type] && (
+                            <button
+                              onClick={() => autoAssignEquipment(t)}
+                              disabled={autoAssigningTaskId === t.id}
+                              title="Auto-assign nearest available equipment"
+                              className="text-[10px] font-semibold px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+                            >
+                              {autoAssigningTaskId === t.id ? '...' : 'Auto'}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">
+                        <select
+                          value={t.delay_reason || 'NONE'}
+                          disabled={!canWrite}
+                          onChange={(e) => updateTask(t.id, { delay_reason: e.target.value })}
+                          style={{ colorScheme: 'dark' }}
+                          className="bg-neutral-100 dark:bg-neutral-800 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded px-2 py-1 text-xs"
                         >
-                          {autoAssigningTaskId === t.id ? '...' : 'Auto'}
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2">
-                    <select
-                      value={t.delay_reason || 'NONE'}
-                      disabled={!canWrite}
-                      onChange={(e) => updateTask(t.id, { delay_reason: e.target.value })}
-                      style={{ colorScheme: 'dark' }}
-                      className="bg-neutral-100 dark:bg-neutral-800 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded px-2 py-1 text-xs"
-                    >
-                      {DELAY_REASONS.map(([val, label]) => <option key={val} value={val} className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">{label}</option>)}
-                    </select>
-                  </td>
-                  <td className="px-4 py-2 text-xs text-neutral-500 dark:text-neutral-400">
-                    {t.duration_minutes != null ? `${t.duration_minutes} min` : '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                          {DELAY_REASONS.map(([val, label]) => <option key={val} value={val} className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">{label}</option>)}
+                        </select>
+                      </td>
+                      <td className="px-4 py-2 text-xs text-neutral-500 dark:text-neutral-400">
+                        {t.duration_minutes != null ? `${t.duration_minutes} min` : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>
