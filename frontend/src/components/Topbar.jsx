@@ -41,7 +41,7 @@ export default function Topbar() {
       </div>
 
       <div className="flex items-center gap-2.5 shrink-0">
-        <span className="hidden md:inline text-xs font-medium text-neutral-500 dark:text-neutral-400 tabular-nums">
+        <span className="glass-pill hidden md:inline text-xs font-medium text-neutral-500 dark:text-neutral-400 tabular-nums px-3.5 py-2">
           {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           {'  ·  '}
           {now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -49,7 +49,7 @@ export default function Topbar() {
 
         <Link
           to="/ai-intro"
-          className="glass glass-interactive flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-xl text-blue-700 dark:text-blue-300 border-blue-500/25"
+          className="glass-pill glass-interactive flex items-center gap-2 text-xs font-semibold px-3.5 py-2 text-blue-700 dark:text-blue-300 border-blue-500/25"
         >
           <Sparkles size={14} className="text-blue-500" />
           Introduction to AeroGround AI
@@ -58,7 +58,7 @@ export default function Topbar() {
         <button
           onClick={toggleTheme}
           aria-label="Toggle theme"
-          className="glass glass-interactive flex items-center justify-center w-9 h-9 rounded-xl text-neutral-600 dark:text-neutral-300"
+          className="glass-pill glass-interactive flex items-center justify-center w-9 h-9 text-neutral-600 dark:text-neutral-300"
         >
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>

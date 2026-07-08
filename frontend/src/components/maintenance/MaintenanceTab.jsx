@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 
 const PRIORITY_COLORS = {
@@ -235,9 +235,9 @@ export default function MaintenanceTab() {
       )}
 
       {/* Table */}
-      <div className="glass rounded-2xl overflow-x-auto">
+      <div className="glass rounded-[26px] overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+          <thead className="bg-black/3 dark:bg-white/4 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
             <tr>
               <th className="px-4 py-3 text-left">#</th>
               <th className="px-4 py-3 text-left">Aircraft</th>
@@ -251,7 +251,7 @@ export default function MaintenanceTab() {
             {filtered.length === 0 ? (
               <tr><td colSpan={6} className="text-center text-neutral-400 dark:text-neutral-500 py-6">No maintenance requests found.</td></tr>
             ) : filtered.map(r => (
-              <tr key={r.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">
+              <tr key={r.id} className="hover:bg-black/2 dark:hover:bg-white/3">
                 <td className="px-4 py-3 text-neutral-400 dark:text-neutral-500 text-xs">#{r.id}</td>
                 <td className="px-4 py-3 font-medium text-neutral-900 dark:text-white">
                   {aircraft.find(a => a.id === r.aircraft)?.registration_number ?? r.aircraft}

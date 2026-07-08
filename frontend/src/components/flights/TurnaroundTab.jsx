@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+﻿import { useEffect, useState, useCallback } from 'react'
 import axiosClient from '../../api/axiosClient'
 import { useAuth } from '../../context/AuthContext'
 
@@ -51,6 +51,16 @@ const TASK_EQUIPMENT_MAP = {
   PUSHBACK: 'pushback_tractor',
 }
 
+// Maps each checklist task to the staff type most likely to handle it, for
+// the staff "Auto" button. Falls back to GROUND for anything not listed.
+const TASK_STAFF_MAP = {
+  BAGGAGE_UNLOADING: 'BAGGAGE',
+  BAGGAGE_LOADING: 'BAGGAGE',
+  CARGO_LOADING: 'BAGGAGE',
+  CABIN_CLEANING: 'MAINTENANCE',
+  TAKEOFF_READY: 'SUPERVISOR',
+}
+
 const STATUS_STYLES = {
   PENDING: 'bg-neutral-500/10 text-neutral-500 dark:text-neutral-400',
   IN_PROGRESS: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
@@ -72,8 +82,14 @@ export default function TurnaroundTab() {
   const [loading, setLoading] = useState(false)
   const [initializing, setInitializing] = useState(false)
   const [autoAssigningTaskId, setAutoAssigningTaskId] = useState(null)
+  const [autoAssigningStaffTaskId, setAutoAssigningStaffTaskId] = useState(null)
   const [note, setNote] = useState('')
   const [error, setError] = useState('')
+
+  const [gateAssignment, setGateAssignment] = useState(null)
+  const [gateLoading, setGateLoading] = useState(false)
+  const [assigningGate, setAssigningGate] = useState(false)
+  const [releasingGate, setReleasingGate] = useState(false)
 
   useEffect(() => {
     axiosClient.get('/flights/flights/')
@@ -107,10 +123,27 @@ export default function TurnaroundTab() {
       .finally(() => setLoading(false))
   }, [])
 
+  const loadGateAssignment = useCallback((flightId) => {
+    if (!flightId) { setGateAssignment(null); return }
+    setGateLoading(true)
+    axiosClient.get('/gates/gate-assignments/', { params: { flight: flightId } })
+      .then((res) => {
+        const list = res.data.results || res.data
+        const active = list.find(a => a.status === 'assigned') || null
+        setGateAssignment(active)
+      })
+      .catch(() => {})
+      .finally(() => setGateLoading(false))
+  }, [])
+
   useEffect(() => {
-    if (selectedFlightId) loadTasks(selectedFlightId)
-    else { setTasks([]); setSummary(null) }
-  }, [selectedFlightId, loadTasks])
+    if (selectedFlightId) {
+      loadTasks(selectedFlightId)
+      loadGateAssignment(selectedFlightId)
+    } else {
+      setTasks([]); setSummary(null); setGateAssignment(null)
+    }
+  }, [selectedFlightId, loadTasks, loadGateAssignment])
 
   const initializeTurnaround = async () => {
     if (!selectedFlightId) return
@@ -169,6 +202,62 @@ export default function TurnaroundTab() {
     }
   }
 
+  const autoAssignStaff = async (task) => {
+    const staffType = TASK_STAFF_MAP[task.task_type] || 'GROUND'
+    setError('')
+    setNote('')
+    setAutoAssigningStaffTaskId(task.id)
+    try {
+      const res = await axiosClient.post('/staff/staff-assignments/auto-assign/', {
+        flight: selectedFlightId,
+        staff_type: staffType,
+        turnaround_task: task.id,
+      })
+      const st = res.data.assigned_staff
+      setNote(`Auto-assigned ${st.name} (${st.staff_type}) — no scheduling conflict.`)
+      loadTasks(selectedFlightId)
+    } catch (err) {
+      setError(err.response?.data?.error || 'Auto-assign failed — no available staff of that type without a conflict.')
+    } finally {
+      setAutoAssigningStaffTaskId(null)
+    }
+  }
+
+  const autoAssignGate = async () => {
+    if (!selectedFlightId) return
+    setError('')
+    setNote('')
+    setAssigningGate(true)
+    try {
+      const res = await axiosClient.post('/gates/gate-assignments/auto-assign/', {
+        flight: selectedFlightId,
+      })
+      const gate = res.data.assigned_gate
+      setNote(`Auto-assigned Gate ${gate.gate_number} (${gate.terminal}).`)
+      loadGateAssignment(selectedFlightId)
+    } catch (err) {
+      setError(err.response?.data?.error || 'Gate auto-assign failed — no available gate fits this flight without a conflict.')
+    } finally {
+      setAssigningGate(false)
+    }
+  }
+
+  const releaseGate = async () => {
+    if (!gateAssignment) return
+    setError('')
+    setNote('')
+    setReleasingGate(true)
+    try {
+      await axiosClient.delete(`/gates/gate-assignments/${gateAssignment.id}/`)
+      setNote('Gate released.')
+      loadGateAssignment(selectedFlightId)
+    } catch (err) {
+      setError('Failed to release gate.')
+    } finally {
+      setReleasingGate(false)
+    }
+  }
+
   const selectedFlight = flights.find(f => String(f.id) === String(selectedFlightId))
 
   return (
@@ -180,7 +269,7 @@ export default function TurnaroundTab() {
             value={selectedFlightId}
             onChange={(e) => setSelectedFlightId(e.target.value)}
             style={{ colorScheme: 'dark' }}
-            className="bg-neutral-100 dark:bg-neutral-800 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm min-w-[220px]"
+            className="bg-neutral-100 dark:bg-neutral-800 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm min-w-55"
           >
             <option value="" className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">Select a flight...</option>
             {flights.map((f) => (
@@ -202,6 +291,42 @@ export default function TurnaroundTab() {
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
       {note && <p className="text-green-600 dark:text-green-400 text-sm">{note}</p>}
+
+      {selectedFlightId && (
+        <div className="glass rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">Gate Assignment</p>
+            {gateLoading ? (
+              <p className="text-sm text-neutral-400 dark:text-neutral-500">Checking gate…</p>
+            ) : gateAssignment ? (
+              <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                Gate {gateAssignment.gate_number || gateAssignment.gate} assigned
+              </p>
+            ) : (
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">No gate assigned yet.</p>
+            )}
+          </div>
+          {canWrite && (
+            gateAssignment ? (
+              <button
+                onClick={releaseGate}
+                disabled={releasingGate}
+                className="text-xs font-semibold px-3 py-2 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 disabled:opacity-50"
+              >
+                {releasingGate ? 'Releasing…' : 'Release Gate'}
+              </button>
+            ) : (
+              <button
+                onClick={autoAssignGate}
+                disabled={assigningGate}
+                className="text-xs font-semibold px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {assigningGate ? 'Assigning…' : 'Auto-Assign Gate'}
+              </button>
+            )
+          )}
+        </div>
+      )}
 
       {selectedFlightId && summary && (
         <div className="glass rounded-2xl p-4">
@@ -237,7 +362,7 @@ export default function TurnaroundTab() {
       {!loading && tasks.length > 0 && (
         <div className="glass rounded-2xl overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-black/[0.03] dark:bg-white/[0.04] border-b border-black/5 dark:border-white/10 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+            <thead className="bg-black/3 dark:bg-white/4 border-b border-black/5 dark:border-white/10 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
               <tr>
                 <th className="px-4 py-2">Task</th>
                 <th className="px-4 py-2">Status</th>
@@ -263,16 +388,28 @@ export default function TurnaroundTab() {
                     </select>
                   </td>
                   <td className="px-4 py-2">
-                    <select
-                      value={t.assigned_staff || ''}
-                      disabled={!canWrite}
-                      onChange={(e) => updateTask(t.id, { assigned_staff: e.target.value || null })}
-                      style={{ colorScheme: 'dark' }}
-                      className="bg-neutral-100 dark:bg-neutral-800 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded px-2 py-1 text-xs"
-                    >
-                      <option value="" className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">Unassigned</option>
-                      {staffList.map(s => <option key={s.id} value={s.id} className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">{s.name}</option>)}
-                    </select>
+                    <div className="flex items-center gap-1.5">
+                      <select
+                        value={t.assigned_staff || ''}
+                        disabled={!canWrite}
+                        onChange={(e) => updateTask(t.id, { assigned_staff: e.target.value || null })}
+                        style={{ colorScheme: 'dark' }}
+                        className="bg-neutral-100 dark:bg-neutral-800 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded px-2 py-1 text-xs"
+                      >
+                        <option value="" className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">Unassigned</option>
+                        {staffList.map(s => <option key={s.id} value={s.id} className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white">{s.name}</option>)}
+                      </select>
+                      {canWrite && (
+                        <button
+                          onClick={() => autoAssignStaff(t)}
+                          disabled={autoAssigningStaffTaskId === t.id}
+                          title={`Auto-assign available ${TASK_STAFF_MAP[t.task_type] || 'GROUND'} staff (conflict-checked)`}
+                          className="text-[10px] font-semibold px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+                        >
+                          {autoAssigningStaffTaskId === t.id ? '...' : 'Auto'}
+                        </button>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-1.5">

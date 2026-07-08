@@ -35,9 +35,9 @@ export default function Layout({ children }) {
       <AmbientBackground />
 
       <aside className="relative z-10 w-64 h-screen shrink-0 sticky top-0 p-3">
-        <div className="glass h-full rounded-3xl flex flex-col overflow-hidden">
+        <div className="glass h-full rounded-[32px] flex flex-col overflow-hidden">
           <div className="px-4 py-5 flex items-center gap-3 shrink-0">
-            <div className="!w-11 !h-11 !rounded-2xl glass !bg-white/90 dark:!bg-white/95 flex items-center justify-center shrink-0 p-1.5 overflow-hidden">
+            <div className="w-11! h-11! !rounded-[26px] glass bg-white!/90 dark:bg-white!/95 flex items-center justify-center shrink-0 p-1.5 overflow-hidden">
               <img src="/brand/aeroground-logo.png" alt="AeroGround" className="w-full h-full object-contain" />
             </div>
             <div>
@@ -54,9 +54,9 @@ export default function Layout({ children }) {
                   key={item.to}
                   to={item.to}
                   className={({ isActive }) =>
-                    `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    `group relative flex items-center gap-3 px-3 py-2.5 rounded-[26px] text-sm font-medium transition-all duration-300 overflow-hidden ${
                       isActive
-                        ? 'bg-blue-600/90 text-white shadow-lg shadow-blue-600/25'
+                        ? 'bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-600/30 before:content-[\'\'] before:absolute before:inset-0 before:bg-[radial-gradient(120%_80%_at_20%_-10%,rgba(255,255,255,0.45),transparent_55%)]'
                         : 'text-neutral-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10 hover:text-neutral-900 dark:hover:text-white'
                     }`
                   }
@@ -73,9 +73,9 @@ export default function Layout({ children }) {
           </nav>
 
           <div className="px-3 pb-3 pt-2 shrink-0">
-            <div className="glass rounded-2xl p-3">
+            <div className="glass rounded-[22px] p-3">
               <div className="flex items-center gap-2 mb-3">
-                <div className="!w-8 !h-8 !rounded-xl icon-chip icon-chip-indigo shrink-0">
+                <div className="w-8! h-8! rounded-xl! icon-chip icon-chip-indigo shrink-0">
                   <span className="text-xs font-bold">{user?.username?.[0]?.toUpperCase() || 'U'}</span>
                 </div>
                 <div className="min-w-0">

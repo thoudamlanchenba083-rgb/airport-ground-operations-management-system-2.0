@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 import {
   Sparkles, TrendingUp, Cloud, Wrench, Users, User, DoorOpen, Gauge,
   ArrowRight, Database, ShieldCheck, Timer, MessageSquare, Boxes,
@@ -111,7 +111,7 @@ export default function AeroGroundAIIntro() {
       {/* Hero */}
       <div className="glass-hero rounded-3xl p-8 sm:p-10">
         <div className="relative flex items-start gap-4">
-          <div className="icon-chip icon-chip-blue !w-14 !h-14 !rounded-2xl shrink-0">
+          <div className="icon-chip icon-chip-blue w-14! h-14! rounded-2xl! shrink-0">
             <Sparkles size={24} />
           </div>
           <div>
@@ -146,9 +146,9 @@ export default function AeroGroundAIIntro() {
           {CAPABILITIES.map((c) => {
             const Icon = c.icon
             return (
-              <div key={c.title} className="glass rounded-2xl p-5 flex flex-col gap-3">
+              <div key={c.title} className="glass rounded-[26px] p-5 flex flex-col gap-3">
                 <div className="flex items-center gap-3">
-                  <div className={`icon-chip ${c.chip} !w-10 !h-10 !rounded-xl`}>
+                  <div className={`icon-chip ${c.chip} w-10! h-10! rounded-xl!`}>
                     <Icon size={18} strokeWidth={2.1} />
                   </div>
                   <div className="min-w-0">
@@ -177,8 +177,8 @@ export default function AeroGroundAIIntro() {
           {PRINCIPLES.map((p) => {
             const Icon = p.icon
             return (
-              <div key={p.title} className="glass rounded-2xl p-5 flex gap-3">
-                <div className="icon-chip icon-chip-indigo !w-10 !h-10 !rounded-xl shrink-0">
+              <div key={p.title} className="glass rounded-[26px] p-5 flex gap-3">
+                <div className="icon-chip icon-chip-indigo w-10! h-10! rounded-xl! shrink-0">
                   <Icon size={17} />
                 </div>
                 <div>
@@ -192,7 +192,7 @@ export default function AeroGroundAIIntro() {
       </div>
 
       {/* CTA back to dashboard / chatbot */}
-      <div className="glass rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+      <div className="glass rounded-[26px] p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h3 className="font-semibold text-neutral-900 dark:text-white text-sm">See it live</h3>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">

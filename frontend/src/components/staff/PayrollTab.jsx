@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import axiosClient from '../../api/axiosClient'
 
 const STATUS_STYLES = {
@@ -165,7 +165,7 @@ export default function PayrollTab() {
 
       {showGenerate && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="glass-strong rounded-2xl p-6 w-full max-w-sm">
+          <div className="glass-strong rounded-[26px] p-6 w-full max-w-sm">
             <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">Generate Payroll</h4>
             <form onSubmit={handleGenerate} className="space-y-3">
               <p className="text-sm text-neutral-500 dark:text-neutral-400">Creates a pending payroll record for every staff member for the selected month (skips staff who already have one).</p>
@@ -181,7 +181,7 @@ export default function PayrollTab() {
 
       {showForm && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="glass-strong rounded-2xl p-6 w-full max-w-md">
+          <div className="glass-strong rounded-[26px] p-6 w-full max-w-md">
             <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">{editItem ? 'Edit Payroll Record' : 'Add Payroll Record'}</h4>
             <form onSubmit={handleSubmit} className="space-y-3">
               <select style={{ colorScheme: 'dark' }} required value={form.staff} onChange={e => setForm({ ...form, staff: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
@@ -212,9 +212,9 @@ export default function PayrollTab() {
         </div>
       )}
 
-      <div className="glass rounded-2xl overflow-x-auto">
+      <div className="glass rounded-[26px] overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+          <thead className="bg-black/3 dark:bg-white/4 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
             <tr>
               <th className="px-4 py-2 text-left">Staff</th>
               <th className="px-4 py-2 text-left">Month</th>
@@ -232,7 +232,7 @@ export default function PayrollTab() {
               <tr><td colSpan={9} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">No payroll records found.</td></tr>
             )}
             {payroll.map(p => (
-              <tr key={p.id} className="border-t border-black/5 dark:border-white/5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] text-neutral-800 dark:text-neutral-200">
+              <tr key={p.id} className="border-t border-black/5 dark:border-white/5 hover:bg-black/2 dark:hover:bg-white/3 text-neutral-800 dark:text-neutral-200">
                 <td className="px-4 py-2 font-medium text-neutral-900 dark:text-white">{p.staff_name}</td>
                 <td className="px-4 py-2">{monthLabel(p.month)}</td>
                 <td className="px-4 py-2">{currency(p.base_salary)}</td>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 import { useAuth } from '../../context/AuthContext'
 
@@ -50,7 +50,7 @@ export default function AirlinesTab() {
 
   return (
     <div>
-      <form onSubmit={handleAdd} className="glass rounded-2xl p-4 mb-4 flex flex-wrap gap-3 items-end">
+      <form onSubmit={handleAdd} className="glass rounded-[26px] p-4 mb-4 flex flex-wrap gap-3 items-end">
         <div>
           <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Name</label>
           <input
@@ -80,9 +80,9 @@ export default function AirlinesTab() {
       {loading && <p className="text-neutral-500 dark:text-neutral-400">Loading...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
-        <div className="glass rounded-2xl overflow-x-auto">
+        <div className="glass rounded-[26px] overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-black/[0.03] dark:bg-white/[0.04] border-b border-black/5 dark:border-white/10 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+            <thead className="bg-black/3 dark:bg-white/4 border-b border-black/5 dark:border-white/10 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
               <tr>
                 <th className="px-4 py-2">Name</th>
                 <th className="px-4 py-2">Code</th>

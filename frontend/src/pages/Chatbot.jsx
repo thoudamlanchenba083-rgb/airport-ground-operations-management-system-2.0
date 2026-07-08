@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import { Sparkles, Send, Trash2, FileSpreadsheet, X, Upload, Loader2, Lock } from 'lucide-react'
 import axiosClient from '../api/axiosClient'
 import PageHeader from '../components/PageHeader'
@@ -172,14 +172,14 @@ export default function Chatbot() {
       </div>
 
       <div
-        className="mb-4 glass rounded-2xl p-4"
+        className="mb-4 glass rounded-[26px] p-4"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex items-center gap-3">
-            <div className="icon-chip icon-chip-sky !w-10 !h-10 !rounded-xl shrink-0">
+            <div className="icon-chip icon-chip-sky w-10! h-10! rounded-xl! shrink-0">
               <FileSpreadsheet size={18} />
             </div>
             <div className="min-w-0">
@@ -247,7 +247,7 @@ export default function Chatbot() {
       </div>
 
 
-      <div className="flex-1 glass rounded-2xl flex flex-col overflow-hidden">
+      <div className="flex-1 glass rounded-[26px] flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {loading && <p className="text-sm text-neutral-400 dark:text-neutral-500">Loading conversation...</p>}
 
@@ -263,10 +263,10 @@ export default function Chatbot() {
               className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap ${
+                className={`max-w-[75%] px-4 py-2 rounded-[26px] text-sm whitespace-pre-wrap ${
                   m.role === 'user'
                     ? 'bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-br-sm shadow-md shadow-blue-600/20'
-                    : 'glass-hairline bg-black/[0.03] dark:bg-white/[0.06] text-neutral-900 dark:text-white rounded-bl-sm'
+                    : 'glass-hairline bg-black/3 dark:bg-white/6 text-neutral-900 dark:text-white rounded-bl-sm'
                 }`}
               >
                 {m.content}
@@ -276,7 +276,7 @@ export default function Chatbot() {
 
           {sending && (
             <div className="flex justify-start">
-              <div className="glass-hairline bg-black/[0.03] dark:bg-white/[0.06] text-neutral-500 dark:text-neutral-400 px-4 py-2 rounded-2xl rounded-bl-sm text-sm flex items-center gap-1.5">
+              <div className="glass-hairline bg-black/3 dark:bg-white/6 text-neutral-500 dark:text-neutral-400 px-4 py-2 rounded-[26px] rounded-bl-sm text-sm flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:-0.3s]"></span>
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:-0.15s]"></span>
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce"></span>

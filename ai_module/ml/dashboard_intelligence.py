@@ -20,6 +20,62 @@ from concurrent.futures import ThreadPoolExecutor
 
 from .predictor import predict_delay, predict_weather_risk, predict_passenger_rush
 from .resource_optimizer import optimize_resources
+from .resource_optimizer import optimize_resources
+
+
+def _ops_snapshot():
+    """
+    Phase 1 #4 — Live Airport Dashboard: OCC-style operational counters
+    (equipment active, staff active, gate occupancy, average turnaround).
+    These come from different models than the flight-based live_kpis
+    above, so they're computed separately and merged into the same payload.
+    """
+    from ground_equipment.models import GroundEquipment
+    from staff.models import Staff
+    from gates.models import Gate
+    from turnaround.models import TurnaroundTask
+
+    equipment_active = GroundEquipment.objects.filter(status='in_use').count()
+    equipment_total = GroundEquipment.objects.count()
+
+    staff_active = Staff.objects.filter(is_active=True).count()
+
+    gates_total = Gate.objects.count()
+    gates_occupied = Gate.objects.filter(is_available=False).count()
+    gate_occupancy_pct = round(gates_occupied / gates_total * 100, 1) if gates_total else None
+
+    # Average turnaround: per flight, time from CHOCKS_ON actually starting
+    # to TAKEOFF_READY actually finishing, averaged across the most recent
+    # completed turnarounds (last 50) rather than "today only", so the
+    # number stays meaningful even on a light test dataset.
+    chocks = {
+        t.flight_id: t.actual_start_time
+        for t in TurnaroundTask.objects.filter(task_type='CHOCKS_ON', actual_start_time__isnull=False)
+    }
+    takeoffs = (
+        TurnaroundTask.objects
+        .filter(task_type='TAKEOFF_READY', status='COMPLETED', actual_end_time__isnull=False)
+        .order_by('-actual_end_time')[:50]
+    )
+    durations = []
+    for t in takeoffs:
+        start = chocks.get(t.flight_id)
+        if start:
+            minutes = (t.actual_end_time - start).total_seconds() / 60
+            if minutes > 0:
+                durations.append(minutes)
+    avg_turnaround_min = round(sum(durations) / len(durations), 1) if durations else None
+
+    return {
+        'equipment_active': equipment_active,
+        'equipment_total': equipment_total,
+        'staff_active': staff_active,
+        'gate_occupancy_pct': gate_occupancy_pct,
+        'gates_occupied': gates_occupied,
+        'gates_total': gates_total,
+        'avg_turnaround_min': avg_turnaround_min,
+        'turnarounds_analyzed': len(durations),
+    }
 
 # Cap on how many flights we run the per-flight ML forecasts (delay,
 # weather, passenger rush) against, to keep a dashboard load fast.
@@ -265,6 +321,7 @@ def _compute_dashboard_intelligence():
     payload = {
         'generated_at': timezone.now().isoformat(),
         'live_kpis': _live_kpis(todays),
+        'ops_snapshot': _ops_snapshot(),
         'delay_forecast': _delay_forecast(upcoming_sample),
         'weather_alerts': _weather_alerts(upcoming_sample),
         'maintenance_alerts': _maintenance_alerts(),

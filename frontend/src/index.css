@@ -28,69 +28,77 @@ body {
   color: #0f172a;
   min-height: 100vh;
   transition: background 0.4s ease, color 0.4s ease;
-  background:
-    radial-gradient(ellipse 900px 500px at 10% -5%, rgba(59, 130, 246, 0.16), transparent 55%),
-    radial-gradient(ellipse 800px 500px at 92% 8%, rgba(168, 85, 247, 0.13), transparent 55%),
-    radial-gradient(ellipse 900px 600px at 50% 105%, rgba(16, 185, 129, 0.10), transparent 55%),
-    #eef1f8;
+  background: linear-gradient(160deg, #a8d4ff 0%, #8dc3fb 25%, #7fb8fa 48%, #9ecdfb 70%, #c3e0fc 100%);
   background-attachment: fixed;
 }
 
 .dark body {
   color: #e5e7eb;
-  background: #171717;
+  background: radial-gradient(ellipse 1400px 900px at 20% -10%, #14161c 0%, #0a0b0f 45%, #060608 100%);
   background-attachment: fixed;
 }
 
-/* ---------- Liquid glass core ---------- */
+/* ---------- Glassmorphism core ---------- */
 :root {
   --glass-bg: rgba(255, 255, 255, 0.55);
   --glass-bg-strong: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(15, 23, 42, 0.08);
-  --glass-shadow: 0 8px 30px rgba(30, 41, 59, 0.08);
-  --glass-highlight: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-border-outer: rgba(15, 23, 42, 0.06);
+  --glass-shadow: 0 20px 50px -14px rgba(30, 41, 59, 0.2);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+  --glass-specular: rgba(255, 255, 255, 0.95);
 }
 
 .dark {
-  --glass-bg: rgba(255, 255, 255, 0.045);
-  --glass-bg-strong: rgba(255, 255, 255, 0.07);
+  --glass-bg: rgba(255, 255, 255, 0.025);
+  --glass-bg-strong: rgba(255, 255, 255, 0.05);
   --glass-border: rgba(255, 255, 255, 0.09);
-  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  --glass-border-outer: rgba(0, 0, 0, 0.5);
+  --glass-shadow: 0 24px 60px -14px rgba(0, 0, 0, 0.8);
   --glass-highlight: rgba(255, 255, 255, 0.06);
+  --glass-specular: rgba(255, 255, 255, 0.1);
 }
 
 .glass {
   position: relative;
   background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), inset 0 1px 0 0 var(--glass-highlight), inset 0 0 0 1px rgba(255,255,255,0.02);
+  box-shadow:
+    var(--glass-shadow),
+    0 1px 0 0 var(--glass-border-outer),
+    inset 0 1.5px 0 0 var(--glass-highlight),
+    inset 0 -12px 20px -14px rgba(0,0,0,0.06);
+  isolation: isolate;
 }
 
-/* A soft diagonal sheen baked into every glass surface, like light
-   refracting through a curved pane. Subtle at rest, brighter on hover
-   for .glass-interactive surfaces. */
+/* Curved specular highlight in the top-left, like light catching a
+   convex pane of glass. Kept subtle so body text stays sharp and
+   readable over it. */
 .glass::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(115deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 26%, rgba(255,255,255,0) 74%, rgba(255,255,255,0.07) 100%);
-  opacity: 0.9;
+  z-index: 1;
+  background: radial-gradient(120% 60% at 16% -12%, var(--glass-specular), transparent 55%);
+  opacity: 0.7;
+  mix-blend-mode: overlay;
 }
 .dark .glass::before {
-  background: linear-gradient(115deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 26%, rgba(255,255,255,0) 74%, rgba(255,255,255,0.03) 100%);
+  mix-blend-mode: normal;
+  opacity: 1;
 }
 
 .glass-strong {
   position: relative;
   background: var(--glass-bg-strong);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), inset 0 1px 0 0 var(--glass-highlight);
+  box-shadow: var(--glass-shadow), inset 0 1.5px 0 0 var(--glass-highlight);
 }
 
 .glass-hairline {
@@ -100,37 +108,42 @@ body {
 .glass-interactive {
   position: relative;
   overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
 }
 .glass-interactive:hover {
-  transform: translateY(-2px);
-  border-color: rgba(59, 130, 246, 0.35);
-  box-shadow: var(--glass-shadow), 0 14px 34px rgba(30, 41, 59, 0.12), inset 0 1px 0 0 var(--glass-highlight);
+  transform: translateY(-3px);
+  border-color: rgba(59, 130, 246, 0.4);
+  background: var(--glass-bg-strong);
+  box-shadow: var(--glass-shadow), 0 18px 38px rgba(30, 41, 59, 0.16), inset 0 1.5px 0 0 var(--glass-highlight);
 }
 .dark .glass-interactive:hover {
-  box-shadow: var(--glass-shadow), 0 14px 34px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 var(--glass-highlight);
+  box-shadow: var(--glass-shadow), 0 18px 38px rgba(0, 0, 0, 0.55), inset 0 1.5px 0 0 var(--glass-highlight);
+}
+.glass-interactive:active {
+  transform: translateY(-1px) scale(0.99);
+  transition: transform 0.1s ease;
 }
 
-/* Topbar - a slightly denser glass, pinned above page content */
+/* Topbar - a touch denser than cards so nav stays legible while scrolling under it */
 .glass-topbar {
   background: var(--glass-bg-strong);
-  backdrop-filter: blur(28px) saturate(170%);
-  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
   border-bottom: 1px solid var(--glass-border);
-  box-shadow: 0 1px 0 0 var(--glass-highlight) inset, 0 12px 30px -12px rgba(15, 23, 42, 0.15);
+  box-shadow: 0 1.5px 0 0 var(--glass-highlight) inset, 0 16px 32px -14px rgba(15, 23, 42, 0.18);
 }
 .dark .glass-topbar {
-  box-shadow: 0 1px 0 0 var(--glass-highlight) inset, 0 12px 30px -12px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 1.5px 0 0 var(--glass-highlight) inset, 0 16px 32px -14px rgba(0, 0, 0, 0.65);
 }
 
-/* Hero glass - for the AI intro page's opening panel: thicker, more glow */
+/* Hero glass - for the AI intro page's opening panel */
 .glass-hero {
   position: relative;
   background: var(--glass-bg-strong);
-  backdrop-filter: blur(32px) saturate(180%);
-  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  backdrop-filter: blur(34px) saturate(190%);
+  -webkit-backdrop-filter: blur(34px) saturate(190%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), inset 0 1px 0 0 var(--glass-highlight);
+  box-shadow: var(--glass-shadow), inset 0 1.5px 0 0 var(--glass-highlight);
   overflow: hidden;
 }
 .glass-hero::after {
@@ -142,18 +155,39 @@ body {
   pointer-events: none;
 }
 
-/* Icon chips */
+/* Pill-shaped glass - nav chips, topbar buttons, badges */
+.glass-pill {
+  position: relative;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: 9999px;
+  box-shadow: var(--glass-shadow), inset 0 1.5px 0 0 var(--glass-highlight);
+}
+
+/* Icon chips - glossy convex "squircle" with a bright bevel */
 .icon-chip {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 2.75rem;
   height: 2.75rem;
-  border-radius: 0.9rem;
+  border-radius: 1rem;
   flex-shrink: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px var(--chip-glow, transparent);
+  overflow: hidden;
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.55), inset 0 -6px 10px -4px rgba(0,0,0,0.2), 0 6px 16px var(--chip-glow, transparent);
 }
-.icon-chip svg { width: 1.25rem; height: 1.25rem; }
+.icon-chip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 80% at 25% -10%, rgba(255,255,255,0.55), transparent 55%);
+  pointer-events: none;
+}
+.icon-chip svg { width: 1.25rem; height: 1.25rem; position: relative; z-index: 1; }
 
 .icon-chip-blue    { background: linear-gradient(155deg, #3b82f6, #1d4ed8); --chip-glow: rgba(59,130,246,0.45); color: #fff; }
 .icon-chip-violet  { background: linear-gradient(155deg, #a855f7, #6d28d9); --chip-glow: rgba(168,85,247,0.45); color: #fff; }
@@ -163,15 +197,62 @@ body {
 .icon-chip-sky     { background: linear-gradient(155deg, #38bdf8, #0369a1); --chip-glow: rgba(14,165,233,0.45); color: #fff; }
 .icon-chip-indigo  { background: linear-gradient(155deg, #818cf8, #4338ca); --chip-glow: rgba(99,102,241,0.45); color: #fff; }
 
+/* Weather Alerts card decoration - a mini sky with drifting clouds,
+   scoped to just this one card via the .glass parent's overflow:hidden. */
+.weather-sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(160deg, rgba(125,190,255,0.35) 0%, rgba(180,215,255,0.18) 55%, transparent 100%);
+  pointer-events: none;
+}
+.dark .weather-sky {
+  background: linear-gradient(160deg, rgba(59,130,246,0.16) 0%, rgba(59,130,246,0.05) 55%, transparent 100%);
+}
+.weather-cloud {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.9), rgba(255,255,255,0) 70%);
+  filter: blur(3px);
+  animation: weather-drift 16s ease-in-out infinite;
+}
+.dark .weather-cloud {
+  background: radial-gradient(ellipse, rgba(255,255,255,0.28), rgba(255,255,255,0) 70%);
+}
+.weather-cloud--a {
+  top: -10%;
+  left: -8%;
+  width: 9rem;
+  height: 3.2rem;
+  animation-delay: 0s;
+}
+.weather-cloud--b {
+  top: 28%;
+  right: -10%;
+  width: 7rem;
+  height: 2.6rem;
+  animation-delay: -8s;
+}
+@keyframes weather-drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(14px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .weather-cloud { animation: none; }
+}
+
 /* Ambient floating blobs behind the app shell */
 .liquid-blob {
   position: fixed;
   border-radius: 9999px;
-  filter: blur(70px);
+  filter: blur(60px);
   pointer-events: none;
   z-index: 0;
-  opacity: 0.55;
+  opacity: 0.65;
   animation: drift 22s ease-in-out infinite;
+}
+.dark .liquid-blob {
+  opacity: 0.18;
 }
 @keyframes drift {
   0%, 100% { transform: translate(0, 0) scale(1); }

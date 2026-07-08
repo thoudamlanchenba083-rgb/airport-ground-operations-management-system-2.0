@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 import { useAuth } from '../../context/AuthContext'
 
@@ -209,9 +209,9 @@ export default function BaggageTab() {
       )}
 
       {/* Table */}
-      <div className="glass rounded-2xl overflow-x-auto">
+      <div className="glass rounded-[26px] overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+          <thead className="bg-black/3 dark:bg-white/4 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
             <tr>
               <th className="px-4 py-3 text-left">Tag</th>
               <th className="px-4 py-3 text-left">Passenger</th>
@@ -225,7 +225,7 @@ export default function BaggageTab() {
             {filtered.length === 0 ? (
               <tr><td colSpan={6} className="text-center text-neutral-400 dark:text-neutral-500 py-6">No baggage found.</td></tr>
             ) : filtered.map(b => (
-              <tr key={b.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">
+              <tr key={b.id} className="hover:bg-black/2 dark:hover:bg-white/3">
                 <td className="px-4 py-3 font-semibold text-neutral-900 dark:text-white">{b.baggage_tag}</td>
                 <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">{b.passenger_name}</td>
                 <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">{b.weight} kg</td>

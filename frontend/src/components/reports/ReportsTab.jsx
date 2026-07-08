@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import axiosClient from '../../api/axiosClient'
 import DelayCausesCard from '../DelayCausesCard'
 
@@ -43,7 +43,7 @@ function SummaryView({ summary }) {
         <div key={key} className="overflow-x-auto">
           <p className="text-xs font-semibold text-neutral-600 dark:text-neutral-300 mb-1">{prettyLabel(key)}</p>
           <table className="min-w-full text-sm">
-            <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+            <thead className="bg-black/3 dark:bg-white/4 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
               <tr>
                 <th className="px-4 py-2 text-left">Category</th>
                 <th className="px-4 py-2 text-left">Count</th>
@@ -166,7 +166,7 @@ export default function ReportsTab() {
 
       {showForm && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="glass-strong rounded-2xl p-6 w-full max-w-lg">
+          <div className="glass-strong rounded-[26px] p-6 w-full max-w-lg">
             <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">Create Report</h4>
             <form onSubmit={handleSubmit} className="space-y-3">
               <input required placeholder="Report Title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />

@@ -1,9 +1,9 @@
-export default function PageHeader({ icon: Icon, chip = 'icon-chip-blue', title, subtitle, actions }) {
+﻿export default function PageHeader({ icon: Icon, chip = 'icon-chip-blue', title, subtitle, actions }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-3">
         {Icon && (
-          <div className={`icon-chip ${chip} !w-11 !h-11 !rounded-2xl`}>
+          <div className={`icon-chip ${chip} w-11! h-11! rounded-2xl!`}>
             <Icon size={20} strokeWidth={2.1} />
           </div>
         )}
