@@ -18,12 +18,13 @@ const navItems = [
   { to: '/staff',         label: 'Staff',        page: 'staff',         icon: Users },
   { to: '/notifications', label: 'Notifications',page: 'notifications', icon: Bell },
   { to: '/reports',       label: 'Reports',      page: 'reports',       icon: BarChart3 },
-  { to: '/chatbot',       label: 'AeroGround AI', page: 'chatbot',      icon: Sparkles },
   { to: '/analytics',     label: 'Analytics',    page: 'analytics',     icon: LineChart },
   { to: '/digital-twin', label: 'Digital Twin', page: 'digital-twin', icon: Radar },
   { to: '/heat-map', label: 'Heat Map', page: 'heat-map', icon: Flame },
   { to: '/equipment-health', label: 'Equipment Health', page: 'equipment-health', icon: HeartPulse },
 ]
+
+const aiNavItem = { to: '/chatbot', label: 'AeroGround AI', page: 'chatbot', icon: Sparkles }
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth()
@@ -48,6 +49,36 @@ export default function Layout({ children }) {
               <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Ops Management</p>
             </div>
           </div>
+
+          {canAccessPage(user, 'chatbot') && (
+            <div className="px-3 pt-1 pb-2 shrink-0">
+              <NavLink
+                to={aiNavItem.to}
+                className={({ isActive }) =>
+                  `group relative flex flex-col gap-2 px-3.5 py-3 rounded-[24px] overflow-hidden transition-all duration-300 border ${
+                    isActive
+                      ? 'border-white/70 shadow-lg shadow-sky-200/40'
+                      : 'border-white/40 dark:border-white/15 hover:shadow-lg hover:shadow-sky-200/30'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <div className={`absolute inset-0 bg-gradient-to-br from-white via-sky-50 to-white dark:from-white/15 dark:via-sky-200/10 dark:to-white/5 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`} />
+                    <div className="relative z-10 flex items-center gap-3">
+                      <div className="w-8! h-8! rounded-xl! flex items-center justify-center shrink-0 bg-sky-500/90 shadow-sm shadow-sky-500/30">
+                        <Sparkles size={16} className="text-white" strokeWidth={2.2} />
+                      </div>
+                      <span className="text-sm font-semibold text-neutral-800 dark:text-white">AeroGround AI</span>
+                    </div>
+                    <span className="relative z-10 self-start text-[9px] font-bold tracking-wide px-1.5 py-0.5 rounded-md bg-sky-500/15 text-sky-700 dark:text-sky-200">
+                      ASK ANYTHING
+                    </span>
+                  </>
+                )}
+              </NavLink>
+            </div>
+          )}
 
           <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-2 space-y-1">
             {visibleNavItems.map((item) => {
