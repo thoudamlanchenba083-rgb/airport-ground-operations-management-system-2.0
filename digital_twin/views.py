@@ -1,20 +1,32 @@
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from gates.models import Gate, GateAssignment
-from ground_equipment.models import GroundEquipment, EquipmentAssignment
-from turnaround.models import TurnaroundTask
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+from .simulation import simulate_gate_closure
 from gates.models import Gate, GateAssignment
 from ground_equipment.models import GroundEquipment, EquipmentAssignment
+from turnaround.models import TurnaroundTask
 
 
 class DigitalTwinView(APIView):
     """
     GET /api/digital-twin/snapshot/
 
-    Returns a live snapshot of the airport: every gate (with whichever
+    Returns a live snapshot of the airport: every gate (with whicheverfrom django.shortcuts import get_object_or_404
+from .simulation import simulate_gate_closure
+from gates.models import Gate
+from django.utils import timezone
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+from gates.models import Gate, GateAssignment
+from ground_equipment.models import GroundEquipment, EquipmentAssignment
+from turnaround.models import TurnaroundTask
     flight currently occupies it, if any) and every piece of ground
     equipment (with whichever flight/gate it is currently working, if any).
     The frontend uses this single payload to render the 2D live map.
@@ -53,7 +65,8 @@ class DigitalTwinView(APIView):
         }
 
         equipment_data = []
-        for eq in GroundEquipment.objects.select_related('equipment_type').all():
+        for eq in GroundEquipment.objects.select_related(
+                'equipment_type').all():
             active = (
                 EquipmentAssignment.objects
                 .filter(equipment=eq, released_at__isnull=True)
@@ -72,9 +85,11 @@ class DigitalTwinView(APIView):
 
         summary = {
             'total_gates': len(gates_data),
-            'occupied_gates': sum(1 for g in gates_data if g['flight']),
+            'occupied_gates': sum(
+                1 for g in gates_data if g['flight']),
             'total_equipment': len(equipment_data),
-            'equipment_in_use': sum(1 for e in equipment_data if e['status'] == 'in_use'),
+            'equipment_in_use': sum(
+                1 for e in equipment_data if e['status'] == 'in_use'),
         }
 
         return Response({
@@ -82,7 +97,8 @@ class DigitalTwinView(APIView):
             'equipment': equipment_data,
             'summary': summary,
         })
-    
+
+
 class GateHeatmapView(APIView):
     """
     GET /api/digital-twin/heatmap/
@@ -103,15 +119,19 @@ class GateHeatmapView(APIView):
         results = []
 
         for gate in Gate.objects.all().order_by('gate_number'):
-            todays_assignments = GateAssignment.objects.filter(gate=gate, assigned_at__date=today)
+            todays_assignments = GateAssignment.objects.filter(
+                gate=gate, assigned_at__date=today)
             assignments_count = todays_assignments.count()
-            flight_ids = list(todays_assignments.values_list('flight_id', flat=True))
+            flight_ids = list(
+                todays_assignments.values_list(
+                    'flight_id', flat=True))
 
             delayed_tasks_count = TurnaroundTask.objects.filter(
                 flight_id__in=flight_ids, status='DELAYED'
             ).count() if flight_ids else 0
 
-            is_occupied = GateAssignment.objects.filter(gate=gate, status='assigned').exists()
+            is_occupied = GateAssignment.objects.filter(
+                gate=gate, status='assigned').exists()
 
             score = 0
             if is_occupied:
@@ -122,7 +142,8 @@ class GateHeatmapView(APIView):
                 score = 100
             score = min(score, 100)
 
-            level = 'high' if score >= 66 else ('medium' if score >= 33 else 'low')
+            level = 'high' if score >= 66 else (
+                'medium' if score >= 33 else 'low')
 
             results.append({
                 'gate_number': gate.gate_number,
@@ -135,7 +156,8 @@ class GateHeatmapView(APIView):
                 'level': level,
             })
 
-        avg_score = round(sum(r['score'] for r in results) / len(results), 1) if results else 0
+        avg_score = round(sum(r['score'] for r in results) /
+                          len(results), 1) if results else 0
         busiest = max(results, key=lambda r: r['score']) if results else None
 
         return Response({
@@ -143,12 +165,6 @@ class GateHeatmapView(APIView):
             'average_score': avg_score,
             'busiest_gate': busiest['gate_number'] if busiest else None,
         })
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from gates.models import Gate
-from .simulation import simulate_gate_closure
 
 
 class WhatIfGateClosureView(APIView):

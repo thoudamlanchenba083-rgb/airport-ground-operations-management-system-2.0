@@ -11,11 +11,8 @@ import unittest
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
 
@@ -72,7 +69,8 @@ class LoginPageUITest(unittest.TestCase):
         """Submitting empty form should not redirect."""
         self.driver.get(f'{BASE_URL}/index.html')
         time.sleep(2)
-        btn = self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+        btn = self.driver.find_element(
+            By.CSS_SELECTOR, 'button[type="submit"]')
         btn.click()
         time.sleep(1)
         self.assertIn('index.html', self.driver.current_url)
@@ -87,14 +85,14 @@ class LoginPageUITest(unittest.TestCase):
                 inp.send_keys('wronguser')
             elif inp.get_attribute('type') == 'password':
                 inp.send_keys('wrongpass')
-        btn = self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+        btn = self.driver.find_element(
+            By.CSS_SELECTOR, 'button[type="submit"]')
         btn.click()
         time.sleep(3)
         body = self.driver.find_element(By.TAG_NAME, 'body').text
         self.assertTrue(
             'Invalid' in body or 'incorrect' in body.lower() or 'error' in body.lower(),
-            msg=f'Expected error message, got: {body[:200]}'
-        )
+            msg=f'Expected error message, got: {body[:200]}')
 
     def test_password_toggle_shows_password(self):
         """Eye icon should toggle password visibility."""
@@ -128,7 +126,7 @@ class LoginPageUITest(unittest.TestCase):
         self.driver.get(f'{BASE_URL}/index.html')
         time.sleep(2)
         links = self.driver.find_elements(By.TAG_NAME, 'a')
-        texts = [l.text.lower() for l in links]
+        texts = [link.text.lower() for link in links]
         self.assertTrue(any('home' in t or 'back' in t for t in texts))
 
 
@@ -169,18 +167,23 @@ class SignupPageUITest(unittest.TestCase):
         for select in selects:
             options = select.find_elements(By.TAG_NAME, 'option')
             values = [o.get_attribute('value') for o in options]
-            self.assertNotIn('ADMIN', values, 'ADMIN role should not be in signup dropdown')
+            self.assertNotIn(
+                'ADMIN',
+                values,
+                'ADMIN role should not be in signup dropdown')
 
     def test_signup_password_mismatch_shows_error(self):
         """Mismatched passwords should show an error."""
         self.driver.get(f'{BASE_URL}/signup.html')
         time.sleep(1)
         inputs = self.driver.find_elements(By.TAG_NAME, 'input')
-        pw_inputs = [i for i in inputs if i.get_attribute('type') == 'password']
+        pw_inputs = [
+            i for i in inputs if i.get_attribute('type') == 'password']
         if len(pw_inputs) >= 2:
             pw_inputs[0].send_keys('password123')
             pw_inputs[1].send_keys('different456')
-        btn = self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+        btn = self.driver.find_element(
+            By.CSS_SELECTOR, 'button[type="submit"]')
         btn.click()
         time.sleep(1)
         body = self.driver.find_element(By.TAG_NAME, 'body').text
@@ -194,7 +197,7 @@ class SignupPageUITest(unittest.TestCase):
         self.driver.get(f'{BASE_URL}/signup.html')
         time.sleep(1)
         links = self.driver.find_elements(By.TAG_NAME, 'a')
-        texts = [l.text.lower() for l in links]
+        texts = [link.text.lower() for link in links]
         self.assertTrue(any('login' in t or 'sign in' in t for t in texts))
 
 
