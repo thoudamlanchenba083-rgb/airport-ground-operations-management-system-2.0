@@ -94,7 +94,7 @@ function Sparkline({ seed = 0 }) {
 
 function StatCard({ icon: Icon, chip, label, value, accent, seed }) {
   return (
-    <div className="glass glass-interactive rounded-2xl p-5 flex flex-col gap-3">
+    <div className="glass glass-interactive rounded-[26px] p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className={`icon-chip ${chip}`}>
           <Icon strokeWidth={2.1} />
@@ -113,11 +113,11 @@ function StatCard({ icon: Icon, chip, label, value, accent, seed }) {
 
 function IntelPanel({ icon: Icon, chip, title, badge, badgeTone, decoration, children }) {
   return (
-    <div className={`glass rounded-2xl p-5 flex flex-col gap-3 ${decoration ? 'relative overflow-hidden' : ''}`}>
+    <div className={`glass rounded-[26px] p-5 flex flex-col gap-3 ${decoration ? 'relative overflow-hidden' : ''}`}>
       {decoration}
       <div className={`flex items-center justify-between gap-2 ${decoration ? 'relative z-10' : ''}`}>
         <div className="flex items-center gap-3 min-w-0">
-          <div className={`icon-chip ${chip} !w-10 !h-10 !rounded-xl`}>
+          <div className={`icon-chip ${chip} w-10! h-10! rounded-xl!`}>
             <Icon size={18} strokeWidth={2.1} />
           </div>
           <h3 className="font-semibold text-neutral-900 dark:text-white text-sm truncate">{title}</h3>
@@ -149,7 +149,7 @@ const CHART_COLORS = ['#3b82f6', '#a855f7', '#f59e0b', '#f43f5e', '#10b981', '#3
 
 function MiniChartCard({ title, children }) {
   return (
-    <div className="glass rounded-2xl p-5 flex flex-col gap-3">
+    <div className="glass rounded-[26px] p-5 flex flex-col gap-3">
       <h3 className="text-xs font-semibold tracking-wide text-neutral-500 dark:text-neutral-400 uppercase">{title}</h3>
       {children}
     </div>
@@ -295,6 +295,7 @@ export default function Dashboard() {
   const weather = intel?.weather_alerts
   const maintenance = intel?.maintenance_alerts
   const passengers = intel?.passenger_prediction
+  const ops = intel?.ops_snapshot
   const staff = intel?.staff_shortage
   const resources = intel?.resource_forecast
 
@@ -370,14 +371,14 @@ export default function Dashboard() {
           <button
             onClick={loadIntel}
             disabled={intelLoading}
-            className="glass glass-interactive flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-200 px-4 py-2.5 rounded-xl disabled:opacity-50"
+            className="glass-pill glass-interactive flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-200 px-4 py-2.5 disabled:opacity-50"
           >
             <RefreshCw size={16} className={intelLoading ? 'animate-spin' : ''} />
             {intelLoading ? 'Refreshing…' : 'Refresh AI Insights'}
           </button>
           <Link
             to="/flights"
-            className="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all"
+            className="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2.5 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all"
           >
             View All Flights <ArrowRight size={16} />
           </Link>
@@ -393,6 +394,26 @@ export default function Dashboard() {
         <StatCard
           icon={Target} chip="icon-chip-emerald" label="On-Time %" accent="text-emerald-500" seed={4}
           value={kpis?.on_time_pct != null ? `${kpis.on_time_pct}%` : 'N/A'}
+        />
+      </div>
+
+      {/* Live OCC-style operational counters - Phase 1 #4 Live Airport Dashboard */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          icon={Wrench} chip="icon-chip-indigo" label="Equipment Active" accent="text-indigo-500" seed={5}
+          value={ops ? `${ops.equipment_active}/${ops.equipment_total}` : undefined}
+        />
+        <StatCard
+          icon={Users} chip="icon-chip-sky" label="Ground Staff" accent="text-sky-500" seed={6}
+          value={ops?.staff_active}
+        />
+        <StatCard
+          icon={Gauge} chip="icon-chip-violet" label="Avg Turnaround" accent="text-violet-500" seed={7}
+          value={ops?.avg_turnaround_min != null ? `${ops.avg_turnaround_min} min` : 'N/A'}
+        />
+        <StatCard
+          icon={DoorOpen} chip="icon-chip-amber" label="Gate Occupancy" accent="text-amber-500" seed={8}
+          value={ops?.gate_occupancy_pct != null ? `${ops.gate_occupancy_pct}%` : 'N/A'}
         />
       </div>
 
@@ -539,7 +560,7 @@ export default function Dashboard() {
                   </div>
                   <div className="flex -space-x-2 shrink-0">
                     {['icon-chip-violet', 'icon-chip-blue', 'icon-chip-sky', 'icon-chip-indigo'].map((c, i) => (
-                      <div key={i} className={`icon-chip ${c} !w-9 !h-9 !rounded-full border-2 border-white/40 dark:border-black/30`}>
+                      <div key={i} className={`icon-chip ${c} w-9! h-9! rounded-full! border-2 border-white/40 dark:border-black/30`}>
                         <User size={15} />
                       </div>
                     ))}
@@ -650,10 +671,10 @@ export default function Dashboard() {
       </div>
 
       {/* Recent flights */}
-      <div className="glass rounded-2xl overflow-hidden">
+      <div className="glass rounded-[26px] overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-black/5 dark:border-white/5">
           <div className="flex items-center gap-3">
-            <div className="icon-chip icon-chip-blue !w-9 !h-9 !rounded-lg">
+            <div className="icon-chip icon-chip-blue w-9! h-9! rounded-lg!">
               <Plane size={16} />
             </div>
             <h3 className="font-semibold text-neutral-900 dark:text-white">Recent Flights</h3>
@@ -688,7 +709,7 @@ export default function Dashboard() {
                   <tr><td colSpan={isViewer ? 6 : 7} className="px-5 py-6 text-center text-neutral-400 dark:text-neutral-500">No flights available</td></tr>
                 )}
                 {recent.map((f) => (
-                  <tr key={f.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors">
+                  <tr key={f.id} className="hover:bg-black/2 dark:hover:bg-white/3 transition-colors">
                     <td className="px-5 py-3 font-mono font-semibold text-blue-600 dark:text-blue-400">{f.flight_number}</td>
                     <td className="px-5 py-3 text-neutral-900 dark:text-neutral-100">{f.airline_name || f.airline}</td>
                     <td className="px-5 py-3 text-neutral-600 dark:text-neutral-300">{f.origin || ''}</td>
@@ -756,29 +777,29 @@ export default function Dashboard() {
 
         {/* Quick counts across every module, at a glance */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-          <div className="glass glass-interactive rounded-2xl p-4 flex items-center gap-3">
-            <div className="icon-chip icon-chip-blue !w-11 !h-11 !rounded-xl"><Plane size={18} /></div>
+          <div className="glass glass-interactive rounded-[26px] p-4 flex items-center gap-3">
+            <div className="icon-chip icon-chip-blue w-11! h-11! rounded-xl!"><Plane size={18} /></div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Total Flights</p>
               <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{flights.length}</p>
             </div>
           </div>
-          <div className="glass glass-interactive rounded-2xl p-4 flex items-center gap-3">
-            <div className="icon-chip icon-chip-violet !w-11 !h-11 !rounded-xl"><DoorOpen size={18} /></div>
+          <div className="glass glass-interactive rounded-[26px] p-4 flex items-center gap-3">
+            <div className="icon-chip icon-chip-violet w-11! h-11! rounded-xl!"><DoorOpen size={18} /></div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Total Gates</p>
               <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? '—' : gates.length}</p>
             </div>
           </div>
-          <div className="glass glass-interactive rounded-2xl p-4 flex items-center gap-3">
-            <div className="icon-chip icon-chip-amber !w-11 !h-11 !rounded-xl"><Users size={18} /></div>
+          <div className="glass glass-interactive rounded-[26px] p-4 flex items-center gap-3">
+            <div className="icon-chip icon-chip-amber w-11! h-11! rounded-xl!"><Users size={18} /></div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Staff Members</p>
               <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? '—' : staffList.length}</p>
             </div>
           </div>
-          <div className="glass glass-interactive rounded-2xl p-4 flex items-center gap-3">
-            <div className="icon-chip icon-chip-rose !w-11 !h-11 !rounded-xl"><Wrench size={18} /></div>
+          <div className="glass glass-interactive rounded-[26px] p-4 flex items-center gap-3">
+            <div className="icon-chip icon-chip-rose w-11! h-11! rounded-xl!"><Wrench size={18} /></div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Maintenance Jobs</p>
               <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? '—' : maintenanceList.length}</p>
@@ -903,9 +924,9 @@ export default function Dashboard() {
             <Link
               key={item.to}
               to={item.to}
-              className="glass glass-interactive flex flex-col items-center justify-center gap-2 rounded-2xl py-5"
+              className="glass glass-interactive flex flex-col items-center justify-center gap-2 rounded-[26px] py-5"
             >
-              <div className={`icon-chip ${item.chip} !w-10 !h-10 !rounded-xl`}>
+              <div className={`icon-chip ${item.chip} w-10! h-10! rounded-xl!`}>
                 <Icon size={17} />
               </div>
               <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">{item.label}</span>

@@ -1,4 +1,4 @@
-import { HeartPulse, Gauge, Clock } from 'lucide-react'
+﻿import { HeartPulse, Gauge, Clock } from 'lucide-react'
 
 const RISK_META = {
   Low:    { badge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20', bar: 'bg-emerald-500' },
@@ -13,7 +13,7 @@ function MiniBar({ label, value, colorClass }) {
         <span className="text-xs text-neutral-500 dark:text-neutral-400">{label}</span>
         <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">{value}%</span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-black/[0.06] dark:bg-white/[0.08] overflow-hidden">
+      <div className="h-1.5 w-full rounded-full bg-black/6 dark:bg-white/8 overflow-hidden">
         <div
           className={`h-full rounded-full ${colorClass} transition-all duration-500`}
           style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
@@ -27,7 +27,7 @@ export default function EquipmentHealthCard({ item }) {
   const risk = RISK_META[item.risk] || RISK_META.Medium
 
   return (
-    <div className="glass glass-interactive rounded-2xl p-4 space-y-3">
+    <div className="glass glass-interactive rounded-[26px] p-4 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="font-semibold text-neutral-900 dark:text-white truncate">{item.equipment_id}</p>

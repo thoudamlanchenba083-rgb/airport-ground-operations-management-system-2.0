@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import {
   Search, Fuel, Truck, Zap, Package, Snowflake, UtensilsCrossed, Repeat,
   Wrench, CheckCircle2, AlertTriangle, XCircle, Gauge, RefreshCw,
@@ -60,8 +60,8 @@ function toLocalInput(iso) {
 
 function SummaryCard({ icon: Icon, chip, label, value }) {
   return (
-    <div className="glass glass-interactive rounded-2xl p-4 flex items-center gap-3">
-      <div className={`icon-chip ${chip} !w-11 !h-11 !rounded-xl`}>
+    <div className="glass glass-interactive rounded-[26px] p-4 flex items-center gap-3">
+      <div className={`icon-chip ${chip} w-11! h-11! rounded-xl!`}>
         <Icon size={18} strokeWidth={2.1} />
       </div>
       <div className="min-w-0">
@@ -77,7 +77,7 @@ function RowSkeleton() {
     <tr className="border-b border-black/5 dark:border-white/5">
       {Array.from({ length: 5 }).map((_, i) => (
         <td key={i} className="px-4 py-3.5">
-          <div className="h-3.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] animate-pulse" style={{ width: `${50 + (i * 7) % 40}%` }} />
+          <div className="h-3.5 rounded-full bg-black/6 dark:bg-white/8 animate-pulse" style={{ width: `${50 + (i * 7) % 40}%` }} />
         </td>
       ))}
     </tr>
@@ -222,7 +222,7 @@ export default function EquipmentTab() {
       </div>
 
       {/* Filters */}
-      <div className="glass rounded-2xl p-3 flex flex-col sm:flex-row gap-3 sm:items-center">
+      <div className="glass rounded-[26px] p-3 flex flex-col sm:flex-row gap-3 sm:items-center">
         <div className="relative flex-1 min-w-45">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500" />
           <input
@@ -265,11 +265,11 @@ export default function EquipmentTab() {
       </div>
 
       {/* Table */}
-      <div className="glass rounded-2xl overflow-hidden">
+      <div className="glass rounded-[26px] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+              <tr className="bg-black/3 dark:bg-white/4 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
                 <th className="px-4 py-3 font-medium">Equipment</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Location</th>
@@ -294,10 +294,10 @@ export default function EquipmentTab() {
                 const Icon = meta.icon
                 const status = STATUS_META[item.status] || STATUS_META.available
                 return (
-                  <tr key={item.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors">
+                  <tr key={item.id} className="hover:bg-black/2 dark:hover:bg-white/3 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className={`icon-chip ${meta.chip} !w-9 !h-9 !rounded-lg shrink-0`}>
+                        <div className={`icon-chip ${meta.chip} w-9! h-9! rounded-lg! shrink-0`}>
                           <Icon size={15} />
                         </div>
                         <div className="min-w-0">
@@ -369,7 +369,7 @@ export default function EquipmentTab() {
       {/* Add / Edit modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-strong w-full max-w-md rounded-2xl p-5">
+          <div className="glass-strong w-full max-w-md rounded-[26px] p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-neutral-900 dark:text-white text-base">
                 {editing ? `Edit Equipment — ${editing.equipment_id}` : 'Add Equipment'}

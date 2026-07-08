@@ -52,7 +52,7 @@ export default function DelayCausesCard({ days } = {}) {
   }
 
   return (
-    <div className="glass rounded-2xl p-5 flex flex-col gap-3">
+    <div className="glass rounded-[26px] p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-semibold tracking-wide text-neutral-500 dark:text-neutral-400 uppercase flex items-center gap-2">
           <AlertTriangle size={14} className="text-amber-500" />

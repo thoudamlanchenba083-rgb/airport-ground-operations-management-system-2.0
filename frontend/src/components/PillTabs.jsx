@@ -1,6 +1,6 @@
 export default function PillTabs({ tabs, active, onChange }) {
   return (
-    <div className="glass inline-flex items-center gap-1 rounded-2xl p-1.5 flex-wrap">
+    <div className="glass inline-flex items-center gap-1 rounded-[26px] p-1.5 flex-wrap">
       {tabs.map((tab) => {
         const Icon = tab.icon
         const isActive = active === tab.key

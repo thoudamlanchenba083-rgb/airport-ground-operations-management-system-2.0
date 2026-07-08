@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import axiosClient from '../../api/axiosClient'
 
 export default function StaffTab() {
@@ -75,7 +75,7 @@ export default function StaffTab() {
 
       {showForm && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="glass-strong rounded-2xl p-6 w-full max-w-md">
+          <div className="glass-strong rounded-[26px] p-6 w-full max-w-md">
             <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">{editItem ? 'Edit Staff' : 'Add Staff'}</h4>
             <form onSubmit={handleSubmit} className="space-y-3">
               <input required placeholder="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
@@ -98,9 +98,9 @@ export default function StaffTab() {
         </div>
       )}
 
-      <div className="glass rounded-2xl overflow-x-auto">
+      <div className="glass rounded-[26px] overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+          <thead className="bg-black/3 dark:bg-white/4 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
             <tr>
               <th className="px-4 py-2 text-left">Name</th>
               <th className="px-4 py-2 text-left">Employee ID</th>
@@ -116,7 +116,7 @@ export default function StaffTab() {
               <tr><td colSpan={7} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">No staff members found.</td></tr>
             )}
             {staff.map(s => (
-              <tr key={s.id} className="border-t border-black/5 dark:border-white/5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] text-neutral-800 dark:text-neutral-200">
+              <tr key={s.id} className="border-t border-black/5 dark:border-white/5 hover:bg-black/2 dark:hover:bg-white/3 text-neutral-800 dark:text-neutral-200">
                 <td className="px-4 py-2 font-medium text-neutral-900 dark:text-white">{s.name}</td>
                 <td className="px-4 py-2">{s.employee_id}</td>
                 <td className="px-4 py-2">{STAFF_TYPES.find(t => t.value === s.staff_type)?.label ?? s.staff_type}</td>

@@ -13,7 +13,7 @@ const COLORS = ['#3b82f6', '#a855f7', '#f59e0b', '#f43f5e', '#10b981', '#38bdf8'
 
 function ChartCard({ title, badge, children }) {
   return (
-    <div className="glass rounded-2xl p-6 flex flex-col gap-4">
+    <div className="glass rounded-[26px] p-6 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h3 className="text-neutral-900 dark:text-white text-sm font-semibold tracking-wide">{title}</h3>
         {badge && (
@@ -29,7 +29,7 @@ function ChartCard({ title, badge, children }) {
 
 function StatPill({ icon: Icon, chip, label, value }) {
   return (
-    <div className="glass glass-interactive rounded-2xl px-5 py-5 flex items-center gap-4">
+    <div className="glass glass-interactive rounded-[26px] px-5 py-5 flex items-center gap-4">
       <div className={`icon-chip ${chip}`}>
         <Icon size={20} strokeWidth={2.1} />
       </div>
@@ -165,7 +165,7 @@ export default function Analytics() {
       </div>
 
       {loading ? (
-        <div className="glass rounded-2xl p-10 text-center text-neutral-500 dark:text-neutral-400 text-sm animate-pulse">
+        <div className="glass rounded-[26px] p-10 text-center text-neutral-500 dark:text-neutral-400 text-sm animate-pulse">
           Loading analytics…
         </div>
       ) : (

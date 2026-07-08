@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 import { useAuth } from '../../context/AuthContext'
 
@@ -155,7 +155,7 @@ export default function FlightsTab() {
 
       {/* Add form */}
       {showForm && (
-        <form onSubmit={handleAdd} className="glass rounded-2xl p-5">
+        <form onSubmit={handleAdd} className="glass rounded-[26px] p-5">
           <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-4">New Flight</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
             <div>
@@ -213,10 +213,10 @@ export default function FlightsTab() {
       {error   && <p className="text-sm text-red-500">{error}</p>}
 
       {!loading && !error && (
-        <div className="glass rounded-2xl overflow-hidden">
+        <div className="glass rounded-[26px] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-black/[0.03] dark:bg-white/[0.04] text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
+              <thead className="bg-black/3 dark:bg-white/4 text-neutral-500 dark:text-neutral-400 uppercase text-xs tracking-wide">
                 <tr>
                   <th className="px-5 py-3">Flight No.</th>
                   <th className="px-5 py-3">Airline</th>
@@ -232,7 +232,7 @@ export default function FlightsTab() {
                   <tr><td colSpan="7" className="px-5 py-6 text-center text-neutral-400 dark:text-neutral-500">No flights found</td></tr>
                 )}
                 {filtered.map(f => (
-                  <tr key={f.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition">
+                  <tr key={f.id} className="hover:bg-black/2 dark:hover:bg-white/3 transition">
                     <td className="px-5 py-3 font-mono font-semibold text-blue-700">{f.flight_number}</td>
                     <td className="px-5 py-3 text-neutral-900 dark:text-neutral-100">{f.airline_name || f.airline}</td>
                     <td className="px-5 py-3 text-neutral-600 dark:text-neutral-300">{f.origin} → {f.destination}</td>
