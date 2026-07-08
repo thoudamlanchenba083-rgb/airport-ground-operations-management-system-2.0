@@ -31,7 +31,7 @@ except Exception:
     Equipment = None
 
 
-FLIGHT_NUMBER_RE = re.compile(r'\b([A-Z]{1,3}\d{2,5})\b', re.IGNORECASE)
+FLIGHT_NUMBER_RE = re.compile(r'\b([A-Z]{1,6}\d{2,5})\b', re.IGNORECASE)
 GATE_NUMBER_RE = re.compile(r'\bgate\s*([A-Z]?\d{1,3})\b', re.IGNORECASE)
 
 INTENTS = {
@@ -251,6 +251,65 @@ def _extract_route(text_lower):
     return None, None
 
 
+def _explain_flight_delay(flight):
+    """Real (non-ML) delay explanation, using actual recorded turnaround
+    task delay reasons - what answers 'why is AI204 delayed'."""
+    delayed_tasks = list(flight.turnaround_tasks.filter(status='DELAYED').order_by('scheduled_time'))
+    if not delayed_tasks:
+        return (
+            f"Flight {flight.flight_number} has no delayed turnaround tasks recorded — "
+            f"it's currently on schedule for {flight.departure_time.strftime('%d %b %Y, %H:%M')}."
+        )
+    lines = [f"- {t.get_task_type_display()}: {t.get_delay_reason_display()}" for t in delayed_tasks]
+    estimated_delay = len(delayed_tasks) * 15
+    new_eta = flight.departure_time + timedelta(minutes=estimated_delay)
+    return (
+        f"Flight {flight.flight_number} is delayed. Causes:\n"
+        + "\n".join(lines)
+        + f"\n\nNew expected departure: {new_eta.strftime('%d %b %Y, %H:%M')} "
+        + f"(+{estimated_delay} min vs scheduled {flight.departure_time.strftime('%H:%M')})"
+    )
+
+
+def _explain_gate_congestion(gate):
+    """Live congestion explanation for a gate - same scoring as the Heat Map page."""
+    from gates.models import GateAssignment
+    from turnaround.models import TurnaroundTask
+    today = timezone.now().date()
+    todays_assignments = GateAssignment.objects.filter(gate=gate, assigned_at__date=today)
+    assignments_count = todays_assignments.count()
+    flight_ids = list(todays_assignments.values_list('flight_id', flat=True))
+    delayed_tasks_count = TurnaroundTask.objects.filter(
+        flight_id__in=flight_ids, status='DELAYED'
+    ).count() if flight_ids else 0
+    is_occupied = GateAssignment.objects.filter(gate=gate, status='assigned').exists()
+
+    score = 0
+    if is_occupied:
+        score += 30
+    score += min(assignments_count * 15, 45)
+    score += min(delayed_tasks_count * 10, 40)
+    if gate.is_under_maintenance:
+        score = 100
+    score = min(score, 100)
+    level = 'high' if score >= 66 else ('medium' if score >= 33 else 'low')
+
+    reasons = []
+    if gate.is_under_maintenance:
+        reasons.append("under maintenance")
+    if is_occupied:
+        reasons.append("currently occupied by a flight")
+    if assignments_count:
+        reasons.append(f"handled {assignments_count} flight(s) today")
+    if delayed_tasks_count:
+        reasons.append(f"{delayed_tasks_count} delayed turnaround task(s) today")
+
+    return (
+        f"Gate {gate.gate_number} congestion: {score}% ({level})\n"
+        + ("Why: " + ", ".join(reasons) if reasons else "No notable activity today.")
+    )
+
+
 def _check_schedule(text, text_lower):
     """
     Answers "is there a flight at this time" style questions by looking at
@@ -434,6 +493,14 @@ class ChatbotEngine:
                 return f"(Still talking about {flight.flight_number}) {answer}"
             return answer
 
+        # "Why" phrasing gets the real explanation instead of the generic
+        # ML risk-score answer or gate-availability answer.
+        if flight and 'why' in text_lower and any(k in text_lower for k in ['delay', 'late']):
+            return note(_explain_flight_delay(flight))
+
+        if gate and 'why' in text_lower and any(k in text_lower for k in ['congest', 'busy', 'crowded']):
+            return _explain_gate_congestion(gate)
+
         if intent == 'greeting':
             return f"Hello{' ' + user.first_name if user and user.first_name else ''}! I can check flight status, delays, gate availability, maintenance alerts, and staffing. What do you need?"
 
@@ -442,8 +509,10 @@ class ChatbotEngine:
                 "I can help with:\n"
                 "- Flight status (e.g. \"what's the status of AI202\")\n"
                 "- Delay predictions (e.g. \"is AI202 going to be delayed\")\n"
+                "- Why a flight is delayed (e.g. \"why is AI202 delayed\")\n"
                 "- Gate info and recommendations (e.g. \"which gate is AI202 at\")\n"
                 "- Available gates (e.g. \"show available gates\")\n"
+                "- Why a gate is congested (e.g. \"why is gate A1 busy\")\n"
                 "- Maintenance alerts\n"
                 "- Staffing requirements"
             )

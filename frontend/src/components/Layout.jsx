@@ -1,7 +1,7 @@
 ﻿import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, PlaneTakeoff, DoorOpen, Package, Wrench,
-  Settings2, Users, Bell, BarChart3, Sparkles, LineChart, LogOut,
+  Settings2, Users, Bell, BarChart3, Sparkles, LineChart, LogOut, Radar, Flame, HeartPulse,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { canAccessPage } from '../utils/roleAccess'
@@ -20,6 +20,9 @@ const navItems = [
   { to: '/reports',       label: 'Reports',      page: 'reports',       icon: BarChart3 },
   { to: '/chatbot',       label: 'AeroGround AI', page: 'chatbot',      icon: Sparkles },
   { to: '/analytics',     label: 'Analytics',    page: 'analytics',     icon: LineChart },
+  { to: '/digital-twin', label: 'Digital Twin', page: 'digital-twin', icon: Radar },
+  { to: '/heat-map', label: 'Heat Map', page: 'heat-map', icon: Flame },
+  { to: '/equipment-health', label: 'Equipment Health', page: 'equipment-health', icon: HeartPulse },
 ]
 
 export default function Layout({ children }) {
