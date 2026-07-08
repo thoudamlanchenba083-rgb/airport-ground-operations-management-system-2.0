@@ -66,6 +66,9 @@ def _ops_snapshot():
                 durations.append(minutes)
     avg_turnaround_min = round(sum(durations) / len(durations), 1) if durations else None
 
+    from incident_management.models import Incident
+    incidents_open = Incident.objects.filter(status__in=['REPORTED', 'INVESTIGATING']).count()
+
     return {
         'equipment_active': equipment_active,
         'equipment_total': equipment_total,
@@ -75,8 +78,8 @@ def _ops_snapshot():
         'gates_total': gates_total,
         'avg_turnaround_min': avg_turnaround_min,
         'turnarounds_analyzed': len(durations),
+        'incidents_open': incidents_open,
     }
-
 # Cap on how many flights we run the per-flight ML forecasts (delay,
 # weather, passenger rush) against, to keep a dashboard load fast.
 MAX_FLIGHTS_FOR_FORECAST = 15
@@ -233,7 +236,48 @@ def _maintenance_alerts():
             for r in urgent
         ],
     }
+def _live_ticker(limit=8):
+    """
+    Operations Control Center - live status ticker: currently active
+    flights and whatever is blocking/occupying them right now, e.g.
+    "AI204 - Fuel delayed", "6E322 - Boarding".
+    """
+    from flights.models import Flight
+    from turnaround.models import TurnaroundTask
 
+    ACTIVE_STATUSES = [
+        'GATE_ASSIGNED', 'CREW_ASSIGNED', 'FUELING', 'CLEANING',
+        'MAINTENANCE_CHECK', 'BAGGAGE_LOADING', 'BOARDING', 'GATE_CLOSED',
+        'PUSHBACK', 'TAXIING',
+    ]
+    flights = (
+        Flight.objects
+        .filter(status__in=ACTIVE_STATUSES)
+        .order_by('-updated_at')[:limit]
+    )
+
+    entries = []
+    for flight in flights:
+        task = (
+            TurnaroundTask.objects.filter(flight=flight, status='DELAYED').order_by('scheduled_time').first()
+            or TurnaroundTask.objects.filter(flight=flight, status='IN_PROGRESS').order_by('scheduled_time').first()
+            or TurnaroundTask.objects.filter(flight=flight, status='PENDING').order_by('scheduled_time').first()
+        )
+        if task and task.status == 'DELAYED':
+            label = f"{task.get_task_type_display()} delayed"
+        elif task and task.status == 'IN_PROGRESS':
+            label = task.get_task_type_display()
+        elif task and task.status == 'PENDING' and task.assigned_equipment is None:
+            label = f"Waiting {task.get_task_type_display()}"
+        else:
+            label = flight.get_status_display()
+
+        entries.append({
+            'flight_number': flight.flight_number,
+            'status_label': label,
+            'is_delayed': bool(task and task.status == 'DELAYED'),
+        })
+    return entries
 
 def _passenger_prediction(todays_flights):
     sample = todays_flights[:MAX_FLIGHTS_FOR_FORECAST]
@@ -318,13 +362,23 @@ def _compute_dashboard_intelligence():
         if 'forecast' in r.lower() or 'shortage' in r.lower()
     ]
 
+    delay_forecast = _delay_forecast(upcoming_sample)
+    weather_alerts = _weather_alerts(upcoming_sample)
+    maintenance_alerts = _maintenance_alerts()
+
     payload = {
         'generated_at': timezone.now().isoformat(),
         'live_kpis': _live_kpis(todays),
         'ops_snapshot': _ops_snapshot(),
-        'delay_forecast': _delay_forecast(upcoming_sample),
-        'weather_alerts': _weather_alerts(upcoming_sample),
-        'maintenance_alerts': _maintenance_alerts(),
+        'delay_forecast': delay_forecast,
+        'weather_alerts': weather_alerts,
+        'maintenance_alerts': maintenance_alerts,
+        'ai_alerts_count': (
+            delay_forecast['high_risk_count']
+            + weather_alerts['high_risk_count']
+            + maintenance_alerts['high_priority_count']
+        ),
+        'live_ticker': _live_ticker(),
         'passenger_prediction': _passenger_prediction(todays),
         'staff_shortage': {
             'recommendations': staff_recommendations,
