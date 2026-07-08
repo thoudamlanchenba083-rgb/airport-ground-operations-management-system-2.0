@@ -116,11 +116,12 @@ export default function Signup() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username */}
             <div>
-              <label className="block text-sm text-neutral-300 mb-1.5 font-medium">Username</label>
+              <label htmlFor="signup-username" className="block text-sm text-neutral-300 mb-1.5 font-medium">Username</label>
               <div className="relative">
                 <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="text"
+                  id="signup-username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Choose a username"
@@ -132,11 +133,12 @@ export default function Signup() {
 
             {/* Email */}
             <div>
-              <label className="block text-sm text-neutral-300 mb-1.5 font-medium">Email</label>
+              <label htmlFor="signup-email" className="block text-sm text-neutral-300 mb-1.5 font-medium">Email</label>
               <div className="relative">
                 <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="email"
+                  id="signup-email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
@@ -148,11 +150,12 @@ export default function Signup() {
 
             {/* Phone */}
             <div>
-              <label className="block text-sm text-neutral-300 mb-1.5 font-medium">Phone (Optional)</label>
+              <label htmlFor="signup-phone" className="block text-sm text-neutral-300 mb-1.5 font-medium">Phone (Optional)</label>
               <div className="relative">
                 <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="text"
+                  id="signup-phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Optional"
@@ -164,11 +167,12 @@ export default function Signup() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm text-neutral-300 mb-1.5 font-medium">Password</label>
+              <label htmlFor="signup-password" className="block text-sm text-neutral-300 mb-1.5 font-medium">Password</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type={showPw ? 'text' : 'password'}
+                  id="signup-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 8 characters"
@@ -188,11 +192,12 @@ export default function Signup() {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm text-neutral-300 mb-1.5 font-medium">Confirm Password</label>
+              <label htmlFor="signup-confirm-password" className="block text-sm text-neutral-300 mb-1.5 font-medium">Confirm Password</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type={showConfirmPw ? 'text' : 'password'}
+                  id="signup-confirm-password"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   placeholder="Re-enter password"

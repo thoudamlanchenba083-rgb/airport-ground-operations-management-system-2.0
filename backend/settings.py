@@ -11,10 +11,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # throttled by the same 5/min login limit real users face.
 TESTING = 'test' in sys.argv or 'pytest' in sys.modules
 
-# Actually disable rate-limiting during test runs so test suites that don't
+# Disable rate-limiting during test runs by default so test suites that don't
 # add their own @override_settings(RATELIMIT_ENABLE=False) (e.g. ground_equipment)
 # don't get throttled by the real 5/min login limit and fail with KeyError('access').
-RATELIMIT_ENABLE = not TESTING
+# Still respects an explicit RATELIMIT_ENABLE env var when one is set (e.g. for
+# load-testing runserver locally with rate limiting deliberately turned off).
+RATELIMIT_ENABLE = config('RATELIMIT_ENABLE', default=str(not TESTING), cast=bool)
 
 SECRET_KEY = config('SECRET_KEY')
 
@@ -57,9 +59,10 @@ INSTALLED_APPS = [
 
 ]
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -115,6 +118,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'frontend')]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

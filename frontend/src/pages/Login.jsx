@@ -94,11 +94,12 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username */}
             <div>
-              <label className="block text-sm text-neutral-300 mb-1.5 font-medium">Username</label>
+              <label htmlFor="login-username" className="block text-sm text-neutral-300 mb-1.5 font-medium">Username</label>
               <div className="relative">
                 <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="text"
+                  id="login-username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
@@ -110,11 +111,12 @@ export default function Login() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm text-neutral-300 mb-1.5 font-medium">Password</label>
+              <label htmlFor="login-password" className="block text-sm text-neutral-300 mb-1.5 font-medium">Password</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type={showPw ? 'text' : 'password'}
+                  id="login-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"

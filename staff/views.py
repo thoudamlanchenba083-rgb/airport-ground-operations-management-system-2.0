@@ -10,6 +10,7 @@ from .serializers import StaffSerializer, ShiftSerializer, ScheduleSerializer, S
 from core_app.utils import log_action
 from core_app.permissions import IsHR, HasRole
 from core_app.business_rules import BusinessRuleValidator
+from .services import StaffAssignmentService, StaffAssignmentError
 from flights.models import Flight
 
 
@@ -58,8 +59,6 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         log_action(self.request.user, 'DELETE', 'Schedule', instance.id, f'Deleted schedule {instance.id}', self.request)
         instance.delete()
-
-
 class StaffAssignmentViewSet(viewsets.ModelViewSet):
     """
     Links a Staff member to a Flight — this is the record
@@ -96,12 +95,6 @@ class StaffAssignmentViewSet(viewsets.ModelViewSet):
         """
         POST /api/staff/staff-assignments/auto-assign/
         Body: { "flight": <flight_id>, "staff_type": "GROUND", "turnaround_task": <optional task id> }
-
-        AI Conflict Detection (Phase 2 #3) for staff: picks the first
-        active staff member of the requested type with no overlapping
-        StaffAssignment for this flight's time window, creates the
-        StaffAssignment, and (if turnaround_task is passed) links it to
-        that task's assigned_staff field too.
         """
         flight_id = request.data.get('flight')
         staff_type = request.data.get('staff_type', 'GROUND')
@@ -115,48 +108,19 @@ class StaffAssignmentViewSet(viewsets.ModelViewSet):
         except Flight.DoesNotExist:
             return Response({'error': 'Flight not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        candidates = Staff.objects.filter(staff_type=staff_type, is_active=True).order_by('employee_id')
-        if not candidates.exists():
+        try:
+            result = StaffAssignmentService.auto_assign(flight, staff_type, turnaround_task_id)
+        except StaffAssignmentError as e:
             return Response(
-                {'error': f'No active staff of type "{staff_type}" exist.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        chosen = None
-        reasons_tried = []
-        for staff in candidates:
-            ok, reason = BusinessRuleValidator.can_assign_staff_to_flight(staff, flight)
-            if ok:
-                chosen = staff
-                break
-            reasons_tried.append(f'{staff.name}: {reason}')
-
-        if chosen is None:
-            return Response(
-                {
-                    'error': f'All available {staff_type} staff have a scheduling conflict with this flight.',
-                    'checked': reasons_tried,
-                },
+                {'error': e.message, 'checked': e.details},
                 status=status.HTTP_409_CONFLICT
             )
 
-        instance = StaffAssignment.objects.create(staff=chosen, flight=flight)
-        log_action(request.user, 'CREATE', 'StaffAssignment', instance.id,
-                   f'Auto-assigned {chosen.name} to flight {flight.flight_number}', request)
-
-        task_updated = None
-        if turnaround_task_id:
-            from turnaround.models import TurnaroundTask
-            try:
-                task = TurnaroundTask.objects.get(id=turnaround_task_id, flight=flight)
-                task.assigned_staff = chosen
-                task.save()
-                task_updated = task.id
-            except TurnaroundTask.DoesNotExist:
-                pass
+        log_action(request.user, 'CREATE', 'StaffAssignment', result['assignment'].id,
+                   f"Auto-assigned {result['staff'].name} to flight {flight.flight_number}", request)
 
         return Response({
-            'assignment_id': instance.id,
-            'assigned_staff': StaffSerializer(chosen).data,
-            'turnaround_task_updated': task_updated,
+            'assignment_id': result['assignment'].id,
+            'assigned_staff': StaffSerializer(result['staff']).data,
+            'turnaround_task_updated': result['task_updated'],
         })

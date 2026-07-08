@@ -6,6 +6,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Airline, Aircraft, Flight, FlightWorkflowStep
 from .serializers import AirlineSerializer, AircraftSerializer, FlightSerializer, FlightWorkflowStepSerializer
+from .services import FlightWorkflowService, FlightWorkflowError
 from core_app.utils import log_action
 from core_app.permissions import IsAdminUser, IsAuthenticatedReadOnly
 
@@ -77,114 +78,10 @@ class FlightViewSet(viewsets.ModelViewSet):
         step = request.data.get('step')
         notes = request.data.get('notes', '')
 
-        valid_steps = dict(FlightWorkflowStep.STEP_CHOICES).keys()
-        if step not in valid_steps:
-            return Response({'error': f'Invalid step "{step}".'}, status=status.HTTP_400_BAD_REQUEST)
-
-        order = Flight.WORKFLOW_ORDER
         try:
-            current_idx = order.index(flight.status)
-        except ValueError:
-            current_idx = -1
-        try:
-            target_idx = order.index(step)
-        except ValueError:
-            return Response({'error': f'"{step}" is not part of the normal workflow.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Rule: cannot skip steps - must advance exactly one step at a time
-        if target_idx != current_idx + 1:
-            return Response(
-                {'error': f'Cannot jump to "{step}" from "{flight.status}". Steps must be completed in order.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Rule: cannot assign the same gate to two active flights
-        if step == 'GATE_ASSIGNED':
-            from gates.models import GateAssignment
-            existing = GateAssignment.objects.filter(flight=flight).first()
-            if existing:
-                conflict = GateAssignment.objects.filter(
-                    gate=existing.gate
-                ).exclude(flight=flight).filter(
-                    flight__status__in=[s for s in order if s != 'DEPARTED']
-                ).exists()
-                if conflict:
-                    return Response(
-                        {'error': f'Gate {existing.gate.gate_number} is already assigned to another active flight.'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-
-        # Rule: cannot mark maintenance check complete before inspection is approved/resolved
-        if step == 'MAINTENANCE_CHECK':
-            from maintenance.models import MaintenanceRequest
-            open_issues = MaintenanceRequest.objects.filter(
-                aircraft=flight.aircraft
-            ).exclude(status__in=['RESOLVED', 'CLOSED', 'REJECTED']).exists()
-            if open_issues:
-                return Response(
-                    {'error': 'Aircraft has unresolved maintenance requests. Cannot pass maintenance check.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-        # Rule: cannot start boarding before baggage loading is complete
-        if step == 'BOARDING':
-            from baggage.models import Baggage, BaggageTracking
-            bags = Baggage.objects.filter(flight=flight)
-            for bag in bags:
-                latest = bag.tracking_history.first()
-                if not latest or latest.status not in ['LOADED', 'IN_TRANSIT']:
-                    return Response(
-                        {'error': f'Baggage {bag.baggage_tag} is not yet loaded. Cannot start boarding.'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-
-            # Rule: in bad weather, the safe baggage weight limit shrinks
-            # (mirrors real reduced-payload restrictions). Block boarding
-            # if the actual load is over that weather-adjusted limit.
-            from ai_module.ml.predictor import predict_baggage_weight_risk
-            try:
-                weight_result, _ = predict_baggage_weight_risk(flight)
-                if weight_result['action_required']:
-                    return Response(
-                        {'error': (
-                            f"Cannot start boarding: total baggage weight "
-                            f"({weight_result['total_baggage_kg']}kg) exceeds the weather-adjusted "
-                            f"safe limit ({weight_result['safe_limit_kg']}kg) due to "
-                            f"{weight_result['weather_risk_level'].lower()}-risk weather "
-                            f"({weight_result['weather_conditions']}). "
-                            f"Reduce baggage by {weight_result['over_limit_by_kg']}kg before boarding."
-                        )},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-            except Exception:
-                # Don't block boarding if the weather/weight check itself fails
-                # (e.g. models not trained yet) - fail open, not closed.
-                pass
-
-        # Rule: cannot close gate before boarding has started
-        if step == 'GATE_CLOSED' and flight.status != 'BOARDING':
-            return Response(
-                {'error': 'Gate cannot be closed before boarding is complete.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Rule: cannot depart (takeoff) before gate is closed
-        if step == 'DEPARTED' and current_idx + 1 != order.index('DEPARTED'):
-            return Response(
-                {'error': 'Flight cannot depart before all ground operations steps are complete.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        FlightWorkflowStep.objects.update_or_create(
-            flight=flight,
-            step=step,
-            defaults={
-                'completed_by': request.user if request.user.is_authenticated else None,
-                'notes': notes,
-            }
-        )
-        flight.status = step
-        flight.save(update_fields=['status', 'updated_at'])
+            flight = FlightWorkflowService.advance_step(flight, step, notes, request.user)
+        except FlightWorkflowError as e:
+            return Response({'error': e.message}, status=status.HTTP_400_BAD_REQUEST)
 
         log_action(request.user, 'UPDATE', 'Flight', flight.id,
                    f'Advanced flight {flight.flight_number} to step {step}', request)

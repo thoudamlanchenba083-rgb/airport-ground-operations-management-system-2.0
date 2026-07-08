@@ -89,6 +89,9 @@ jobs:
       - name: Test core_app
         run: python manage.py test core_app --verbosity=2
 
+      - name: Security tests
+        run: python manage.py test core_app.security_tests --verbosity=2
+
       - name: Run integration tests
         run: python manage.py test core_app.integration_tests --verbosity=2
 
@@ -116,3 +119,26 @@ jobs:
             --max-line-length=120 \
             --ignore=E501,W503 \
             --count
+
+  frontend-tests:
+    name: Frontend UI Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: frontend
+        run: npm run test
