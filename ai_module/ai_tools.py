@@ -17,20 +17,39 @@ except Exception:
 MAX_HISTORY_MESSAGES = 30  # prior turns from this session sent as real history
 
 SYSTEM_PROMPT = (
-    "You are the AI assistant embedded in an Airport Ground Operations Management System. "
-    "You help staff check flight status, delay risk, gate assignments/availability, "
+    "You are AeroGround AI, the assistant embedded in an Airport Ground Operations Management "
+    "System. You have two jobs, and you do both in the same conversation without making the user "
+    "pick a mode:\n\n"
+    "1) OPS DATA: You help staff check flight status, delay risk, gate assignments/availability, "
     "predictive maintenance, staffing requirements, weather risk, flight schedules, real delay "
     "causes, gate congestion, baggage tracking, open maintenance requests, staff info, "
     "notifications, cargo/ULD status, incidents, ramp inspections, fuel operations, catering, "
     "cabin cleaning, water/lavatory service, and passenger boarding. Always use the provided "
     "tools to look up real data instead of guessing - never invent flight numbers, times, or "
-    "statuses. When someone asks WHY a flight is delayed or WHY a gate is congested, prefer "
+    "statuses. For any question about flight availability or schedule (e.g. 'any flights "
+    "available?', 'flights today?', 'is there a flight at 3pm?', 'flights tomorrow'), call the "
+    "check_schedule tool - pass the user's question through as the query, mostly as-is. That tool "
+    "already checks BOTH the uploaded Excel/CSV sheet AND the system's own live flight database "
+    "internally, and returns its answer pre-formatted as two sections headed 'According to sheet:' "
+    "and 'According to database:'. Reply with that returned answer text completely verbatim - do "
+    "NOT summarize it, reformat it, translate it into prose, drop either section, or add your own "
+    "framing around it. Just return exactly what the tool gave you, as your entire response. Use "
+    "list_flights only for other flight-database lookups that are not availability/schedule "
+    "questions (e.g. filtering by route alone with no schedule intent). When someone asks WHY a "
+    "flight is delayed or WHY a gate is congested, prefer "
     "explain_delay / get_gate_congestion over the plain predict_delay tool, since those give real "
     "recorded causes instead of just a risk score. Use the ongoing conversation to resolve "
     "follow-up questions (e.g. 'what about tomorrow?' or 'is it delayed?' referring to a flight "
-    "named earlier). Keep answers concise and use the same operational tone as a ground-ops "
-    "dashboard: short lines, bullet-style facts, no fluff. If a tool returns an error or no "
-    "match, say so plainly and ask for the missing detail (e.g. a valid flight number)."
+    "named earlier). Keep these answers concise and in an operational tone: short lines, "
+    "bullet-style facts, no fluff. If a tool returns an error or no match, say so plainly and ask "
+    "for the missing detail (e.g. a valid flight number).\n\n"
+    "2) GENERAL QUESTIONS: You're also a normal, capable AI assistant. If someone asks something "
+    "with nothing to do with airport ops - general knowledge, explaining a concept, coding help, "
+    "writing/drafting help, math, advice, casual conversation, etc. - just answer it directly and "
+    "helpfully, in whatever length and tone actually fits the question (not forced into the terse "
+    "ops style). Don't refuse or redirect general questions back to ops topics, and don't claim "
+    "you can only help with airport operations - that's no longer true. Only reach for the ops "
+    "tools when the question is actually about this system's data."
 )
 
 
@@ -108,6 +127,79 @@ def _tool_check_schedule(args):
     from .chatbot import _check_schedule
     query = args.get("query", "")
     return {"answer": _check_schedule(query, query.lower())}
+
+
+def _tool_list_flights(args):
+    """
+    Looks up real flights already recorded in this system's database (the
+    Flights module - flights created/tracked in the app itself), as opposed
+    to check_schedule which only reads an uploaded Excel/CSV reference sheet.
+    Use this whenever someone asks about flights/availability without
+    clearly meaning the uploaded sheet - this is the actual live data.
+    """
+    import datetime as _dt
+    from django.utils import timezone as _tz
+
+    day = (args.get("day") or "").strip().lower()
+    origin = (args.get("origin") or "").strip()
+    destination = (args.get("destination") or "").strip()
+    start_time = (args.get("start_time") or "").strip()  # "HH:MM" 24h
+    end_time = (args.get("end_time") or "").strip()      # "HH:MM" 24h
+
+    qs = Flight.objects.select_related('airline').all()
+
+    if origin:
+        qs = qs.filter(origin__icontains=origin)
+    if destination:
+        qs = qs.filter(destination__icontains=destination)
+
+    target_date = None
+    if day in ("today", ""):
+        target_date = _tz.localdate()
+    elif day == "tomorrow":
+        target_date = _tz.localdate() + _dt.timedelta(days=1)
+    elif day:
+        try:
+            target_date = _dt.datetime.strptime(day, "%Y-%m-%d").date()
+        except ValueError:
+            target_date = None
+
+    if target_date:
+        qs = qs.filter(departure_time__date=target_date)
+
+    matches = list(qs.order_by('departure_time'))
+
+    if start_time and end_time:
+        try:
+            h1, m1 = map(int, start_time.split(":"))
+            h2, m2 = map(int, end_time.split(":"))
+            lo, hi = h1 * 60 + m1, h2 * 60 + m2
+            if hi < lo:
+                lo, hi = hi, lo
+            matches = [
+                f for f in matches
+                if lo <= (f.departure_time.hour * 60 + f.departure_time.minute) <= hi
+            ]
+        except ValueError:
+            pass
+
+    if not matches:
+        return {"found": 0, "flights": [], "note": "No matching flights in the database."}
+
+    return {
+        "found": len(matches),
+        "flights": [
+            {
+                "flight_number": f.flight_number,
+                "airline": f.airline.name,
+                "origin": f.origin,
+                "destination": f.destination,
+                "departure_time": f.departure_time.strftime("%Y-%m-%d %H:%M"),
+                "status": f.get_status_display(),
+            }
+            for f in matches[:15]
+        ],
+    }
 
 
 def _tool_explain_delay(args):
@@ -441,10 +533,26 @@ TOOLS = [
      "description": "Get weather-risk assessment for a flight.",
      "input_schema": {"type": "object", "properties": {"flight_number": {"type": "string"}}, "required": ["flight_number"]}},
     {"name": "check_schedule",
-     "description": ("Look up flights in the most recently uploaded flight-schedule sheet by time/day/route. "
-                      "Pass the user's question through mostly as-is, e.g. 'any flights between 8pm and 9pm', "
-                      "'flights tomorrow', 'flight at 3:30pm from Delhi to Mumbai'."),
+     "description": ("Answers flight availability/schedule questions by checking BOTH the uploaded "
+                      "Excel/CSV reference sheet AND the system's own live flight database, and "
+                      "returns a pre-formatted answer with 'According to sheet:' and 'According to "
+                      "database:' sections already built in. Pass the user's question through as the "
+                      "query, e.g. 'any flights available?', 'any flights between 8pm and 9pm', "
+                      "'flights tomorrow', 'flight at 3:30pm from Delhi to Mumbai'. Return the "
+                      "resulting answer text verbatim as your whole response - do not rewrite it."),
      "input_schema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}},
+    {"name": "list_flights",
+     "description": ("Look up real flights recorded in this system's own database (the Flights module) by day, "
+                      "time window, and/or route, returned as raw data (not pre-formatted). Use this only for "
+                      "flight lookups that are NOT availability/schedule questions - prefer check_schedule "
+                      "for anything like 'any flights available?' or 'flights today?'."),
+     "input_schema": {"type": "object", "properties": {
+         "day": {"type": "string", "description": "'today', 'tomorrow', or YYYY-MM-DD. Omit for no date filter."},
+         "origin": {"type": "string"},
+         "destination": {"type": "string"},
+         "start_time": {"type": "string", "description": "24h HH:MM, start of a time window"},
+         "end_time": {"type": "string", "description": "24h HH:MM, end of a time window"},
+     }, "required": []}},
     {"name": "explain_delay",
      "description": ("Explain WHY a specific flight is delayed, using real recorded turnaround-task delay "
                       "reasons (not the ML risk score) and a new estimated departure time. Use this whenever "
@@ -501,6 +609,7 @@ TOOL_FUNCTIONS = {
     "predict_staff": _predict_tool("predict_staff"),
     "predict_weather": _predict_tool("predict_weather_risk"),
     "check_schedule": _tool_check_schedule,
+    "list_flights": _tool_list_flights,
     "explain_delay": _tool_explain_delay,
     "get_gate_congestion": _tool_gate_congestion,
     "get_baggage_status": _tool_get_baggage_status,

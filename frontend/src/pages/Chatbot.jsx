@@ -149,7 +149,7 @@ export default function Chatbot() {
     }
   }
 
-  usePageMeta('AeroGround AI', 'Ask AeroGround AI about flight status, delays, gates, maintenance and staffing.')
+  usePageMeta('AeroGround AI', 'Ask about flight status, delays, gates, maintenance, staffing — or anything else.')
 
   return (
     <div className="p-6 h-screen flex flex-col max-w-[1400px] mx-auto w-full">
@@ -158,7 +158,7 @@ export default function Chatbot() {
           icon={Sparkles}
           chip="icon-chip-violet"
           title="AeroGround AI"
-          subtitle='Ask about flight status, delays, gates, maintenance, staffing, or "is there a flight at this time"'
+          subtitle='Ops questions (flights, delays, gates, maintenance, staffing) or anything else — just ask'
           actions={
             <button
               onClick={handleClear}
@@ -253,7 +253,8 @@ export default function Chatbot() {
 
           {!loading && messages.length === 0 && (
             <p className="text-sm text-neutral-400 dark:text-neutral-500">
-              No messages yet. Try "what's the status of AI202" or "show available gates".
+              No messages yet. Try "what's the status of AI202", "show available gates" — or ask
+              about literally anything else.
             </p>
           )}
 

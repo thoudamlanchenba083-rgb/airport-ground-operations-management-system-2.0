@@ -310,93 +310,128 @@ def _explain_gate_congestion(gate):
     )
 
 
+def _query_flight_db(day_ref, time_range, time_of_day, origin, destination):
+    """
+    Looks up real flights in this system's own database (flights.models.Flight),
+    as opposed to _check_schedule's uploaded Excel/CSV reference sheet. Returns
+    a list of Flight rows matching the given day/time/route filters.
+    """
+    qs = Flight.objects.select_related('airline').all()
+    if origin:
+        qs = qs.filter(origin__icontains=origin)
+    if destination:
+        qs = qs.filter(destination__icontains=destination)
+    if day_ref:
+        qs = qs.filter(departure_time__date=day_ref)
+
+    matches = list(qs.order_by('departure_time'))
+
+    if time_range:
+        (h1, m1), (h2, m2) = time_range
+        start_minutes, end_minutes = h1 * 60 + m1, h2 * 60 + m2
+        if end_minutes < start_minutes:
+            start_minutes, end_minutes = end_minutes, start_minutes
+        matches = [
+            f for f in matches
+            if start_minutes <= (f.departure_time.hour * 60 + f.departure_time.minute) <= end_minutes
+        ]
+    elif time_of_day:
+        hour, minute = time_of_day
+        start_minutes, end_minutes = hour * 60 + minute - 30, hour * 60 + minute + 30
+        matches = [
+            f for f in matches
+            if start_minutes <= (f.departure_time.hour * 60 + f.departure_time.minute) <= end_minutes
+        ]
+    return matches
+
+
 def _check_schedule(text, text_lower):
     """
-    Answers "is there a flight at this time" style questions by looking at
-    the most recently uploaded flight schedule sheet (FlightScheduleRow).
-    Also supports day-only queries like "flights tomorrow" / "what flights
-    are there today" — these list every flight on that day, no time needed.
+    Answers "is there a flight at this time" style questions. Checks the
+    system's own live flight database (flights.models.Flight) first, and
+    also checks the uploaded Excel/CSV reference sheet (FlightScheduleRow)
+    if one has been loaded, so nothing is missed either way.
     """
     upload = FlightScheduleUpload.objects.filter(status='PROCESSED').order_by('-uploaded_at').first()
-    if not upload or upload.row_count == 0:
-        return ("I don't have a flight schedule uploaded yet. Go to the AI Assistant page, "
-                "upload an Excel/CSV sheet with flight times, and then ask me again.")
+    has_sheet = bool(upload and upload.row_count)
 
     day_ref = _extract_day_reference(text_lower)
     time_range = _extract_time_range(text)
     time_of_day = None if time_range else _extract_time_of_day(text)
 
+    # A bare "any flights available?" with no time/day at all is a real,
+    # answerable question, not an ambiguous one - just default to today
+    # instead of stalling with a clarifying question.
+    defaulted_to_today = False
     if not time_range and not time_of_day and not day_ref:
-        return ("What time (or day) should I check? For example: \"is there a flight at 3:30 pm\", "
-                "\"any flights between 8pm and 9pm\", or \"flights tomorrow\".")
+        day_ref = timezone.localdate()
+        defaulted_to_today = True
 
     origin, destination = _extract_route(text_lower)
-
-    rows = upload.rows.exclude(scheduled_time__isnull=True)
-    if origin:
-        rows = rows.filter(origin__icontains=origin)
-    if destination:
-        rows = rows.filter(destination__icontains=destination)
-    if day_ref:
-        rows = rows.filter(scheduled_time__date=day_ref)
-
     route_label = f" from {origin} to {destination}" if origin and destination else ""
-    day_label = f" on {_day_label(day_ref)}" if day_ref else ""
+    day_label = " today" if defaulted_to_today else (f" on {_day_label(day_ref)}" if day_ref else "")
+    day_only = bool(day_ref and not time_range and not time_of_day)
 
-    # Day-only query (no specific time): list every flight that day.
-    if day_ref and not time_range and not time_of_day:
-        matches = list(rows.order_by('scheduled_time'))
-        if matches:
+    # 1) Check the uploaded Excel/CSV sheet, if there is one.
+    if has_sheet:
+        rows = upload.rows.exclude(scheduled_time__isnull=True)
+        if origin:
+            rows = rows.filter(origin__icontains=origin)
+        if destination:
+            rows = rows.filter(destination__icontains=destination)
+        if day_ref:
+            rows = rows.filter(scheduled_time__date=day_ref)
+
+        if day_only:
+            sheet_matches = list(rows.order_by('scheduled_time'))
+        else:
+            sheet_matches = []
+            for r in rows:
+                row_minutes = r.scheduled_time.hour * 60 + r.scheduled_time.minute
+                if time_range:
+                    (h1, m1), (h2, m2) = time_range
+                    lo, hi = h1 * 60 + m1, h2 * 60 + m2
+                    if hi < lo:
+                        lo, hi = hi, lo
+                    if lo <= row_minutes <= hi:
+                        sheet_matches.append(r)
+                elif time_of_day:
+                    hour, minute = time_of_day
+                    lo, hi = hour * 60 + minute - 30, hour * 60 + minute + 30
+                    if lo <= row_minutes <= hi:
+                        sheet_matches.append(r)
+
+        if sheet_matches:
             lines = []
-            for r in matches[:10]:
+            for r in sheet_matches[:10]:
                 fn = r.flight_number or 'Flight'
                 route = f"{r.origin} → {r.destination}" if (r.origin or r.destination) else ""
                 lines.append(f"- {fn}: {route} at {r.scheduled_time.strftime('%H:%M')}".rstrip(': '))
-            extra = f"\n(+{len(matches) - 10} more)" if len(matches) > 10 else ""
-            return (
-                f"Flights{day_label}{route_label} — {len(matches)} found "
-                f"(schedule: {upload.original_filename}):\n" + "\n".join(lines) + extra
+            extra = f"\n(+{len(sheet_matches) - 10} more)" if len(sheet_matches) > 10 else ""
+            sheet_section = (
+                f"{len(sheet_matches)} flight(s) found{day_label}{route_label} "
+                f"(file: {upload.original_filename}):\n" + "\n".join(lines) + extra
             )
-        return f"No flights found{day_label}{route_label} in the uploaded schedule ({upload.original_filename})."
-
-    if time_range:
-        (h1, m1), (h2, m2) = time_range
-        start_minutes = h1 * 60 + m1
-        end_minutes = h2 * 60 + m2
-        if end_minutes < start_minutes:
-            start_minutes, end_minutes = end_minutes, start_minutes
-        time_label = f"{h1:02d}:{m1:02d}\u2013{h2:02d}:{m2:02d}"
+        else:
+            sheet_section = f"No flights found{day_label}{route_label} in {upload.original_filename}."
     else:
-        hour, minute = time_of_day
-        start_minutes = hour * 60 + minute - 30
-        end_minutes = hour * 60 + minute + 30
-        time_label = f"{hour:02d}:{minute:02d}"
+        sheet_section = "No schedule sheet is currently uploaded."
 
-    matches = []
-    for r in rows:
-        row_minutes = r.scheduled_time.hour * 60 + r.scheduled_time.minute
-        if start_minutes <= row_minutes <= end_minutes:
-            matches.append(r)
-
-    time_word = "between" if time_range else "around"
-
-    if matches:
-        matches.sort(key=lambda r: r.scheduled_time)
-        lines = []
-        for r in matches[:10]:
-            fn = r.flight_number or 'Flight'
-            route = f"{r.origin} → {r.destination}" if (r.origin or r.destination) else ""
-            lines.append(f"- {fn}: {route} at {r.scheduled_time.strftime('%H:%M')}".rstrip(': '))
-        extra = f"\n(+{len(matches) - 10} more)" if len(matches) > 10 else ""
-        return (
-            f"Yes — {len(matches)} flight{'s' if len(matches) != 1 else ''} {time_word} {time_label}"
-            f"{day_label}{route_label} (schedule: {upload.original_filename}):\n"
-            + "\n".join(lines) + extra
-        )
+    # 2) Check the system's own live flight database.
+    db_matches = _query_flight_db(day_ref, time_range, time_of_day, origin, destination)
+    if db_matches:
+        lines = [
+            f"- {f.flight_number}: {f.origin} → {f.destination} at {f.departure_time.strftime('%H:%M')} ({f.get_status_display()})"
+            for f in db_matches[:10]
+        ]
+        extra = f"\n(+{len(db_matches) - 10} more)" if len(db_matches) > 10 else ""
+        db_section = f"{len(db_matches)} flight(s) found{day_label}{route_label}:\n" + "\n".join(lines) + extra
+    else:
+        db_section = f"No flights found{day_label}{route_label}."
 
     return (
-        f"No flights {time_word} {time_label}{day_label}{route_label} "
-        f"in the uploaded schedule ({upload.original_filename})."
+        f"According to sheet:\n{sheet_section}\n\n"
+        f"According to database:\n{db_section}"
     )
 
 
