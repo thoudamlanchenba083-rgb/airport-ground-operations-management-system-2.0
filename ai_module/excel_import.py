@@ -21,21 +21,36 @@ def _norm(col):
 
 # normalized header -> canonical field name
 COLUMN_ALIASES = {
-    'flight': 'flight_number', 'flightno': 'flight_number', 'flightnumber': 'flight_number',
-    'flightnum': 'flight_number', 'flt': 'flight_number',
-
-    'from': 'origin', 'origin': 'origin', 'source': 'origin', 'departurecity': 'origin',
-    'departureairport': 'origin', 'origincity': 'origin', 'depfrom': 'origin',
-
-    'to': 'destination', 'destination': 'destination', 'arrivalcity': 'destination',
-    'arrivalairport': 'destination', 'destcity': 'destination', 'goingto': 'destination',
-
-    'date': 'date', 'flightdate': 'date', 'traveldate': 'date',
-
-    'time': 'time', 'scheduledtime': 'time', 'departuretime': 'departure_time',
-    'deptime': 'departure_time', 'departure': 'departure_time', 'std': 'departure_time',
-
-    'arrivaltime': 'arrival_time', 'arrtime': 'arrival_time', 'arrival': 'arrival_time',
+    'flight': 'flight_number',
+    'flightno': 'flight_number',
+    'flightnumber': 'flight_number',
+    'flightnum': 'flight_number',
+    'flt': 'flight_number',
+    'from': 'origin',
+    'origin': 'origin',
+    'source': 'origin',
+    'departurecity': 'origin',
+    'departureairport': 'origin',
+    'origincity': 'origin',
+    'depfrom': 'origin',
+    'to': 'destination',
+    'destination': 'destination',
+    'arrivalcity': 'destination',
+    'arrivalairport': 'destination',
+    'destcity': 'destination',
+    'goingto': 'destination',
+    'date': 'date',
+    'flightdate': 'date',
+    'traveldate': 'date',
+    'time': 'time',
+    'scheduledtime': 'time',
+    'departuretime': 'departure_time',
+    'deptime': 'departure_time',
+    'departure': 'departure_time',
+    'std': 'departure_time',
+    'arrivaltime': 'arrival_time',
+    'arrtime': 'arrival_time',
+    'arrival': 'arrival_time',
     'sta': 'arrival_time',
 }
 
@@ -119,8 +134,7 @@ def import_flight_schedule(file_obj, filename, user=None):
 
     file_obj.seek(0)
     upload = FlightScheduleUpload.objects.create(
-        file=file_obj, original_filename=filename, uploaded_by=user, row_count=0,
-    )
+        file=file_obj, original_filename=filename, uploaded_by=user, row_count=0, )
 
     # Only one active schedule at a time - drop older uploads so chatbot
     # lookups always use the sheet the user just gave it.
@@ -128,21 +142,28 @@ def import_flight_schedule(file_obj, filename, user=None):
 
     rows_to_create = []
     for _, row in df.iterrows():
-        flight_number = str(row[col_map['flight_number']]).strip() if 'flight_number' in col_map else ''
-        origin = str(row[col_map['origin']]).strip() if 'origin' in col_map else ''
-        destination = str(row[col_map['destination']]).strip() if 'destination' in col_map else ''
+        flight_number = str(row[col_map['flight_number']]).strip(
+        ) if 'flight_number' in col_map else ''
+        origin = str(row[col_map['origin']]).strip(
+        ) if 'origin' in col_map else ''
+        destination = str(row[col_map['destination']]).strip(
+        ) if 'destination' in col_map else ''
 
-        fallback_date = _parse_date_cell(row[col_map['date']]) if 'date' in col_map else None
+        fallback_date = _parse_date_cell(
+            row[col_map['date']]) if 'date' in col_map else None
 
         scheduled_time = None
         if 'departure_time' in col_map:
-            scheduled_time = _parse_datetime_cell(row[col_map['departure_time']], fallback_date)
+            scheduled_time = _parse_datetime_cell(
+                row[col_map['departure_time']], fallback_date)
         elif 'time' in col_map:
-            scheduled_time = _parse_datetime_cell(row[col_map['time']], fallback_date)
+            scheduled_time = _parse_datetime_cell(
+                row[col_map['time']], fallback_date)
 
         arrival_time = None
         if 'arrival_time' in col_map:
-            arrival_time = _parse_datetime_cell(row[col_map['arrival_time']], fallback_date)
+            arrival_time = _parse_datetime_cell(
+                row[col_map['arrival_time']], fallback_date)
 
         used_cols = set(col_map.values())
         details = {
@@ -153,15 +174,16 @@ def import_flight_schedule(file_obj, filename, user=None):
         if not (flight_number or origin or destination or scheduled_time):
             continue  # skip fully-empty rows
 
-        rows_to_create.append(FlightScheduleRow(
-            upload=upload,
-            flight_number=flight_number if flight_number and flight_number.lower() != 'nan' else '',
-            origin=origin if origin and origin.lower() != 'nan' else '',
-            destination=destination if destination and destination.lower() != 'nan' else '',
-            scheduled_time=scheduled_time,
-            arrival_time=arrival_time,
-            details=details,
-        ))
+        rows_to_create.append(
+            FlightScheduleRow(
+                upload=upload,
+                flight_number=flight_number if flight_number and flight_number.lower() != 'nan' else '',
+                origin=origin if origin and origin.lower() != 'nan' else '',
+                destination=destination if destination and destination.lower() != 'nan' else '',
+                scheduled_time=scheduled_time,
+                arrival_time=arrival_time,
+                details=details,
+            ))
 
     FlightScheduleRow.objects.bulk_create(rows_to_create)
     upload.row_count = len(rows_to_create)

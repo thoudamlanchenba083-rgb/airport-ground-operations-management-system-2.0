@@ -11,10 +11,16 @@ class BoardingSession(models.Model):
         ('DELAYED', 'Delayed'),
     ]
 
-    flight = models.OneToOneField(Flight, on_delete=models.CASCADE, related_name='boarding_session')
+    flight = models.OneToOneField(
+        Flight,
+        on_delete=models.CASCADE,
+        related_name='boarding_session')
 
     boarding_gate = models.CharField(max_length=20, blank=True, default='')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='NOT_STARTED')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='NOT_STARTED')
 
     boarding_started_at = models.DateTimeField(null=True, blank=True)
     boarding_completed_at = models.DateTimeField(null=True, blank=True)

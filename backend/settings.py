@@ -16,7 +16,9 @@ TESTING = 'test' in sys.argv or 'pytest' in sys.modules
 # don't get throttled by the real 5/min login limit and fail with KeyError('access').
 # Still respects an explicit RATELIMIT_ENABLE env var when one is set (e.g. for
 # load-testing runserver locally with rate limiting deliberately turned off).
-RATELIMIT_ENABLE = config('RATELIMIT_ENABLE', default=str(not TESTING), cast=bool)
+RATELIMIT_ENABLE = config(
+    'RATELIMIT_ENABLE', default=str(
+        not TESTING), cast=bool)
 
 SECRET_KEY = config('SECRET_KEY')
 
@@ -54,9 +56,9 @@ INSTALLED_APPS = [
     'passenger_boarding',
     'incident_management',
     'cargo_management',
-        'ramp_operations',
-        'digital_twin', 
-
+    'ramp_operations',
+    'digital_twin',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -130,7 +132,8 @@ AUTH_USER_MODEL = 'accounts.User'
 
 # --- CORS (explicit list only, no silent allow-all) ---
 _cors_origins = config('CORS_ALLOWED_ORIGINS', default='')
-CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(',') if o.strip()]
+CORS_ALLOWED_ORIGINS = [o.strip()
+                        for o in _cors_origins.split(',') if o.strip()]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -156,13 +159,16 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 # --- EMAIL ---
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Airport Ops <noreply@airportops.com>')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL',
+                            default='Airport Ops <noreply@airportops.com>')
 
 # --- Weather (used by ai_module for live flight-delay predictions) ---
 OPENWEATHER_API_KEY = config('OPENWEATHER_API_KEY', default='')

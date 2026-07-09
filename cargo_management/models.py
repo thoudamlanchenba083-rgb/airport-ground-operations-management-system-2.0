@@ -18,16 +18,30 @@ class ULD(models.Model):
         ('DAMAGED', 'Damaged'),
     ]
 
-    uld_id = models.CharField(max_length=20, unique=True, help_text='Container or pallet identifier, e.g. AKE12345')
+    uld_id = models.CharField(
+        max_length=20,
+        unique=True,
+        help_text='Container or pallet identifier, e.g. AKE12345')
     uld_type = models.CharField(max_length=20, choices=ULD_TYPE_CHOICES)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='EMPTY')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='EMPTY')
 
     flight = models.ForeignKey(
-        Flight, on_delete=models.SET_NULL, null=True, blank=True, related_name='ulds'
-    )
-    position = models.CharField(max_length=20, blank=True, default='', help_text='Aircraft hold position, e.g. AKE-1')
+        Flight,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ulds')
+    position = models.CharField(
+        max_length=20,
+        blank=True,
+        default='',
+        help_text='Aircraft hold position, e.g. AKE-1')
     weight_kg = models.DecimalField(max_digits=8, decimal_places=2, default=0)
-    max_weight_kg = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    max_weight_kg = models.DecimalField(
+        max_digits=8, decimal_places=2, default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -43,9 +57,13 @@ class ULD(models.Model):
 
 
 class CargoManifest(models.Model):
-    flight = models.OneToOneField(Flight, on_delete=models.CASCADE, related_name='cargo_manifest')
+    flight = models.OneToOneField(
+        Flight,
+        on_delete=models.CASCADE,
+        related_name='cargo_manifest')
     manifest_number = models.CharField(max_length=50, unique=True)
-    total_weight_kg = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_weight_kg = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
     is_finalized = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -80,18 +98,32 @@ class CargoItem(models.Model):
         ('CLASS_9', 'Class 9 - Miscellaneous'),
     ]
 
-    manifest = models.ForeignKey(CargoManifest, on_delete=models.CASCADE, related_name='items')
+    manifest = models.ForeignKey(
+        CargoManifest,
+        on_delete=models.CASCADE,
+        related_name='items')
     uld = models.ForeignKey(
-        ULD, on_delete=models.SET_NULL, null=True, blank=True, related_name='cargo_items'
-    )
+        ULD,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='cargo_items')
 
-    awb_number = models.CharField(max_length=30, blank=True, default='', help_text='Air Waybill number')
+    awb_number = models.CharField(
+        max_length=30,
+        blank=True,
+        default='',
+        help_text='Air Waybill number')
     description = models.CharField(max_length=200)
     weight_kg = models.DecimalField(max_digits=8, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING')
 
     is_dangerous_goods = models.BooleanField(default=False)
-    dangerous_goods_class = models.CharField(max_length=20, choices=DG_CLASS_CHOICES, blank=True, default='')
+    dangerous_goods_class = models.CharField(
+        max_length=20, choices=DG_CLASS_CHOICES, blank=True, default='')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

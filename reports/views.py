@@ -1,4 +1,4 @@
-﻿from rest_framework import viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -7,7 +7,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Report
 from .serializers import ReportSerializer
-from core_app.permissions import IsAdminUser, IsSupervisor, IsReportsUser
+from core_app.permissions import IsReportsUser
 from flights.models import Flight
 from baggage.models import Baggage, BaggageTracking
 from maintenance.models import MaintenanceRequest
@@ -64,8 +64,10 @@ class ReportViewSet(viewsets.ModelViewSet):
         }
         for status, label in MaintenanceRequest.STATUS_CHOICES:
             data['by_status'][label] = requests.filter(status=status).count()
-        for priority, label in [('LOW', 'Low'), ('MEDIUM', 'Medium'), ('HIGH', 'High')]:
-            data['by_priority'][label] = requests.filter(priority=priority).count()
+        for priority, label in [
+                ('LOW', 'Low'), ('MEDIUM', 'Medium'), ('HIGH', 'High')]:
+            data['by_priority'][label] = requests.filter(
+                priority=priority).count()
         return Response(data)
 
     @action(detail=False, methods=['get'], url_path='summary/staff')

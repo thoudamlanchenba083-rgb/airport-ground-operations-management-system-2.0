@@ -8,6 +8,7 @@ from .models import Flight, FlightWorkflowStep
 
 class FlightWorkflowError(Exception):
     """Raised when a workflow transition violates a business rule."""
+
     def __init__(self, message):
         self.message = message
         super().__init__(message)
@@ -35,7 +36,8 @@ class FlightWorkflowService:
         try:
             target_idx = order.index(step)
         except ValueError:
-            raise FlightWorkflowError(f'"{step}" is not part of the normal workflow.')
+            raise FlightWorkflowError(
+                f'"{step}" is not part of the normal workflow.')
 
         if target_idx != current_idx + 1:
             raise FlightWorkflowError(
@@ -46,7 +48,8 @@ class FlightWorkflowService:
         FlightWorkflowService._check_maintenance(flight, step)
         FlightWorkflowService._check_baggage(flight, step)
         FlightWorkflowService._check_gate_close(flight, step)
-        FlightWorkflowService._check_departure(flight, step, current_idx, order)
+        FlightWorkflowService._check_departure(
+            flight, step, current_idx, order)
 
         FlightWorkflowStep.objects.update_or_create(
             flight=flight,
@@ -59,6 +62,7 @@ class FlightWorkflowService:
         flight.status = step
         flight.save(update_fields=['status', 'updated_at'])
         return flight
+
     @staticmethod
     def _check_gate_conflict(flight, step):
         if step != 'GATE_ASSIGNED':
@@ -114,20 +118,22 @@ class FlightWorkflowService:
                     f"safe limit ({weight_result['safe_limit_kg']}kg) due to "
                     f"{weight_result['weather_risk_level'].lower()}-risk weather "
                     f"({weight_result['weather_conditions']}). "
-                    f"Reduce baggage by {weight_result['over_limit_by_kg']}kg before boarding."
-                )
+                    f"Reduce baggage by {weight_result['over_limit_by_kg']}kg before boarding.")
         except FlightWorkflowError:
             raise
         except Exception:
-            # Fail open if the weather/weight model itself errors (e.g. not trained yet)
+            # Fail open if the weather/weight model itself errors (e.g. not
+            # trained yet)
             pass
 
     @staticmethod
     def _check_gate_close(flight, step):
         if step == 'GATE_CLOSED' and flight.status != 'BOARDING':
-            raise FlightWorkflowError('Gate cannot be closed before boarding is complete.')
+            raise FlightWorkflowError(
+                'Gate cannot be closed before boarding is complete.')
 
     @staticmethod
     def _check_departure(flight, step, current_idx, order):
         if step == 'DEPARTED' and current_idx + 1 != order.index('DEPARTED'):
-            raise FlightWorkflowError('Flight cannot depart before all ground operations steps are complete.')
+            raise FlightWorkflowError(
+                'Flight cannot depart before all ground operations steps are complete.')

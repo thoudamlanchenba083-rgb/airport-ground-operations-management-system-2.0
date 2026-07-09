@@ -1,4 +1,4 @@
-﻿from rest_framework import viewsets, status
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -14,7 +14,10 @@ from core_app.permissions import IsAdminUser, IsMaintenanceStaff
 
 
 def is_supervisor_or_admin(user):
-    return user.role in ('ADMIN', 'SUPERVISOR', 'OPERATIONS_MANAGER') or user.is_staff
+    return user.role in (
+        'ADMIN',
+        'SUPERVISOR',
+        'OPERATIONS_MANAGER') or user.is_staff
 
 
 class MaintenanceRequestViewSet(viewsets.ModelViewSet):
@@ -26,7 +29,13 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'priority']
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve', 'create', 'update', 'partial_update', 'destroy']:
+        if self.action in [
+            'list',
+            'retrieve',
+            'create',
+            'update',
+            'partial_update',
+                'destroy']:
             return [IsMaintenanceStaff()]
         return [IsAdminUser()]
 
@@ -35,17 +44,32 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
             reported_by=self.request.user,
             status='PENDING_APPROVAL',
         )
-        log_action(self.request.user, 'CREATE', 'MaintenanceRequest', instance.id,
-                   f'Created maintenance request: {instance.id}', self.request)
+        log_action(
+            self.request.user,
+            'CREATE',
+            'MaintenanceRequest',
+            instance.id,
+            f'Created maintenance request: {instance.id}',
+            self.request)
 
     def perform_update(self, serializer):
         instance = serializer.save()
-        log_action(self.request.user, 'UPDATE', 'MaintenanceRequest', instance.id,
-                   f'Updated maintenance request: {instance.id}', self.request)
+        log_action(
+            self.request.user,
+            'UPDATE',
+            'MaintenanceRequest',
+            instance.id,
+            f'Updated maintenance request: {instance.id}',
+            self.request)
 
     def perform_destroy(self, instance):
-        log_action(self.request.user, 'DELETE', 'MaintenanceRequest', instance.id,
-                   f'Deleted maintenance request: {instance.id}', self.request)
+        log_action(
+            self.request.user,
+            'DELETE',
+            'MaintenanceRequest',
+            instance.id,
+            f'Deleted maintenance request: {instance.id}',
+            self.request)
         instance.delete()
 
     @action(detail=True, methods=['post'], url_path='approve')
@@ -89,7 +113,8 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
         serializer = MaintenanceRequestApprovalSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance.status = 'REJECTED'
-        instance.rejection_reason = serializer.validated_data.get('rejection_reason', '')
+        instance.rejection_reason = serializer.validated_data.get(
+            'rejection_reason', '')
         instance.save()
         from core_app.email_utils import send_maintenance_rejected_email
         send_maintenance_rejected_email(instance)
@@ -140,6 +165,3 @@ class MaintenanceLogViewSet(viewsets.ModelViewSet):
         log_action(self.request.user, 'DELETE', 'MaintenanceLog', instance.id,
                    f'Deleted maintenance log: {instance.id}', self.request)
         instance.delete()
-
-
-

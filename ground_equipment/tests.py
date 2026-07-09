@@ -11,10 +11,13 @@ User = get_user_model()
 class GroundEquipmentAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.admin = User.objects.create_superuser(username='admin', password='admin123', email='admin@test.com')
-        self.user = User.objects.create_user(username='staffuser', password='staff123')
+        self.admin = User.objects.create_superuser(
+            username='admin', password='admin123', email='admin@test.com')
+        self.user = User.objects.create_user(
+            username='staffuser', password='staff123', role='RAMP_AGENT')
 
-        self.equipment_type = EquipmentType.objects.create(name='fuel_truck', description='Standard fuel truck')
+        self.equipment_type = EquipmentType.objects.create(
+            name='fuel_truck', description='Standard fuel truck')
         self.equipment = GroundEquipment.objects.create(
             equipment_type=self.equipment_type,
             equipment_id='FT-001',
@@ -23,15 +26,23 @@ class GroundEquipmentAPITest(TestCase):
         )
 
         self.airline = Airline.objects.create(name='Test Airline', code='TA')
-        self.aircraft = Aircraft.objects.create(registration_number='TC-002', aircraft_type='Boeing 737', capacity=180)
+        self.aircraft = Aircraft.objects.create(
+            registration_number='TC-002',
+            aircraft_type='Boeing 737',
+            capacity=180)
         self.flight = Flight.objects.create(
-            flight_number='TA002', origin='JFK', destination='LAX',
-            departure_time='2026-07-01T10:00:00Z', arrival_time='2026-07-01T14:00:00Z',
-            status='SCHEDULED', airline=self.airline, aircraft=self.aircraft
-        )
+            flight_number='TA002',
+            origin='JFK',
+            destination='LAX',
+            departure_time='2026-07-01T10:00:00Z',
+            arrival_time='2026-07-01T14:00:00Z',
+            status='SCHEDULED',
+            airline=self.airline,
+            aircraft=self.aircraft)
 
     def get_token(self, username, password):
-        response = self.client.post('/api/token/', {'username': username, 'password': password})
+        response = self.client.post(
+            '/api/token/', {'username': username, 'password': password})
         return response.data['access']
 
     def test_unauthenticated_cannot_access_equipment(self):
@@ -62,18 +73,24 @@ class GroundEquipmentAPITest(TestCase):
         )
         token = self.get_token('staffuser', 'staff123')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.get('/api/ground-equipment/equipment/?status=maintenance')
+        response = self.client.get(
+            '/api/ground-equipment/equipment/?status=maintenance')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results'] if 'results' in response.data else response.data
         for item in results:
             self.assertEqual(item['status'], 'maintenance')
 
+
 class EquipmentAssignmentAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username='assignuser', password='assign123')
+        self.user = User.objects.create_user(
+            username='assignuser',
+            password='assign123',
+            role='RAMP_AGENT')
 
-        self.equipment_type = EquipmentType.objects.create(name='pushback_tractor', description='Tractor')
+        self.equipment_type = EquipmentType.objects.create(
+            name='pushback_tractor', description='Tractor')
         self.equipment = GroundEquipment.objects.create(
             equipment_type=self.equipment_type,
             equipment_id='PT-001',
@@ -82,15 +99,23 @@ class EquipmentAssignmentAPITest(TestCase):
         )
 
         self.airline = Airline.objects.create(name='Assign Airline', code='AA')
-        self.aircraft = Aircraft.objects.create(registration_number='TC-003', aircraft_type='Airbus A320', capacity=150)
+        self.aircraft = Aircraft.objects.create(
+            registration_number='TC-003',
+            aircraft_type='Airbus A320',
+            capacity=150)
         self.flight = Flight.objects.create(
-            flight_number='AA010', origin='JFK', destination='ORD',
-            departure_time='2026-07-01T09:00:00Z', arrival_time='2026-07-01T11:00:00Z',
-            status='SCHEDULED', airline=self.airline, aircraft=self.aircraft
-        )
+            flight_number='AA010',
+            origin='JFK',
+            destination='ORD',
+            departure_time='2026-07-01T09:00:00Z',
+            arrival_time='2026-07-01T11:00:00Z',
+            status='SCHEDULED',
+            airline=self.airline,
+            aircraft=self.aircraft)
 
     def get_token(self, username, password):
-        response = self.client.post('/api/token/', {'username': username, 'password': password})
+        response = self.client.post(
+            '/api/token/', {'username': username, 'password': password})
         return response.data['access']
 
     def authenticate(self):
@@ -116,39 +141,47 @@ class EquipmentAssignmentAPITest(TestCase):
         })
         assignment_id = create_resp.data['id']
 
-        release_resp = self.client.post(f'/api/ground-equipment/assignments/{assignment_id}/release/')
+        release_resp = self.client.post(
+            f'/api/ground-equipment/assignments/{assignment_id}/release/')
         self.assertEqual(release_resp.status_code, status.HTTP_200_OK)
 
         self.equipment.refresh_from_db()
         self.assertEqual(self.equipment.status, 'available')
         self.assertIsNotNone(release_resp.data['assignment']['released_at'])
+
     def test_release_equipment_action_no_active_assignment(self):
         self.authenticate()
-        response = self.client.post(f'/api/ground-equipment/equipment/{self.equipment.id}/release_equipment/')
+        response = self.client.post(
+            f'/api/ground-equipment/equipment/{self.equipment.id}/release_equipment/')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_release_equipment_action_releases_active_assignment(self):
         self.authenticate()
-        EquipmentAssignment.objects.create(equipment=self.equipment, flight=self.flight)
+        EquipmentAssignment.objects.create(
+            equipment=self.equipment, flight=self.flight)
         self.equipment.status = 'in_use'
         self.equipment.save()
 
-        response = self.client.post(f'/api/ground-equipment/equipment/{self.equipment.id}/release_equipment/')
+        response = self.client.post(
+            f'/api/ground-equipment/equipment/{self.equipment.id}/release_equipment/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.equipment.refresh_from_db()
         self.assertEqual(self.equipment.status, 'available')
 
-        assignment = EquipmentAssignment.objects.get(equipment=self.equipment, flight=self.flight)
+        assignment = EquipmentAssignment.objects.get(
+            equipment=self.equipment, flight=self.flight)
         self.assertIsNotNone(assignment.released_at)
 
 
 class PredictFailureAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username='predictuser', password='predict123')
+        self.user = User.objects.create_user(
+            username='predictuser', password='predict123')
 
-        self.equipment_type = EquipmentType.objects.create(name='gpu', description='Ground power unit')
+        self.equipment_type = EquipmentType.objects.create(
+            name='gpu', description='Ground power unit')
         self.equipment = GroundEquipment.objects.create(
             equipment_type=self.equipment_type,
             equipment_id='GPU-001',
@@ -158,7 +191,8 @@ class PredictFailureAPITest(TestCase):
         )
 
     def get_token(self, username, password):
-        response = self.client.post('/api/token/', {'username': username, 'password': password})
+        response = self.client.post(
+            '/api/token/', {'username': username, 'password': password})
         return response.data['access']
 
     def authenticate(self):
@@ -166,12 +200,14 @@ class PredictFailureAPITest(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
 
     def test_predict_failure_requires_auth(self):
-        response = self.client.get(f'/api/ground-equipment/equipment/{self.equipment.id}/predict_failure/')
+        response = self.client.get(
+            f'/api/ground-equipment/equipment/{self.equipment.id}/predict_failure/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_predict_failure_returns_prediction_and_confidence(self):
         self.authenticate()
-        response = self.client.get(f'/api/ground-equipment/equipment/{self.equipment.id}/predict_failure/')
+        response = self.client.get(
+            f'/api/ground-equipment/equipment/{self.equipment.id}/predict_failure/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('prediction', response.data)
         self.assertIn('confidence', response.data)
@@ -185,15 +221,22 @@ class PredictFailureAPITest(TestCase):
             location='Terminal C'
         )
         self.authenticate()
-        response = self.client.get(f'/api/ground-equipment/equipment/{equipment_no_maint.id}/predict_failure/')
+        response = self.client.get(
+            f'/api/ground-equipment/equipment/{equipment_no_maint.id}/predict_failure/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('prediction', response.data)
+
+
 class InvalidAssignmentScenariosTest(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username='invaliduser', password='invalid123')
+        self.user = User.objects.create_user(
+            username='invaliduser',
+            password='invalid123',
+            role='RAMP_AGENT')
 
-        self.equipment_type = EquipmentType.objects.create(name='tow_vehicle', description='Tow vehicle')
+        self.equipment_type = EquipmentType.objects.create(
+            name='tow_vehicle', description='Tow vehicle')
         self.equipment = GroundEquipment.objects.create(
             equipment_type=self.equipment_type,
             equipment_id='TV-001',
@@ -201,16 +244,25 @@ class InvalidAssignmentScenariosTest(TestCase):
             location='Terminal D'
         )
 
-        self.airline = Airline.objects.create(name='Invalid Airline', code='IA')
-        self.aircraft = Aircraft.objects.create(registration_number='TC-004', aircraft_type='Airbus A321', capacity=200)
+        self.airline = Airline.objects.create(
+            name='Invalid Airline', code='IA')
+        self.aircraft = Aircraft.objects.create(
+            registration_number='TC-004',
+            aircraft_type='Airbus A321',
+            capacity=200)
         self.flight = Flight.objects.create(
-            flight_number='IA001', origin='ORD', destination='DFW',
-            departure_time='2026-07-01T09:00:00Z', arrival_time='2026-07-01T12:00:00Z',
-            status='SCHEDULED', airline=self.airline, aircraft=self.aircraft
-        )
+            flight_number='IA001',
+            origin='ORD',
+            destination='DFW',
+            departure_time='2026-07-01T09:00:00Z',
+            arrival_time='2026-07-01T12:00:00Z',
+            status='SCHEDULED',
+            airline=self.airline,
+            aircraft=self.aircraft)
 
     def get_token(self, username, password):
-        response = self.client.post('/api/token/', {'username': username, 'password': password})
+        response = self.client.post(
+            '/api/token/', {'username': username, 'password': password})
         return response.data['access']
 
     def authenticate(self):

@@ -10,7 +10,12 @@ class MaintenanceRequestSerializer(serializers.ModelSerializer):
             'reported_by', 'assigned_to', 'approved_by',
             'rejection_reason', 'created_at', 'updated_at',
         ]
-        read_only_fields = ['id', 'reported_by', 'approved_by', 'created_at', 'updated_at']
+        read_only_fields = [
+            'id',
+            'reported_by',
+            'approved_by',
+            'created_at',
+            'updated_at']
 
 
 class MaintenanceRequestApprovalSerializer(serializers.Serializer):

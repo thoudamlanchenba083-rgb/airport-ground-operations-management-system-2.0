@@ -1,8 +1,12 @@
-﻿from rest_framework import serializers
+from rest_framework import serializers
 from .models import (
-    AuditLog, ApprovalRequest, ApprovalStep, MaintenanceApprovalRequest,
-    GateChangeApprovalRequest, FlightDelayApprovalRequest, EmergencyFlightApprovalRequest
-)
+    AuditLog,
+    ApprovalRequest,
+    ApprovalStep,
+    MaintenanceApprovalRequest,
+    GateChangeApprovalRequest,
+    FlightDelayApprovalRequest,
+    EmergencyFlightApprovalRequest)
 
 
 class AuditLogSerializer(serializers.ModelSerializer):
@@ -15,21 +19,32 @@ class AuditLogSerializer(serializers.ModelSerializer):
             'object_id', 'description', 'timestamp', 'ip_address'
         ]
 
+
 class ApprovalStepSerializer(serializers.ModelSerializer):
-    approver_name = serializers.CharField(source='approver.name', read_only=True)
+    approver_name = serializers.CharField(
+        source='approver.name', read_only=True)
 
     class Meta:
         model = ApprovalStep
         fields = [
-            'id', 'approval_request', 'approver', 'approver_name', 'step_order',
-            'status', 'approved_at', 'approved_by_notes', 'created_at', 'updated_at'
-        ]
+            'id',
+            'approval_request',
+            'approver',
+            'approver_name',
+            'step_order',
+            'status',
+            'approved_at',
+            'approved_by_notes',
+            'created_at',
+            'updated_at']
         read_only_fields = ['approved_at', 'created_at', 'updated_at']
 
 
 class ApprovalRequestSerializer(serializers.ModelSerializer):
-    requested_by_name = serializers.CharField(source='requested_by.name', read_only=True)
-    flight_number = serializers.CharField(source='flight.flight_number', read_only=True)
+    requested_by_name = serializers.CharField(
+        source='requested_by.name', read_only=True)
+    flight_number = serializers.CharField(
+        source='flight.flight_number', read_only=True)
     approval_steps = ApprovalStepSerializer(many=True, read_only=True)
     is_fully_approved = serializers.BooleanField(read_only=True)
 
@@ -52,27 +67,45 @@ class MaintenanceApprovalRequestSerializer(serializers.ModelSerializer):
 
 
 class GateChangeApprovalRequestSerializer(serializers.ModelSerializer):
-    flight_number = serializers.CharField(source='flight.flight_number', read_only=True)
+    flight_number = serializers.CharField(
+        source='flight.flight_number', read_only=True)
 
     class Meta:
         model = GateChangeApprovalRequest
         fields = '__all__'
-        read_only_fields = ['status', 'approved_by', 'approval_date', 'created_at', 'updated_at']
+        read_only_fields = [
+            'status',
+            'approved_by',
+            'approval_date',
+            'created_at',
+            'updated_at']
 
 
 class FlightDelayApprovalRequestSerializer(serializers.ModelSerializer):
-    flight_number = serializers.CharField(source='flight.flight_number', read_only=True)
+    flight_number = serializers.CharField(
+        source='flight.flight_number', read_only=True)
 
     class Meta:
         model = FlightDelayApprovalRequest
         fields = '__all__'
-        read_only_fields = ['status', 'approved_by', 'approval_date', 'created_at', 'updated_at']
+        read_only_fields = [
+            'status',
+            'approved_by',
+            'approval_date',
+            'created_at',
+            'updated_at']
 
 
 class EmergencyFlightApprovalRequestSerializer(serializers.ModelSerializer):
-    flight_number = serializers.CharField(source='flight.flight_number', read_only=True)
+    flight_number = serializers.CharField(
+        source='flight.flight_number', read_only=True)
 
     class Meta:
         model = EmergencyFlightApprovalRequest
         fields = '__all__'
-        read_only_fields = ['status', 'approved_by', 'approval_date', 'created_at', 'updated_at']
+        read_only_fields = [
+            'status',
+            'approved_by',
+            'approval_date',
+            'created_at',
+            'updated_at']

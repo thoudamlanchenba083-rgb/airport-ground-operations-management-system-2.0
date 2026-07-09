@@ -8,7 +8,13 @@ def get_client_ip(request):
     return request.META.get('REMOTE_ADDR')
 
 
-def log_action(user, action, model_name, object_id=None, description='', request=None):
+def log_action(
+        user,
+        action,
+        model_name,
+        object_id=None,
+        description='',
+        request=None):
     ip_address = get_client_ip(request) if request else None
     AuditLog.objects.create(
         user=user if user and user.is_authenticated else None,

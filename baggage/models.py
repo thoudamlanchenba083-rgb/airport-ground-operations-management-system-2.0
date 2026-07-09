@@ -26,7 +26,10 @@ class BaggageTracking(models.Model):
         ('MISSING', 'Missing'),
     ]
 
-    baggage = models.ForeignKey(Baggage, on_delete=models.CASCADE, related_name='tracking_history')
+    baggage = models.ForeignKey(
+        Baggage,
+        on_delete=models.CASCADE,
+        related_name='tracking_history')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     location = models.CharField(max_length=100, blank=True, default='')
     updated_by = models.ForeignKey(

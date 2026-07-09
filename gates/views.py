@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -40,6 +40,8 @@ class GateViewSet(viewsets.ModelViewSet):
         log_action(self.request.user, 'DELETE', 'Gate', instance.id,
                    f'Deleted gate {instance.gate_number}', self.request)
         instance.delete()
+
+
 class GateAssignmentViewSet(viewsets.ModelViewSet):
     queryset = GateAssignment.objects.all()
     serializer_class = GateAssignmentSerializer
@@ -53,13 +55,18 @@ class GateAssignmentViewSet(viewsets.ModelViewSet):
         flight = serializer.validated_data['flight']
 
         try:
-            instance = GateAssignmentService.assign(gate, flight, self.request.user)
+            instance = GateAssignmentService.assign(
+                gate, flight, self.request.user)
         except GateAssignmentError as e:
             raise ValidationError({'gate': e.message})
 
-        log_action(self.request.user, 'CREATE', 'GateAssignment', instance.id,
-                   f'Assigned gate {gate.gate_number} to flight {instance.flight}',
-                   self.request)
+        log_action(
+            self.request.user,
+            'CREATE',
+            'GateAssignment',
+            instance.id,
+            f'Assigned gate {gate.gate_number} to flight {instance.flight}',
+            self.request)
 
     def perform_destroy(self, instance):
         GateAssignmentService.release(instance)
@@ -75,12 +82,14 @@ class GateAssignmentViewSet(viewsets.ModelViewSet):
         """
         flight_id = request.data.get('flight')
         if not flight_id:
-            return Response({'error': 'flight is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'flight is required'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         try:
             flight = Flight.objects.get(id=flight_id)
         except Flight.DoesNotExist:
-            return Response({'error': 'Flight not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Flight not found'},
+                            status=status.HTTP_404_NOT_FOUND)
 
         try:
             instance = GateAssignmentService.auto_assign(flight, request.user)
@@ -90,9 +99,13 @@ class GateAssignmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_409_CONFLICT
             )
 
-        log_action(request.user, 'CREATE', 'GateAssignment', instance.id,
-                   f'Auto-assigned gate {instance.gate.gate_number} to flight {flight.flight_number}',
-                   request)
+        log_action(
+            request.user,
+            'CREATE',
+            'GateAssignment',
+            instance.id,
+            f'Auto-assigned gate {instance.gate.gate_number} to flight {flight.flight_number}',
+            request)
 
         return Response({
             'assignment_id': instance.id,

@@ -6,17 +6,20 @@ from .models import Notification
 
 User = get_user_model()
 
+
 class NotificationAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.admin = User.objects.create_superuser(username='admin', password='admin123', email='admin@test.com')
-        self.user = User.objects.create_user(username='staffuser', password='staff123')
+        self.admin = User.objects.create_superuser(
+            username='admin', password='admin123', email='admin@test.com')
+        self.user = User.objects.create_user(
+            username='staffuser', password='staff123')
         self.notification = Notification.objects.create(
-            user=self.user, type='GENERAL', message='Test notification', is_read=False
-        )
+            user=self.user, type='GENERAL', message='Test notification', is_read=False)
 
     def get_token(self, username, password):
-        response = self.client.post('/api/token/', {'username': username, 'password': password})
+        response = self.client.post(
+            '/api/token/', {'username': username, 'password': password})
         return response.data['access']
 
     def test_user_can_list_own_notifications(self):
