@@ -1,10 +1,10 @@
-ï»¿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 import { useAuth } from '../../context/AuthContext'
 
 export default function AircraftTab() {
   const { user } = useAuth()
-  const isViewer = user?.role === 'VIEWER'
+  const canWrite = user?.role === 'ADMIN' || user?.role === 'GROUND_STAFF'
   const [aircraft,  setAircraft]  = useState([])
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState('')
@@ -55,7 +55,7 @@ export default function AircraftTab() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        {!isViewer && (
+        {canWrite && (
           <button
             onClick={() => setShowForm(!showForm)}
             className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
@@ -85,13 +85,13 @@ export default function AircraftTab() {
           {formError && <p className="text-red-500 text-xs mt-3">{formError}</p>}
           <div className="mt-4">
             <button type="submit" disabled={saving} className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition">
-              {saving ? 'Savingâ€¦' : 'Save Aircraft'}
+              {saving ? 'Saving…' : 'Save Aircraft'}
             </button>
           </div>
         </form>
       )}
 
-      {loading && <p className="text-sm text-neutral-500 dark:text-neutral-500 animate-pulse">Loading aircraftâ€¦</p>}
+      {loading && <p className="text-sm text-neutral-500 dark:text-neutral-500 animate-pulse">Loading aircraft…</p>}
       {error   && <p className="text-sm text-red-500">{error}</p>}
 
       {!loading && !error && (
