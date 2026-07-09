@@ -1,7 +1,10 @@
 // Central map of which roles can access which pages.
 // Kept in sync with the backend DRF permission classes in core_app/permissions.py:
 //   - Reports     -> IsReportsUser         (ADMIN, SUPERVISOR, OPERATIONS_MANAGER, GROUND_STAFF)
-//   - Staff       -> IsHR                  (ADMIN, HR) — GROUND_STAFF excluded
+//   - Staff       -> Staff/Shift tabs: IsHR (ADMIN, HR).
+//                    Payroll tab: IsHRManagement (ADMIN, HR, OPERATIONS_MANAGER, SUPERVISOR).
+//                    Page-level access is the union of these — Staff.jsx hides the
+//                    Staff/Shifts tabs for OPERATIONS_MANAGER/SUPERVISOR, who only get Payroll.
 //   - Maintenance -> IsMaintenanceStaff    (ADMIN, SUPERVISOR, MAINTENANCE, MAINTENANCE_ENGINEER, GROUND_STAFF)
 //   - Equipment   -> open to view, but IsAuthenticatedBlockGroundStaffWrite blocks
 //                    GROUND_STAFF from add/edit/delete — GROUND_STAFF excluded from full access
@@ -21,7 +24,7 @@ export const PAGE_ROLES = {
   notifications: null,
   chatbot: null,
   maintenance: ['ADMIN', 'SUPERVISOR', 'MAINTENANCE', 'MAINTENANCE_ENGINEER', 'GROUND_STAFF'],
-  staff: ['ADMIN', 'HR'],
+  staff: ['ADMIN', 'HR', 'OPERATIONS_MANAGER', 'SUPERVISOR'],
   reports: ['ADMIN', 'SUPERVISOR', 'OPERATIONS_MANAGER', 'GROUND_STAFF'],
   analytics: ['ADMIN'],
 }
