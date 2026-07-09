@@ -46,7 +46,8 @@ function fmt(dt) {
 
 export default function FlightsTab() {
   const { user } = useAuth()
-  const isViewer = user?.role === 'VIEWER'
+  // Matches backend IsAuthenticatedReadOnly: only ADMIN and GROUND_STAFF can write to flights.
+  const canWrite = user?.role === 'ADMIN' || user?.role === 'GROUND_STAFF'
   const [flights,   setFlights]   = useState([])
   const [airlines,  setAirlines]  = useState([])
   const [aircraft,  setAircraft]  = useState([])
@@ -143,7 +144,7 @@ export default function FlightsTab() {
           placeholder="Search flights, airline, route…"
           className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
         />
-        {!isViewer && (
+       {canWrite && (
           <button
             onClick={() => setShowForm(!showForm)}
             className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
@@ -224,7 +225,7 @@ export default function FlightsTab() {
                   <th className="px-5 py-3">Departure</th>
                   <th className="px-5 py-3">Arrival</th>
                   <th className="px-5 py-3">Status</th>
-                  {!isViewer && <th className="px-5 py-3">Actions</th>}
+                  {canWrite && <th className="px-5 py-3">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -243,7 +244,7 @@ export default function FlightsTab() {
                         {f.status}
                       </span>
                     </td>
-                    {!isViewer && (
+                    {canWrite && (
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           {nextWorkflowStep(f.status) ? (
