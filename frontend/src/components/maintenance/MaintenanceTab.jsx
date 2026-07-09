@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
+import { useAuth } from '../../context/AuthContext'
 
 const PRIORITY_COLORS = {
   LOW:    'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300',
@@ -21,6 +22,14 @@ const STATUSES   = ['OPEN','PENDING_APPROVAL','APPROVED','REJECTED','IN_PROGRESS
 const PRIORITIES = ['LOW','MEDIUM','HIGH']
 
 export default function MaintenanceTab() {
+  const { user } = useAuth()
+  // Matches backend IsMaintenanceStaff: who can report issues / edit / delete.
+  const canWrite = ['ADMIN', 'SUPERVISOR', 'MAINTENANCE', 'MAINTENANCE_ENGINEER', 'GROUND_STAFF'].includes(user?.role)
+  // Matches backend is_supervisor_or_admin: who can approve/reject/start
+  // (i.e. move PENDING_APPROVAL->APPROVED/REJECTED or APPROVED->IN_PROGRESS).
+  const canApprove = ['ADMIN', 'SUPERVISOR', 'OPERATIONS_MANAGER'].includes(user?.role)
+  const RESTRICTED_TRANSITIONS = new Set(['PENDING_APPROVAL:APPROVED', 'PENDING_APPROVAL:REJECTED', 'APPROVED:IN_PROGRESS'])
+  const isRestrictedTransition = (fromStatus, toStatus) => RESTRICTED_TRANSITIONS.has(`${fromStatus}:${toStatus}`)
   const [requests,  setRequests]  = useState([])
   const [aircraft,  setAircraft]  = useState([])
   const [loading,   setLoading]   = useState(true)
@@ -117,19 +126,25 @@ export default function MaintenanceTab() {
             <div className="mb-4">
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1 font-medium">Change Status</p>
               <div className="flex flex-wrap gap-1">
-                {STATUSES.map(s => (
-                  <button
-                    key={s}
-                    onClick={() => { updateStatus(selected, s); setSelected(prev => ({ ...prev, status: s })) }}
-                    className={`text-xs px-2 py-1 rounded border ${selected.status === s ? 'bg-blue-600 text-white border-blue-600' : 'border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10'}`}
-                  >
-                    {s.replace('_', ' ')}
-                  </button>
-                ))}
+                {STATUSES.map(s => {
+                  const blocked = isRestrictedTransition(selected.status, s) && !canApprove
+                  return (
+                    <button
+                      key={s}
+                      disabled={blocked}
+                      title={blocked ? 'Only supervisors, operations managers or admins can make this change' : undefined}
+                      onClick={() => { if (blocked) return; updateStatus(selected, s); setSelected(prev => ({ ...prev, status: s })) }}
+                      className={`text-xs px-2 py-1 rounded border ${selected.status === s ? 'bg-blue-600 text-white border-blue-600' : 'border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10'} ${blocked ? 'opacity-40 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent' : ''}`}
+                    >
+                      {s.replace('_', ' ')}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
             {/* Add log */}
+            {canWrite && (
             <div className="glass rounded-xl p-3 mb-4 space-y-2">
               <textarea
                 placeholder="Action taken..."
@@ -151,6 +166,7 @@ export default function MaintenanceTab() {
                 Add Log Entry
               </button>
             </div>
+            )}
 
             {/* Log history */}
             <div className="space-y-3">
@@ -187,16 +203,18 @@ export default function MaintenanceTab() {
           <option value="" className="bg-neutral-800 text-white">All Statuses</option>
           {STATUSES.map(s => <option key={s} value={s} className="bg-neutral-800 text-white">{s.replace('_', ' ')}</option>)}
         </select>
-        <button
-          onClick={() => setShowForm(v => !v)}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg"
-        >
-          {showForm ? 'Cancel' : '+ New Request'}
-        </button>
+        {canWrite && (
+          <button
+            onClick={() => setShowForm(v => !v)}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg"
+          >
+            {showForm ? 'Cancel' : '+ New Request'}
+          </button>
+        )}
       </div>
 
       {/* Add form */}
-      {showForm && (
+      {showForm && canWrite && (
         <div className="glass rounded-xl p-4 mb-4 grid grid-cols-2 gap-3">
           <select style={{ colorScheme: 'dark' }}
             value={form.aircraft}
@@ -274,12 +292,14 @@ export default function MaintenanceTab() {
                   >
                     Logs
                   </button>
-                  <button
-                    onClick={() => deleteRequest(r.id)}
-                    className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded"
-                  >
-                    Delete
-                  </button>
+                  {canWrite && (
+                    <button
+                      onClick={() => deleteRequest(r.id)}
+                      className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
