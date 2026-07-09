@@ -1,4 +1,4 @@
-﻿from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from flights.models import Flight
@@ -6,6 +6,7 @@ from staff.models import StaffAssignment
 from gates.models import GateAssignment
 from ground_equipment.models import EquipmentAssignment
 from .business_rules import BusinessRuleValidator
+
 
 @receiver(pre_save, sender=Flight)
 def validate_flight_before_save(sender, instance, **kwargs):
@@ -18,7 +19,7 @@ def validate_flight_before_save(sender, instance, **kwargs):
 def validate_staff_assignment(sender, instance, **kwargs):
     """Validate staff assignment before saving"""
     can_assign, message = BusinessRuleValidator.can_assign_staff_to_flight(
-        instance.staff, 
+        instance.staff,
         instance.flight
     )
     if not can_assign:
@@ -35,6 +36,7 @@ def validate_gate_assignment(sender, instance, **kwargs):
     if not can_assign:
         raise ValidationError(message)
 
+
 @receiver(pre_save, sender=EquipmentAssignment)
 def validate_equipment_assignment(sender, instance, **kwargs):
     """Validate equipment assignment before saving.
@@ -47,8 +49,6 @@ def validate_equipment_assignment(sender, instance, **kwargs):
     """
     if instance._state.adding:
         can_assign, message = BusinessRuleValidator.can_assign_equipment_to_flight(
-            instance.equipment,
-            instance.flight
-        )
+            instance.equipment, instance.flight)
         if not can_assign:
             raise ValidationError(message)

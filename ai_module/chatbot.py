@@ -18,7 +18,7 @@ from django.utils import timezone
 
 from flights.models import Flight
 from gates.models import Gate
-from .models import FlightScheduleUpload, FlightScheduleRow, AIChatMessage
+from .models import FlightScheduleUpload, AIChatMessage
 
 try:
     from staff.models import Staff
@@ -36,23 +36,84 @@ GATE_NUMBER_RE = re.compile(r'\bgate\s*([A-Z]?\d{1,3})\b', re.IGNORECASE)
 
 INTENTS = {
     'schedule_check': [
-        'is there a flight', 'is there any flight', 'any flight at', 'any flights at',
-        'flight at', 'flights at', 'flight around', 'flights around', 'flights between',
-        'flight between', 'flight schedule', 'check the schedule', 'check schedule',
-        'according to the excel', 'according to the sheet', 'in the excel', 'uploaded schedule',
-        'any flight', 'any flights', 'flight options', 'flights available', 'flight available',
-        'available flight', 'available flights', 'departing between', 'flights departing',
-        'flight departing', 'flights are there', 'flight are there', 'flights there',
+        'is there a flight',
+        'is there any flight',
+        'any flight at',
+        'any flights at',
+        'flight at',
+        'flights at',
+        'flight around',
+        'flights around',
+        'flights between',
+        'flight between',
+        'flight schedule',
+        'check the schedule',
+        'check schedule',
+        'according to the excel',
+        'according to the sheet',
+        'in the excel',
+        'uploaded schedule',
+        'any flight',
+        'any flights',
+        'flight options',
+        'flights available',
+        'flight available',
+        'available flight',
+        'available flights',
+        'departing between',
+        'flights departing',
+        'flight departing',
+        'flights are there',
+        'flight are there',
+        'flights there',
     ],
-    'flight_status': ['status', 'where is', 'flight info', 'flight detail', 'when does', 'departure', 'arrival'],
-    'delay_prediction': ['delay', 'late', 'on time', 'predict delay'],
-    'gate_info': ['gate', 'which gate', 'gate number'],
-    'gate_availability': ['available gate', 'free gate', 'open gate'],
-    'maintenance': ['maintenance', 'repair', 'service due', 'grounded'],
-    'staff_count': ['staff', 'crew', 'how many staff', 'ground crew'],
-    'weather': ['weather', 'visibility', 'wind', 'storm', 'fog'],
-    'greeting': ['hello', 'hi', 'hey', 'good morning', 'good evening'],
-    'help': ['help', 'what can you do', 'commands'],
+    'flight_status': [
+        'status',
+        'where is',
+        'flight info',
+        'flight detail',
+        'when does',
+        'departure',
+        'arrival'],
+    'delay_prediction': [
+        'delay',
+        'late',
+        'on time',
+        'predict delay'],
+    'gate_info': [
+        'gate',
+        'which gate',
+        'gate number'],
+    'gate_availability': [
+        'available gate',
+        'free gate',
+        'open gate'],
+    'maintenance': [
+        'maintenance',
+        'repair',
+        'service due',
+        'grounded'],
+    'staff_count': [
+        'staff',
+        'crew',
+        'how many staff',
+        'ground crew'],
+    'weather': [
+        'weather',
+        'visibility',
+        'wind',
+        'storm',
+        'fog'],
+    'greeting': [
+        'hello',
+        'hi',
+        'hey',
+        'good morning',
+        'good evening'],
+    'help': [
+        'help',
+        'what can you do',
+        'commands'],
 }
 
 
@@ -96,9 +157,11 @@ def _extract_flight_with_suggestion(text):
             return flight, None
 
     for m in matches:
-        close = difflib.get_close_matches(m.upper(), [n.upper() for n in all_numbers], n=1, cutoff=0.6)
+        close = difflib.get_close_matches(
+            m.upper(), [n.upper() for n in all_numbers], n=1, cutoff=0.6)
         if close:
-            real_number = next((n for n in all_numbers if n.upper() == close[0]), None)
+            real_number = next(
+                (n for n in all_numbers if n.upper() == close[0]), None)
             if real_number:
                 return None, real_number
     return None, None
@@ -174,8 +237,11 @@ def _day_label(day_ref):
 
 
 TIME_PATTERNS = [
-    # e.g. "3:45 pm", "15:45", "8.00 pm", "08.00PM" - colon or dot as the separator
-    re.compile(r'\b(?P<h>\d{1,2})[:.](?P<m>\d{2})\s*(?P<ap>am|pm)?\b', re.IGNORECASE),
+    # e.g. "3:45 pm", "15:45", "8.00 pm", "08.00PM" - colon or dot as the
+    # separator
+    re.compile(
+        r'\b(?P<h>\d{1,2})[:.](?P<m>\d{2})\s*(?P<ap>am|pm)?\b',
+        re.IGNORECASE),
     # e.g. "3 pm", "11am", "8.00PM" (fallback if no minutes given)
     re.compile(r'\b(?P<h>\d{1,2})\s*(?P<ap>am|pm)\b', re.IGNORECASE),
     # e.g. "at 15", "at 9"
@@ -215,12 +281,22 @@ def _extract_time_range(text):
     mention, where X and Y are both clock times (not routes). Returns
     ((h1, m1), (h2, m2)) or None.
     """
-    m = re.search(r'between\s+(.+?)\s+and\s+(.+?)(?:[?!]|\s*$)', text, re.IGNORECASE)
+    m = re.search(
+        r'between\s+(.+?)\s+and\s+(.+?)(?:[?!]|\s*$)',
+        text,
+        re.IGNORECASE)
     if not m:
-        m = re.search(r'\bfrom\s+(.+?)\s+to\s+(.+?)(?:[?!]|\s*$)', text, re.IGNORECASE)
+        m = re.search(
+            r'\bfrom\s+(.+?)\s+to\s+(.+?)(?:[?!]|\s*$)',
+            text,
+            re.IGNORECASE)
     if not m:
-        # plain "8pm to 9pm" / "08.00PM to 9.00PM" without a leading from/between
-        m = re.search(r'\b(\d[\d:.\s]*(?:am|pm)?)\s+to\s+(\d[\d:.\s]*(?:am|pm)?)\b', text, re.IGNORECASE)
+        # plain "8pm to 9pm" / "08.00PM to 9.00PM" without a leading
+        # from/between
+        m = re.search(
+            r'\b(\d[\d:.\s]*(?:am|pm)?)\s+to\s+(\d[\d:.\s]*(?:am|pm)?)\b',
+            text,
+            re.IGNORECASE)
     if not m:
         return None
 
@@ -245,7 +321,9 @@ def _extract_time_range(text):
 
 def _extract_route(text_lower):
     """Find an optional "from X to Y" mention. Returns (origin, destination) or (None, None)."""
-    m = re.search(r'from\s+([a-z\s]+?)\s+to\s+([a-z\s]+?)(?:\s+at\b|\s*[?.]|\s*$)', text_lower)
+    m = re.search(
+        r'from\s+([a-z\s]+?)\s+to\s+([a-z\s]+?)(?:\s+at\b|\s*[?.]|\s*$)',
+        text_lower)
     if m:
         return m.group(1).strip(), m.group(2).strip()
     return None, None
@@ -288,7 +366,8 @@ def _task_lateness_minutes(task):
 
 
 def _task_delay_sentence(task):
-    subject, verb = TASK_DELAY_PHRASING.get(task.task_type, (task.get_task_type_display(), 'happened'))
+    subject, verb = TASK_DELAY_PHRASING.get(
+        task.task_type, (task.get_task_type_display(), 'happened'))
     minutes = _task_lateness_minutes(task)
     if minutes:
         unit = 'minute' if minutes == 1 else 'minutes'
@@ -299,16 +378,18 @@ def _task_delay_sentence(task):
 def _explain_flight_delay(flight):
     """Real (non-ML) delay explanation, using actual recorded turnaround
     task timing - what answers 'why is AI204 delayed'."""
-    delayed_tasks = list(flight.turnaround_tasks.filter(status='DELAYED').order_by('scheduled_time'))
+    delayed_tasks = list(flight.turnaround_tasks.filter(
+        status='DELAYED').order_by('scheduled_time'))
     if not delayed_tasks:
         return (
             f"Flight {flight.flight_number} has no delayed turnaround tasks recorded — "
-            f"it's currently on schedule for {flight.departure_time.strftime('%d %b %Y, %H:%M')}."
-        )
+            f"it's currently on schedule for {flight.departure_time.strftime('%d %b %Y, %H:%M')}.")
 
     lines = [_task_delay_sentence(t) for t in delayed_tasks]
-    known_minutes = [m for m in (_task_lateness_minutes(t) for t in delayed_tasks) if m]
-    estimated_delay = max(known_minutes) if known_minutes else len(delayed_tasks) * 15
+    known_minutes = [m for m in (_task_lateness_minutes(t)
+                                 for t in delayed_tasks) if m]
+    estimated_delay = max(known_minutes) if known_minutes else len(
+        delayed_tasks) * 15
     new_departure = flight.departure_time + timedelta(minutes=estimated_delay)
 
     return (
@@ -322,13 +403,15 @@ def _explain_gate_congestion(gate):
     from gates.models import GateAssignment
     from turnaround.models import TurnaroundTask
     today = timezone.now().date()
-    todays_assignments = GateAssignment.objects.filter(gate=gate, assigned_at__date=today)
+    todays_assignments = GateAssignment.objects.filter(
+        gate=gate, assigned_at__date=today)
     assignments_count = todays_assignments.count()
     flight_ids = list(todays_assignments.values_list('flight_id', flat=True))
     delayed_tasks_count = TurnaroundTask.objects.filter(
         flight_id__in=flight_ids, status='DELAYED'
     ).count() if flight_ids else 0
-    is_occupied = GateAssignment.objects.filter(gate=gate, status='assigned').exists()
+    is_occupied = GateAssignment.objects.filter(
+        gate=gate, status='assigned').exists()
 
     score = 0
     if is_occupied:
@@ -348,7 +431,8 @@ def _explain_gate_congestion(gate):
     if assignments_count:
         reasons.append(f"handled {assignments_count} flight(s) today")
     if delayed_tasks_count:
-        reasons.append(f"{delayed_tasks_count} delayed turnaround task(s) today")
+        reasons.append(
+            f"{delayed_tasks_count} delayed turnaround task(s) today")
 
     return (
         f"Gate {gate.gate_number} congestion: {score}% ({level})\n"
@@ -378,16 +462,18 @@ def _query_flight_db(day_ref, time_range, time_of_day, origin, destination):
         if end_minutes < start_minutes:
             start_minutes, end_minutes = end_minutes, start_minutes
         matches = [
-            f for f in matches
-            if start_minutes <= (f.departure_time.hour * 60 + f.departure_time.minute) <= end_minutes
-        ]
+            f for f in matches if start_minutes <= (
+                f.departure_time.hour *
+                60 +
+                f.departure_time.minute) <= end_minutes]
     elif time_of_day:
         hour, minute = time_of_day
         start_minutes, end_minutes = hour * 60 + minute - 30, hour * 60 + minute + 30
         matches = [
-            f for f in matches
-            if start_minutes <= (f.departure_time.hour * 60 + f.departure_time.minute) <= end_minutes
-        ]
+            f for f in matches if start_minutes <= (
+                f.departure_time.hour *
+                60 +
+                f.departure_time.minute) <= end_minutes]
     return matches
 
 
@@ -398,7 +484,8 @@ def _check_schedule(text, text_lower):
     also checks the uploaded Excel/CSV reference sheet (FlightScheduleRow)
     if one has been loaded, so nothing is missed either way.
     """
-    upload = FlightScheduleUpload.objects.filter(status='PROCESSED').order_by('-uploaded_at').first()
+    upload = FlightScheduleUpload.objects.filter(
+        status='PROCESSED').order_by('-uploaded_at').first()
     has_sheet = bool(upload and upload.row_count)
 
     day_ref = _extract_day_reference(text_lower)
@@ -415,7 +502,8 @@ def _check_schedule(text, text_lower):
 
     origin, destination = _extract_route(text_lower)
     route_label = f" from {origin} to {destination}" if origin and destination else ""
-    day_label = " today" if defaulted_to_today else (f" on {_day_label(day_ref)}" if day_ref else "")
+    day_label = " today" if defaulted_to_today else (
+        f" on {_day_label(day_ref)}" if day_ref else "")
     day_only = bool(day_ref and not time_range and not time_of_day)
 
     # 1) Check the uploaded Excel/CSV sheet, if there is one.
@@ -451,27 +539,34 @@ def _check_schedule(text, text_lower):
             lines = []
             for r in sheet_matches[:10]:
                 fn = r.flight_number or 'Flight'
-                route = f"{r.origin} → {r.destination}" if (r.origin or r.destination) else ""
-                lines.append(f"- {fn}: {route} at {r.scheduled_time.strftime('%H:%M')}".rstrip(': '))
+                route = f"{r.origin} → {r.destination}" if (
+                    r.origin or r.destination) else ""
+                lines.append(
+                    f"- {fn}: {route} at {r.scheduled_time.strftime('%H:%M')}".rstrip(': '))
             extra = f"\n(+{len(sheet_matches) - 10} more)" if len(sheet_matches) > 10 else ""
             sheet_section = (
                 f"{len(sheet_matches)} flight(s) found{day_label}{route_label} "
-                f"(file: {upload.original_filename}):\n" + "\n".join(lines) + extra
-            )
+                f"(file: {upload.original_filename}):\n" + "\n".join(lines) + extra)
         else:
             sheet_section = f"No flights found{day_label}{route_label} in {upload.original_filename}."
     else:
         sheet_section = "No schedule sheet is currently uploaded."
 
     # 2) Check the system's own live flight database.
-    db_matches = _query_flight_db(day_ref, time_range, time_of_day, origin, destination)
+    db_matches = _query_flight_db(
+        day_ref,
+        time_range,
+        time_of_day,
+        origin,
+        destination)
     if db_matches:
         lines = [
             f"- {f.flight_number}: {f.origin} → {f.destination} at {f.departure_time.strftime('%H:%M')} ({f.get_status_display()})"
             for f in db_matches[:10]
         ]
         extra = f"\n(+{len(db_matches) - 10} more)" if len(db_matches) > 10 else ""
-        db_section = f"{len(db_matches)} flight(s) found{day_label}{route_label}:\n" + "\n".join(lines) + extra
+        db_section = f"{len(db_matches)} flight(s) found{day_label}{route_label}:\n" + \
+            "\n".join(lines) + extra
     else:
         db_section = f"No flights found{day_label}{route_label}."
 
@@ -529,11 +624,13 @@ class ChatbotEngine:
 
         used_correction = False
         if not flight and corrected_from:
-            flight = Flight.objects.filter(flight_number__iexact=corrected_from).first()
+            flight = Flight.objects.filter(
+                flight_number__iexact=corrected_from).first()
             used_correction = flight is not None
 
         day_ref = _extract_day_reference(text_lower)
-        if intent is None and 'flight' in text_lower and (_extract_time_range(text) or _extract_time_of_day(text) or day_ref):
+        if intent is None and 'flight' in text_lower and (
+                _extract_time_range(text) or _extract_time_of_day(text) or day_ref):
             intent = 'schedule_check'
 
         # Bare follow-up to a schedule check, e.g. user asked "check any
@@ -576,10 +673,13 @@ class ChatbotEngine:
 
         # "Why" phrasing gets the real explanation instead of the generic
         # ML risk-score answer or gate-availability answer.
-        if flight and 'why' in text_lower and any(k in text_lower for k in ['delay', 'late']):
+        if flight and 'why' in text_lower and any(
+                k in text_lower for k in ['delay', 'late']):
             return note(_explain_flight_delay(flight))
 
-        if gate and 'why' in text_lower and any(k in text_lower for k in ['congest', 'busy', 'crowded']):
+        if gate and 'why' in text_lower and any(
+            k in text_lower for k in [
+                'congest', 'busy', 'crowded']):
             return _explain_gate_congestion(gate)
 
         if intent == 'greeting':
@@ -595,8 +695,7 @@ class ChatbotEngine:
                 "- Available gates (e.g. \"show available gates\")\n"
                 "- Why a gate is congested (e.g. \"why is gate A1 busy\")\n"
                 "- Maintenance alerts\n"
-                "- Staffing requirements"
-            )
+                "- Staffing requirements")
 
         if intent == 'schedule_check':
             return _check_schedule(text, text_lower)
@@ -608,8 +707,7 @@ class ChatbotEngine:
                     f"- Status: {flight.get_status_display()}\n"
                     f"- Departure: {flight.departure_time.strftime('%d %b %Y, %H:%M')}\n"
                     f"- Arrival: {flight.arrival_time.strftime('%d %b %Y, %H:%M')}\n"
-                    f"- Route: {flight.origin} → {flight.destination}"
-                )
+                    f"- Route: {flight.origin} → {flight.destination}")
             return "I couldn't find that flight. Please give me a valid flight number, e.g. 'status of AI202'."
 
         if intent == 'delay_prediction':
@@ -621,19 +719,18 @@ class ChatbotEngine:
                     f"- Risk level: {result['risk_level']}\n"
                     f"- Estimated delay: {result['estimated_delay_minutes']} minutes\n"
                     f"- Confidence: {int(confidence*100)}%\n"
-                    f"- Reason: {result['reason']}"
-                )
+                    f"- Reason: {result['reason']}")
             return "Tell me which flight you want a delay prediction for, e.g. 'will AI202 be delayed'."
 
         if intent == 'gate_info':
             if flight:
-                gate_step = flight.workflow_steps.filter(step='GATE_ASSIGNED').first()
+                gate_step = flight.workflow_steps.filter(
+                    step='GATE_ASSIGNED').first()
                 if gate_step:
                     return note(
                         f"Flight {flight.flight_number}\n"
                         f"- Gate assignment recorded at: {gate_step.completed_at.strftime('%H:%M')}\n"
-                        f"- Check the Gates module for the current gate number."
-                    )
+                        f"- Check the Gates module for the current gate number.")
                 from .views import recommend_gate
                 result, confidence = recommend_gate(flight)
                 if result.get('recommended_gate'):
@@ -641,9 +738,9 @@ class ChatbotEngine:
                         f"Flight {flight.flight_number} — no gate assigned yet\n"
                         f"- Recommended gate: {result['recommended_gate']}\n"
                         f"- Suitability: {result['suitability_score']}/100\n"
-                        f"- Confidence: {int(confidence*100)}%"
-                    )
-                return note(f"Flight {flight.flight_number} hasn't been assigned a gate yet, and no gates are currently available to recommend.")
+                        f"- Confidence: {int(confidence*100)}%")
+                return note(
+                    f"Flight {flight.flight_number} hasn't been assigned a gate yet, and no gates are currently available to recommend.")
             if gate:
                 status = 'available' if gate.is_available else 'occupied'
                 return f"Gate {gate.gate_number} ({gate.terminal})\n- Status: {status}"
@@ -661,12 +758,12 @@ class ChatbotEngine:
             from .ml.predictor import predict_maintenance
             if flight:
                 result, confidence = predict_maintenance(flight)
-                components = '\n'.join(f"  - {c}" for c in result['components_at_risk'])
+                components = '\n'.join(
+                    f"  - {c}" for c in result['components_at_risk'])
                 return note(
                     f"Maintenance check for {flight.flight_number}'s aircraft\n"
                     f"- Urgency: {result['urgency']} (score {result['urgency_score']}/100)\n"
-                    f"- Components at risk:\n{components}"
-                )
+                    f"- Components at risk:\n{components}")
             return "Which flight's aircraft do you want a maintenance check on?"
 
         if intent == 'staff_count':
@@ -678,8 +775,7 @@ class ChatbotEngine:
                     f"- Ground crew: {result['ground_crew_required']}\n"
                     f"- Security: {result['security_staff_required']}\n"
                     f"- Baggage handlers: {result['baggage_handlers_required']}\n"
-                    f"- Total: {result['total_staff_required']}"
-                )
+                    f"- Total: {result['total_staff_required']}")
             return "Tell me which flight you need staffing numbers for."
 
         if intent == 'weather':
@@ -691,8 +787,7 @@ class ChatbotEngine:
                     f"- Risk level: {result['risk_level']}\n"
                     f"- Conditions: {result['conditions']}\n"
                     f"- Visibility: {result['visibility_km']} km\n"
-                    f"- Delay likely: {'Yes' if result['delay_likely'] else 'No'}"
-                )
+                    f"- Delay likely: {'Yes' if result['delay_likely'] else 'No'}")
             return "Which flight's weather risk do you want to check?"
 
         # fallback
@@ -700,6 +795,5 @@ class ChatbotEngine:
             return note(
                 f"Flight {flight.flight_number}\n"
                 f"- Status: {flight.get_status_display()}\n"
-                f"- Ask me about: delay risk, gate, maintenance, weather, or staffing"
-            )
+                f"- Ask me about: delay risk, gate, maintenance, weather, or staffing")
         return "I'm not sure I understood that. Try asking about a flight's status, delay risk, gate, maintenance, weather, or staffing. Type 'help' for examples."

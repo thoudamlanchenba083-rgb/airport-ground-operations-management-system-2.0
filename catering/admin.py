@@ -10,6 +10,13 @@ class CateringCompanyAdmin(admin.ModelAdmin):
 
 @admin.register(CateringOrder)
 class CateringOrderAdmin(admin.ModelAdmin):
-    list_display = ['flight', 'catering_company', 'meal_type', 'meal_count', 'is_special_meal', 'status', 'loading_completed']
+    list_display = [
+        'flight',
+        'catering_company',
+        'meal_type',
+        'meal_count',
+        'is_special_meal',
+        'status',
+        'loading_completed']
     list_filter = ['status', 'meal_type', 'is_special_meal']
     search_fields = ['flight__flight_number']

@@ -9,6 +9,7 @@ from core_app.business_rules import BusinessRuleValidator
 
 class StaffAssignmentError(Exception):
     """Raised when a staff assignment/auto-assignment cannot be completed."""
+
     def __init__(self, message, details=None):
         self.message = message
         self.details = details or []
@@ -20,10 +21,12 @@ class StaffAssignmentService:
     @staticmethod
     def assign(staff: Staff, flight) -> StaffAssignment:
         """Validates and creates a manual staff-to-flight assignment."""
-        can_assign, reason = BusinessRuleValidator.can_assign_staff_to_flight(staff, flight)
+        can_assign, reason = BusinessRuleValidator.can_assign_staff_to_flight(
+            staff, flight)
         if not can_assign:
             raise StaffAssignmentError(reason)
         return StaffAssignment.objects.create(staff=staff, flight=flight)
+
     @staticmethod
     def auto_assign(flight, staff_type: str, turnaround_task_id=None) -> dict:
         """
@@ -34,14 +37,18 @@ class StaffAssignmentService:
         Returns a dict with the assignment, chosen staff, and task update result.
         Raises StaffAssignmentError if no eligible staff is found/available.
         """
-        candidates = Staff.objects.filter(staff_type=staff_type, is_active=True).order_by('employee_id')
+        candidates = Staff.objects.filter(
+            staff_type=staff_type,
+            is_active=True).order_by('employee_id')
         if not candidates.exists():
-            raise StaffAssignmentError(f'No active staff of type "{staff_type}" exist.')
+            raise StaffAssignmentError(
+                f'No active staff of type "{staff_type}" exist.')
 
         chosen = None
         reasons_tried = []
         for staff in candidates:
-            ok, reason = BusinessRuleValidator.can_assign_staff_to_flight(staff, flight)
+            ok, reason = BusinessRuleValidator.can_assign_staff_to_flight(
+                staff, flight)
             if ok:
                 chosen = staff
                 break
@@ -59,7 +66,8 @@ class StaffAssignmentService:
         if turnaround_task_id:
             from turnaround.models import TurnaroundTask
             try:
-                task = TurnaroundTask.objects.get(id=turnaround_task_id, flight=flight)
+                task = TurnaroundTask.objects.get(
+                    id=turnaround_task_id, flight=flight)
                 task.assigned_staff = chosen
                 task.save()
                 task_updated = task.id

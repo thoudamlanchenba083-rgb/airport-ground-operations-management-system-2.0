@@ -16,7 +16,12 @@ import pandas as pd
 RNG = np.random.default_rng(42)
 
 AIRPORTS = ['DEL', 'BOM', 'BLR', 'MAA', 'CCU', 'HYD', 'GOI', 'PNQ']
-WEATHER_CONDITIONS = ['Clear', 'Light Rain', 'Fog', 'Strong Winds', 'Thunderstorm']
+WEATHER_CONDITIONS = [
+    'Clear',
+    'Light Rain',
+    'Fog',
+    'Strong Winds',
+    'Thunderstorm']
 AIRCRAFT_TYPES = ['A320', 'A321', 'B737', 'B777', 'ATR72', 'A350']
 
 
@@ -38,7 +43,8 @@ def generate_flight_delay_dataset(n=6000):
     aircraft_age_years = RNG.uniform(0.5, 25, n)
     capacity = RNG.choice([72, 150, 180, 220, 350], n)
     prior_flight_delay_min = np.clip(RNG.normal(5, 15, n), 0, None)
-    gate_congestion = np.array([_peak_hour_factor(h) for h in hour]) + RNG.uniform(-0.1, 0.1, n)
+    gate_congestion = np.array([_peak_hour_factor(h)
+                               for h in hour]) + RNG.uniform(-0.1, 0.1, n)
     gate_congestion = np.clip(gate_congestion, 0, 1)
     crew_ready_pct = RNG.uniform(0.6, 1.0, n)
     maintenance_flag = RNG.binomial(1, 0.08, n)
@@ -170,8 +176,10 @@ def generate_staff_requirement_dataset(n=4000):
     rush_factor = RNG.uniform(0.1, 1.0, n)
     baggage_volume_kg = capacity * RNG.uniform(15, 25, n)
 
-    ground_crew = np.clip((capacity / 30) * (0.8 + rush_factor * 0.4), 3, None).round()
-    security = np.clip((capacity / 50) * (1 + is_international * 0.3), 2, None).round()
+    ground_crew = np.clip(
+        (capacity / 30) * (0.8 + rush_factor * 0.4), 3, None).round()
+    security = np.clip((capacity / 50) *
+                       (1 + is_international * 0.3), 2, None).round()
     baggage_handlers = np.clip(baggage_volume_kg / 1200, 3, None).round()
 
     df = pd.DataFrame({
@@ -184,15 +192,21 @@ def generate_staff_requirement_dataset(n=4000):
         'baggage_handlers_required': baggage_handlers,
     })
     return df
+
+
 def generate_gate_recommendation_dataset(n=5000):
     """
     Features -> target: suitability_score (regression), how good a gate is
     for a given flight to be assigned to.
     """
-    distance_score = RNG.uniform(0, 1, n)          # 0 = close to stand, 1 = far
-    recent_utilization = RNG.uniform(0, 1, n)       # how busy the gate has been recently
-    terminal_match = RNG.binomial(1, 0.5, n)        # gate terminal matches preferred terminal
-    aircraft_size_fit = RNG.uniform(0, 1, n)        # how well gate accommodates aircraft size
+    distance_score = RNG.uniform(
+        0, 1, n)          # 0 = close to stand, 1 = far
+    # how busy the gate has been recently
+    recent_utilization = RNG.uniform(0, 1, n)
+    # gate terminal matches preferred terminal
+    terminal_match = RNG.binomial(1, 0.5, n)
+    # how well gate accommodates aircraft size
+    aircraft_size_fit = RNG.uniform(0, 1, n)
     is_international = RNG.binomial(1, 0.3, n)
 
     suitability = (
@@ -214,6 +228,7 @@ def generate_gate_recommendation_dataset(n=5000):
         'suitability_score': suitability,
     })
     return df
+
 
 def generate_equipment_failure_dataset(n=5000):
     """

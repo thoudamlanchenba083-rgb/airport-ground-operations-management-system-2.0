@@ -21,16 +21,19 @@ class Command(BaseCommand):
         now = timezone.now()
 
         # 1. Demo airline + aircraft (reused if they already exist)
-        airline, _ = Airline.objects.get_or_create(code='DM', defaults={'name': 'Demo Air'})
+        airline, _ = Airline.objects.get_or_create(
+            code='DM', defaults={'name': 'Demo Air'})
         aircraft, _ = Aircraft.objects.get_or_create(
             registration_number='DEMO-AC1',
             defaults={'aircraft_type': 'A320', 'capacity': 180, 'width': 34.00, 'length': 37.60},
         )
 
         # 2. Pick a gate to make busy (first non-maintenance gate)
-        target_gate = Gate.objects.filter(is_under_maintenance=False).order_by('gate_number').first()
+        target_gate = Gate.objects.filter(
+            is_under_maintenance=False).order_by('gate_number').first()
         if not target_gate:
-            self.stdout.write(self.style.ERROR('No gates found — create at least one gate first.'))
+            self.stdout.write(self.style.ERROR(
+                'No gates found — create at least one gate first.'))
             return
 
         # Clean up any previous demo run so this command is safe to re-run
@@ -52,7 +55,8 @@ class Command(BaseCommand):
             )
             flights.append(flight)
 
-        # 3. Gate assignments today — two released (history), one currently assigned
+        # 3. Gate assignments today — two released (history), one currently
+        # assigned
         for i, flight in enumerate(flights):
             GateAssignment.objects.create(
                 flight=flight,
@@ -64,21 +68,29 @@ class Command(BaseCommand):
 
         # 4. A couple of delayed turnaround tasks on today's flights
         TurnaroundTask.objects.create(
-            flight=flights[0], task_type='FUELING', status='DELAYED', delay_reason='FUEL',
+            flight=flights[0],
+            task_type='FUELING',
+            status='DELAYED',
+            delay_reason='FUEL',
         )
         TurnaroundTask.objects.create(
-            flight=flights[1], task_type='CABIN_CLEANING', status='DELAYED', delay_reason='CLEANING',
+            flight=flights[1],
+            task_type='CABIN_CLEANING',
+            status='DELAYED',
+            delay_reason='CLEANING',
         )
 
-        self.stdout.write(self.style.SUCCESS(
-            f'Seeded 3 demo flights on gate {target_gate.gate_number} (2 released + 1 currently assigned), '
-            f'with 2 delayed turnaround tasks.'
-        ))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f'Seeded 3 demo flights on gate {target_gate.gate_number} (2 released + 1 currently assigned), '
+                f'with 2 delayed turnaround tasks.'))
 
         # 5. Optional: force a second gate red via maintenance
         if options['maintenance_gate']:
-            other_gate = Gate.objects.exclude(id=target_gate.id).order_by('gate_number').first()
+            other_gate = Gate.objects.exclude(
+                id=target_gate.id).order_by('gate_number').first()
             if other_gate:
                 other_gate.is_under_maintenance = True
                 other_gate.save()
-                self.stdout.write(self.style.SUCCESS(f'Marked gate {other_gate.gate_number} as under maintenance.'))
+                self.stdout.write(self.style.SUCCESS(
+                    f'Marked gate {other_gate.gate_number} as under maintenance.'))

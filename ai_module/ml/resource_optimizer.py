@@ -26,7 +26,7 @@ across resource types; treat absolute numbers as estimates, not guarantees.
 from django.utils import timezone
 from datetime import timedelta
 
-from .predictor import predict_staff, predict_equipment_failure, predict_best_gate
+from .predictor import predict_staff, predict_equipment_failure
 
 # How far ahead to forecast demand, when optimize_resources() is called on
 # its own (e.g. the standalone RESOURCE prediction handler) with no flights
@@ -83,7 +83,8 @@ def _forecast_staff_demand(flights):
         totals['BAGGAGE'] += result.get('baggage_handlers_required', 0)
         confidences.append(confidence)
 
-    avg_confidence = sum(confidences) / len(confidences) if confidences else 0.5
+    avg_confidence = sum(confidences) / \
+        len(confidences) if confidences else 0.5
     return totals, avg_confidence
 
 
@@ -95,7 +96,8 @@ def _forecast_gate_pressure(flights):
 
     buckets = Counter()
     for flight in flights:
-        bucket = flight.departure_time.replace(minute=0, second=0, microsecond=0)
+        bucket = flight.departure_time.replace(
+            minute=0, second=0, microsecond=0)
         buckets[bucket] += 1
 
     peak_demand = max(buckets.values()) if buckets else 0
@@ -126,7 +128,8 @@ def _forecast_equipment_risk():
             type_name = equipment.equipment_type.get_name_display()
             at_risk_by_type[type_name] = at_risk_by_type.get(type_name, 0) + 1
 
-    avg_confidence = sum(confidences) / len(confidences) if confidences else 0.5
+    avg_confidence = sum(confidences) / \
+        len(confidences) if confidences else 0.5
     return at_risk_by_type, avg_confidence
 
 
@@ -149,10 +152,20 @@ def optimize_resources(flights=None, window_hours=None):
 
     window_hours = window_hours or DEFAULT_FORECAST_WINDOW_HOURS
     if flights is None:
-        flights = _upcoming_flights(window_hours)[:MAX_FLIGHTS_FOR_STAFF_FORECAST]
-    active_statuses = ['SCHEDULED', 'GATE_ASSIGNED', 'CREW_ASSIGNED', 'FUELING',
-                        'CLEANING', 'MAINTENANCE_CHECK', 'BAGGAGE_LOADING',
-                        'BOARDING', 'GATE_CLOSED', 'PUSHBACK', 'TAXIING']
+        flights = _upcoming_flights(window_hours)[
+            :MAX_FLIGHTS_FOR_STAFF_FORECAST]
+    active_statuses = [
+        'SCHEDULED',
+        'GATE_ASSIGNED',
+        'CREW_ASSIGNED',
+        'FUELING',
+        'CLEANING',
+        'MAINTENANCE_CHECK',
+        'BAGGAGE_LOADING',
+        'BOARDING',
+        'GATE_CLOSED',
+        'PUSHBACK',
+        'TAXIING']
     active_flights_now = sum(1 for f in flights if f.status in active_statuses)
 
     staff_demand, staff_confidence = _forecast_staff_demand(flights)
@@ -162,12 +175,16 @@ def optimize_resources(flights=None, window_hours=None):
     # --- Gates: current availability vs forecast peak-hour demand ---
     total_gates = Gate.objects.count()
     available_gates = Gate.objects.filter(is_available=True).count()
-    gate_utilization_pct = round((1 - available_gates / total_gates) * 100, 1) if total_gates else 0.0
+    gate_utilization_pct = round(
+        (1 - available_gates / total_gates) * 100,
+        1) if total_gates else 0.0
 
     # --- Staff: current supply vs forecast demand, per type ---
     staff_breakdown = {}
     for staff_type, label in Staff.STAFF_TYPES:
-        total = Staff.objects.filter(staff_type=staff_type, is_active=True).count()
+        total = Staff.objects.filter(
+            staff_type=staff_type,
+            is_active=True).count()
         assigned = StaffAssignment.objects.filter(
             staff__staff_type=staff_type, flight__status__in=active_statuses
         ).values('staff').distinct().count()
@@ -178,7 +195,9 @@ def optimize_resources(flights=None, window_hours=None):
             'assigned': assigned,
             'available': available,
             'forecast_demand_next_{}h'.format(window_hours): forecast_needed,
-            'utilization_pct': round((assigned / total) * 100, 1) if total else 0.0,
+            'utilization_pct': round(
+                (assigned / total) * 100,
+                1) if total else 0.0,
         }
 
     # --- Equipment: current supply, minus predicted at-risk units ---
@@ -209,8 +228,7 @@ def optimize_resources(flights=None, window_hours=None):
         when = peak_hour.strftime('%H:%M') if peak_hour else 'soon'
         recommendations.append(
             f'Predicted gate shortfall around {when} - {peak_gate_demand} flights need gates, '
-            f'only {available_gates} currently available'
-        )
+            f'only {available_gates} currently available')
 
     for label, data in staff_breakdown.items():
         demand_key = f'forecast_demand_next_{window_hours}h'
@@ -218,10 +236,10 @@ def optimize_resources(flights=None, window_hours=None):
         if data['total'] > 0 and forecast_needed > data['available']:
             recommendations.append(
                 f"{label} shortfall forecast in next {window_hours}h - "
-                f"predicted need {forecast_needed}, only {data['available']} available now"
-            )
+                f"predicted need {forecast_needed}, only {data['available']} available now")
         elif data['total'] > 0 and data['available'] == 0 and active_flights_now > 0:
-            recommendations.append(f'{label} shortage - all staff currently assigned')
+            recommendations.append(
+                f'{label} shortage - all staff currently assigned')
 
     for name, data in equipment_breakdown.items():
         if data['total'] > 0 and data['effective_available'] == 0:
@@ -229,10 +247,12 @@ def optimize_resources(flights=None, window_hours=None):
             recommendations.append(f'{name} shortage - {reason}')
 
     if not recommendations:
-        recommendations.append('All resources within forecast-safe range for the next '
-                                f'{window_hours}h')
+        recommendations.append(
+            'All resources within forecast-safe range for the next '
+            f'{window_hours}h')
 
-    overall_confidence = round((staff_confidence + equipment_confidence) / 2, 2)
+    overall_confidence = round(
+        (staff_confidence + equipment_confidence) / 2, 2)
 
     return {
         'forecast_window_hours': window_hours,

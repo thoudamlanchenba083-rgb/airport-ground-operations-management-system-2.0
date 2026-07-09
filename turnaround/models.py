@@ -29,7 +29,8 @@ class TurnaroundTask(models.Model):
         ('TAKEOFF_READY', 'Takeoff Ready'),
     ]
 
-    # Standard order of a normal turnaround; used to flag out-of-sequence completions
+    # Standard order of a normal turnaround; used to flag out-of-sequence
+    # completions
     TASK_SEQUENCE = [
         'CHOCKS_ON',
         'DEBOARDING',
@@ -75,7 +76,10 @@ class TurnaroundTask(models.Model):
         related_name='turnaround_tasks'
     )
     task_type = models.CharField(max_length=30, choices=TASK_TYPES)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING')
 
     scheduled_time = models.DateTimeField(null=True, blank=True)
     actual_start_time = models.DateTimeField(null=True, blank=True)

@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import User
 
+
 class Notification(models.Model):
     TYPE_CHOICES = [
         ('FLIGHT', 'Flight Update'),
@@ -9,8 +10,14 @@ class Notification(models.Model):
         ('GENERAL', 'General'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='GENERAL')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notifications')
+    type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        default='GENERAL')
     message = models.TextField()
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

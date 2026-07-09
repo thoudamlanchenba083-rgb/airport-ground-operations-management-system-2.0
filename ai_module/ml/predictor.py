@@ -13,7 +13,10 @@ from .weather_service import get_live_weather
 import pandas as pd
 from datetime import datetime
 
-MODELS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved_models')
+MODELS_DIR = os.path.join(
+    os.path.dirname(
+        os.path.abspath(__file__)),
+    'saved_models')
 
 _cache = {}
 
@@ -120,9 +123,15 @@ def predict_maintenance(flight):
     result = {
         'maintenance_required': required,
         'urgency': 'IMMEDIATE' if urgency_score > 75 else 'SOON' if urgency_score > 55 else 'ROUTINE',
-        'estimated_hours': round(urgency_score / 10, 1),
-        'urgency_score': round(urgency_score, 1),
-        'components_at_risk': ['Engine Oil', 'Landing Gear'] if urgency_score > 55 else ['Tires'],
+        'estimated_hours': round(
+            urgency_score / 10,
+            1),
+        'urgency_score': round(
+            urgency_score,
+            1),
+        'components_at_risk': [
+            'Engine Oil',
+            'Landing Gear'] if urgency_score > 55 else ['Tires'],
         'model': 'RandomForestRegressor+Classifier (trained)',
     }
     return result, round(confidence, 2)
@@ -247,6 +256,8 @@ def predict_staff(flight):
     }
     return result, 0.9
 # ------------------------------------------------------------------ GATE ---
+
+
 def _gate_features(flight, gate):
     """
     distance_score and aircraft_size_fit are per-gate proxies (deterministic,
@@ -264,13 +275,19 @@ def _gate_features(flight, gate):
 
     distance_score = _seeded_value(gid, 'distance', 0, 1)
     aircraft_size_fit = _seeded_value(gid, 'sizefit', 0.3, 1.0)
-    terminal_match = int(_seeded_value(fid, f'terminal-{gate.terminal}', 0, 1) > 0.5)
+    terminal_match = int(
+        _seeded_value(
+            fid,
+            f'terminal-{gate.terminal}',
+            0,
+            1) > 0.5)
     # flight.flight_type is real data ('domestic'/'international') - use it
     # directly instead of a random per-flight seed.
     is_international = int(flight.flight_type == 'international')
 
     since = timezone.now() - timedelta(hours=24)
-    recent_count = GateAssignment.objects.filter(gate=gate, assigned_at__gte=since).count()
+    recent_count = GateAssignment.objects.filter(
+        gate=gate, assigned_at__gte=since).count()
     recent_utilization = min(1.0, recent_count / 5.0)
 
     return {
@@ -301,6 +318,8 @@ def predict_best_gate(flight, candidate_gates):
     return scored
 
 # -------------------------------------------------------------- EQUIPMENT --
+
+
 def predict_equipment_failure(equipment):
     """
     Unlike aircraft maintenance, this one uses mostly REAL computed features:
@@ -317,16 +336,23 @@ def predict_equipment_failure(equipment):
     features = _load('equipment_features.pkl')
 
     now = timezone.now()
-    days_since_maintenance = (now - equipment.last_maintenance).days if equipment.last_maintenance else 365
-    age_days = (now - equipment.created_at).days if equipment.created_at else 365
+    days_since_maintenance = (
+        now - equipment.last_maintenance).days if equipment.last_maintenance else 365
+    age_days = (
+        now -
+        equipment.created_at).days if equipment.created_at else 365
 
     since_30d = now - pd_timedelta_days(30)
-    assignments_30d = EquipmentAssignment.objects.filter(equipment=equipment, assigned_at__gte=since_30d)
+    assignments_30d = EquipmentAssignment.objects.filter(
+        equipment=equipment, assigned_at__gte=since_30d)
     usage_count_30d = assignments_30d.count()
 
     completed = assignments_30d.exclude(released_at__isnull=True)
     if completed.exists():
-        durations = [(a.released_at - a.assigned_at).total_seconds() / 3600 for a in completed]
+        durations = [
+            (a.released_at -
+             a.assigned_at).total_seconds() /
+            3600 for a in completed]
         avg_usage_hours = sum(durations) / len(durations)
     else:
         avg_usage_hours = 2.0  # no completed assignments yet, use a neutral default

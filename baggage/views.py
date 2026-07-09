@@ -1,4 +1,4 @@
-﻿from rest_framework import viewsets
+from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Baggage, BaggageTracking
@@ -43,9 +43,13 @@ class BaggageTrackingViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         instance = serializer.save(updated_by=self.request.user)
-        log_action(self.request.user, 'CREATE', 'BaggageTracking', instance.id,
-                   f'Tracking update: {instance.baggage.baggage_tag} -> {instance.status}',
-                   self.request)
+        log_action(
+            self.request.user,
+            'CREATE',
+            'BaggageTracking',
+            instance.id,
+            f'Tracking update: {instance.baggage.baggage_tag} -> {instance.status}',
+            self.request)
 
     def perform_update(self, serializer):
         instance = serializer.save(updated_by=self.request.user)

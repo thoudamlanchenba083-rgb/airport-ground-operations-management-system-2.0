@@ -3,7 +3,8 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Notification
 from .serializers import NotificationSerializer
-from core_app.permissions import IsAdminUser, IsAuthenticatedReadOnly
+from core_app.permissions import IsAuthenticatedReadOnly
+
 
 class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer

@@ -10,7 +10,10 @@ class WaterLavatoryService(models.Model):
         ('SKIPPED', 'Skipped'),
     ]
 
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='water_lavatory_services')
+    flight = models.ForeignKey(
+        Flight,
+        on_delete=models.CASCADE,
+        related_name='water_lavatory_services')
 
     assigned_staff = models.ForeignKey(
         'staff.Staff',
@@ -20,12 +23,16 @@ class WaterLavatoryService(models.Model):
     )
 
     potable_water_refilled = models.BooleanField(default=False)
-    water_quantity_liters = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    water_quantity_liters = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, blank=True)
 
     lavatory_serviced = models.BooleanField(default=False)
     waste_disposed = models.BooleanField(default=False)
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING')
 
     started_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)

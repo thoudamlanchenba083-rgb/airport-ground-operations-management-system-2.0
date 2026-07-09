@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 from flights.models import Airline, Aircraft, Flight
-from .models import AIPrediction, AIChatMessage
+from .models import AIChatMessage
 
 User = get_user_model()
 
@@ -22,8 +22,9 @@ class AIModuleBaseTest(TestCase):
         )
         self.airline = Airline.objects.create(name='Test Airline', code='TA')
         self.aircraft = Aircraft.objects.create(
-            registration_number='TC-100', aircraft_type='Boeing 737', capacity=180
-        )
+            registration_number='TC-100',
+            aircraft_type='Boeing 737',
+            capacity=180)
         self.flight = Flight.objects.create(
             flight_number='TA100',
             airline=self.airline,
@@ -151,9 +152,12 @@ class AIPredictionInvalidRequestTest(AIModuleBaseTest):
 class AIPredictionSummaryDashboardTest(AIModuleBaseTest):
     def test_summary_endpoint_returns_counts(self):
         self.auth_as('ai_user', 'user123')
-        self.client.post('/api/ai/predictions/', {
-            'prediction_type': 'DELAY', 'flight': self.flight.id, 'input_data': {},
-        }, format='json')
+        self.client.post('/api/ai/predictions/',
+                         {'prediction_type': 'DELAY',
+                          'flight': self.flight.id,
+                          'input_data': {},
+                          },
+                         format='json')
         response = self.client.get('/api/ai/predictions/summary/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('total_predictions', response.data)
@@ -179,8 +183,10 @@ class ChatbotAPITest(AIModuleBaseTest):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['role'], 'assistant')
         self.assertEqual(
-            AIChatMessage.objects.filter(user=self.user, session_id='sess-1').count(), 2
-        )
+            AIChatMessage.objects.filter(
+                user=self.user,
+                session_id='sess-1').count(),
+            2)
 
     def test_send_flight_status_query_returns_flight_info(self):
         self.auth_as('ai_user', 'user123')
@@ -201,16 +207,20 @@ class ChatbotAPITest(AIModuleBaseTest):
 
     def test_list_messages_filters_by_session(self):
         self.auth_as('ai_user', 'user123')
-        self.client.post('/api/ai/chat/send/', {'content': 'hi', 'session_id': 'a'})
-        self.client.post('/api/ai/chat/send/', {'content': 'hi again', 'session_id': 'b'})
+        self.client.post('/api/ai/chat/send/',
+                         {'content': 'hi', 'session_id': 'a'})
+        self.client.post('/api/ai/chat/send/',
+                         {'content': 'hi again', 'session_id': 'b'})
         response = self.client.get('/api/ai/chat/', {'session_id': 'a'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(all(m['session_id'] == 'a' for m in response.data))
 
     def test_clear_deletes_session_messages(self):
         self.auth_as('ai_user', 'user123')
-        self.client.post('/api/ai/chat/send/', {'content': 'hi', 'session_id': 'clear-me'})
-        response = self.client.delete('/api/ai/chat/clear/', {'session_id': 'clear-me'}, format='json')
+        self.client.post('/api/ai/chat/send/',
+                         {'content': 'hi', 'session_id': 'clear-me'})
+        response = self.client.delete(
+            '/api/ai/chat/clear/', {'session_id': 'clear-me'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             AIChatMessage.objects.filter(session_id='clear-me').count(), 0
@@ -238,6 +248,7 @@ class AIPredictionPermissionTest(AIModuleBaseTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_invalid_token_rejected(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer invalid.token.value')
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Bearer invalid.token.value')
         response = self.client.get('/api/ai/predictions/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

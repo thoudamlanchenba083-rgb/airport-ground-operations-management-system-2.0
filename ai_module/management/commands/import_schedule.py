@@ -46,18 +46,19 @@ class Command(BaseCommand):
             if not os.path.isdir(SCHEDULE_DIR):
                 raise CommandError(
                     f'{SCHEDULE_DIR} does not exist. Create it and drop your schedule file inside, '
-                    'or pass --path pointing at the file.'
-                )
+                    'or pass --path pointing at the file.')
             candidates = sorted(
                 (f for f in os.listdir(SCHEDULE_DIR) if f.lower().endswith(VALID_EXTENSIONS)),
-                key=lambda f: os.path.getmtime(os.path.join(SCHEDULE_DIR, f)),
+                key=lambda f: os.path.getmtime(
+                    os.path.join(
+                        SCHEDULE_DIR,
+                        f)),
                 reverse=True,
             )
             if not candidates:
                 raise CommandError(
                     f'No .xlsx/.xls/.csv file found in {SCHEDULE_DIR}. '
-                    'Drop your schedule sheet in that folder and re-run this command.'
-                )
+                    'Drop your schedule sheet in that folder and re-run this command.')
             if len(candidates) > 1:
                 self.stdout.write(self.style.WARNING(
                     f'Found {len(candidates)} files in {SCHEDULE_DIR}, using the most recently modified: {candidates[0]}'
@@ -72,7 +73,8 @@ class Command(BaseCommand):
             upload = import_flight_schedule(django_file, filename)
 
         if upload.status == 'FAILED':
-            raise CommandError(f"Couldn't read that file: {upload.error_message}")
+            raise CommandError(
+                f"Couldn't read that file: {upload.error_message}")
 
         self.stdout.write(self.style.SUCCESS(
             f'Imported "{filename}" - {upload.row_count} flight row(s) loaded and set as the active schedule.'

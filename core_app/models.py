@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class AuditLog(models.Model):
     ACTION_CHOICES = [
         ('CREATE', 'Create'),
@@ -24,5 +25,6 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.action} - {self.model_name} - {self.timestamp}"
+
 
 from .approval_workflow import *  # noqa

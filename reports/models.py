@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import User
 
+
 class Report(models.Model):
     REPORT_TYPE_CHOICES = [
         ('FLIGHT', 'Flight Report'),
@@ -11,7 +12,8 @@ class Report(models.Model):
 
     title = models.CharField(max_length=255)
     report_type = models.CharField(max_length=20, choices=REPORT_TYPE_CHOICES)
-    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    generated_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 

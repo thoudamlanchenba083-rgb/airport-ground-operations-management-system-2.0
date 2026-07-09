@@ -1,4 +1,4 @@
-﻿from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class IsAdminUser(BasePermission):
@@ -22,10 +22,12 @@ class IsSupervisor(BasePermission):
 class IsMaintenanceStaff(BasePermission):
     def has_permission(self, request, view):
         return bool(
-            request.user and
-            request.user.is_authenticated and
-            request.user.role in ['ADMIN', 'SUPERVISOR', 'MAINTENANCE', 'MAINTENANCE_ENGINEER', 'GROUND_STAFF']
-        )
+            request.user and request.user.is_authenticated and request.user.role in [
+                'ADMIN',
+                'SUPERVISOR',
+                'MAINTENANCE',
+                'MAINTENANCE_ENGINEER',
+                'GROUND_STAFF'])
 
 
 class IsAuthenticatedReadOnly(BasePermission):
@@ -34,7 +36,8 @@ class IsAuthenticatedReadOnly(BasePermission):
             return False
         if request.method in SAFE_METHODS:
             return True
-        return request.user.is_staff or request.user.role in ['ADMIN', 'GROUND_STAFF']
+        return request.user.is_staff or request.user.role in [
+            'ADMIN', 'GROUND_STAFF']
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -56,7 +59,8 @@ def HasRole(*allowed_roles):
                 return False
             if request.method in SAFE_METHODS:
                 return True
-            return request.user.is_staff or request.user.role in (*allowed_roles, 'ADMIN')
+            return request.user.is_staff or request.user.role in (
+                *allowed_roles, 'ADMIN')
     return _RolePermission
 
 
@@ -66,7 +70,8 @@ class IsGateManager(BasePermission):
             return False
         if request.method in SAFE_METHODS:
             return True
-        return request.user.is_staff or request.user.role in ['ADMIN', 'GATE_MANAGER', 'OPERATIONS_MANAGER', 'GROUND_STAFF']
+        return request.user.is_staff or request.user.role in [
+            'ADMIN', 'GATE_MANAGER', 'OPERATIONS_MANAGER', 'GROUND_STAFF']
 
 
 class IsBaggageSupervisor(BasePermission):
@@ -75,7 +80,8 @@ class IsBaggageSupervisor(BasePermission):
             return False
         if request.method in SAFE_METHODS:
             return True
-        return request.user.is_staff or request.user.role in ['ADMIN', 'BAGGAGE_SUPERVISOR', 'GROUND_STAFF']
+        return request.user.is_staff or request.user.role in [
+            'ADMIN', 'BAGGAGE_SUPERVISOR', 'GROUND_STAFF']
 
 
 class IsHR(BasePermission):
@@ -93,11 +99,13 @@ class IsSecurityOfficer(BasePermission):
             return False
         if request.method in SAFE_METHODS:
             return True
-        return request.user.is_staff or request.user.role in ['ADMIN', 'SECURITY_OFFICER']
+        return request.user.is_staff or request.user.role in [
+            'ADMIN', 'SECURITY_OFFICER']
 
 
 class IsReportsUser(BasePermission):
     """Reports page: ADMIN/SUPERVISOR/OPERATIONS_MANAGER plus GROUND_STAFF get full access."""
+
     def has_permission(self, request, view):
         return bool(
             request.user and
@@ -109,6 +117,7 @@ class IsReportsUser(BasePermission):
 
 class IsAuthenticatedBlockGroundStaffWrite(BasePermission):
     """Equipment pages: any authenticated user can read; GROUND_STAFF and VIEWER are read-only, others can write."""
+
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
@@ -119,6 +128,7 @@ class IsAuthenticatedBlockGroundStaffWrite(BasePermission):
 
 class IsViewerReadOnly(BasePermission):
     """Pure read-only role — blocks ALL writes regardless of other checks."""
+
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
