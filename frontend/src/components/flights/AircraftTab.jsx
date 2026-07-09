@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 
 export default function AircraftTab() {
   const { user } = useAuth()
-  const isViewer = user?.role === 'VIEWER'
+  // Matches backend IsAuthenticatedReadOnly: only ADMIN and GROUND_STAFF can write to aircraft.
+  const canWrite = user?.role === 'ADMIN' || user?.role === 'GROUND_STAFF'
   const [aircraft,  setAircraft]  = useState([])
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState('')
@@ -55,7 +56,7 @@ export default function AircraftTab() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        {!isViewer && (
+        {canWrite && (
           <button
             onClick={() => setShowForm(!showForm)}
             className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
