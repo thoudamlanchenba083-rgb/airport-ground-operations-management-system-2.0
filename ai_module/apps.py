@@ -8,14 +8,26 @@ from django.apps import AppConfig
 # warm every one of them into its in-memory cache before any real request
 # arrives. Keep in sync with the filenames used in ai_module/ml/predictor.py.
 MODEL_FILES = [
-    'delay_regressor.pkl', 'delay_classifier.pkl', 'delay_features.pkl',
-    'maintenance_regressor.pkl', 'maintenance_classifier.pkl', 'maintenance_features.pkl',
-    'rush_regressor.pkl', 'rush_features.pkl',
-    'weather_regressor.pkl', 'weather_classifier.pkl', 'weather_features.pkl',
-    'staff_ground_crew_regressor.pkl', 'staff_security_regressor.pkl',
-    'staff_baggage_regressor.pkl', 'staff_features.pkl',
-    'gate_regressor.pkl', 'gate_features.pkl',
-    'equipment_regressor.pkl', 'equipment_classifier.pkl', 'equipment_features.pkl',
+    'delay_regressor.pkl',
+    'delay_classifier.pkl',
+    'delay_features.pkl',
+    'maintenance_regressor.pkl',
+    'maintenance_classifier.pkl',
+    'maintenance_features.pkl',
+    'rush_regressor.pkl',
+    'rush_features.pkl',
+    'weather_regressor.pkl',
+    'weather_classifier.pkl',
+    'weather_features.pkl',
+    'staff_ground_crew_regressor.pkl',
+    'staff_security_regressor.pkl',
+    'staff_baggage_regressor.pkl',
+    'staff_features.pkl',
+    'gate_regressor.pkl',
+    'gate_features.pkl',
+    'equipment_regressor.pkl',
+    'equipment_classifier.pkl',
+    'equipment_features.pkl',
 ]
 
 

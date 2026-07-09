@@ -34,9 +34,11 @@ class HRManagementBaseTest(TestCase):
         self.staff.save()
 
         self.hr_staff = Staff.objects.create(
-            name='HR Person', employee_id='EMP002',
-            staff_type='SUPERVISOR', phone='1112223333', email='hrperson@test.com'
-        )
+            name='HR Person',
+            employee_id='EMP002',
+            staff_type='SUPERVISOR',
+            phone='1112223333',
+            email='hrperson@test.com')
         self.hr_staff.user = self.hr_user
         self.hr_staff.save()
 
@@ -104,6 +106,7 @@ class DesignationAPITest(HRManagementBaseTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 1)
 
+
 class HRProfileAPITest(HRManagementBaseTest):
     def test_admin_can_create_hr_profile(self):
         self.authenticate('admin', 'admin123')
@@ -162,7 +165,11 @@ class LeaveTypeAPITest(HRManagementBaseTest):
         response = self.client.post('/api/hr/leave-types/', {
             'name': 'casual', 'max_days_per_year': 5
         })
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
 class LeaveRequestAPITest(HRManagementBaseTest):
     def test_staff_can_create_leave_request(self):
         self.authenticate('vieweruser', 'view123')
@@ -198,7 +205,8 @@ class LeaveRequestAPITest(HRManagementBaseTest):
             reason='Personal',
         )
         self.authenticate('hruser', 'hr123')
-        response = self.client.post(f'/api/hr/leave-requests/{leave.id}/approve/')
+        response = self.client.post(
+            f'/api/hr/leave-requests/{leave.id}/approve/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         leave.refresh_from_db()
         self.assertEqual(leave.status, 'approved')
@@ -225,16 +233,20 @@ class LeaveRequestAPITest(HRManagementBaseTest):
             reason='Personal', status='approved',
         )
         self.authenticate('hruser', 'hr123')
-        response = self.client.post(f'/api/hr/leave-requests/{leave.id}/approve/')
+        response = self.client.post(
+            f'/api/hr/leave-requests/{leave.id}/approve/')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
 class AttendanceAPITest(HRManagementBaseTest):
     def test_check_in_creates_attendance(self):
         self.authenticate('vieweruser', 'view123')
         response = self.client.post('/api/hr/attendance/check_in/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
-            Attendance.objects.filter(staff=self.staff, date=date.today()).exists()
-        )
+            Attendance.objects.filter(
+                staff=self.staff,
+                date=date.today()).exists())
 
     def test_check_out_without_checkin_returns_404(self):
         self.authenticate('vieweruser', 'view123')
@@ -248,8 +260,14 @@ class AttendanceAPITest(HRManagementBaseTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_hr_sees_all_attendance_staff_sees_only_own(self):
-        Attendance.objects.create(staff=self.staff, date=date.today(), status='present')
-        Attendance.objects.create(staff=self.hr_staff, date=date.today(), status='present')
+        Attendance.objects.create(
+            staff=self.staff,
+            date=date.today(),
+            status='present')
+        Attendance.objects.create(
+            staff=self.hr_staff,
+            date=date.today(),
+            status='present')
 
         self.authenticate('hruser', 'hr123')
         response = self.client.get('/api/hr/attendance/')
@@ -282,8 +300,12 @@ class PayrollAPITest(HRManagementBaseTest):
         self.assertTrue(Payroll.objects.filter(month='2026-07-01').exists())
 
     def test_hr_sees_all_payroll_staff_sees_only_own(self):
-        Payroll.objects.create(staff=self.staff, month=date(2026, 6, 1), base_salary=30000)
-        Payroll.objects.create(staff=self.hr_staff, month=date(2026, 6, 1), base_salary=40000)
+        Payroll.objects.create(
+            staff=self.staff, month=date(
+                2026, 6, 1), base_salary=30000)
+        Payroll.objects.create(
+            staff=self.hr_staff, month=date(
+                2026, 6, 1), base_salary=40000)
 
         self.authenticate('hruser', 'hr123')
         response = self.client.get('/api/hr/payroll/')

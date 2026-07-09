@@ -28,21 +28,37 @@ class Incident(models.Model):
         ('CLOSED', 'Closed'),
     ]
 
-    incident_type = models.CharField(max_length=30, choices=INCIDENT_TYPE_CHOICES)
-    severity = models.CharField(max_length=20, choices=SEVERITY_CHOICES, default='LOW')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='REPORTED')
+    incident_type = models.CharField(
+        max_length=30, choices=INCIDENT_TYPE_CHOICES)
+    severity = models.CharField(
+        max_length=20,
+        choices=SEVERITY_CHOICES,
+        default='LOW')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='REPORTED')
 
     flight = models.ForeignKey(
-        Flight, on_delete=models.SET_NULL, null=True, blank=True, related_name='incidents'
-    )
+        Flight,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='incidents')
     location = models.CharField(max_length=100, blank=True, default='')
 
     reported_by = models.ForeignKey(
-        'staff.Staff', on_delete=models.SET_NULL, null=True, blank=True, related_name='reported_incidents'
-    )
+        'staff.Staff',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reported_incidents')
     assigned_to = models.ForeignKey(
-        'staff.Staff', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_incidents'
-    )
+        'staff.Staff',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_incidents')
 
     description = models.TextField()
     corrective_action = models.TextField(blank=True, default='')
@@ -67,11 +83,17 @@ class Incident(models.Model):
 
 class IncidentUpdate(models.Model):
     """Timeline entry / follow-up note logged against an incident."""
-    incident = models.ForeignKey(Incident, on_delete=models.CASCADE, related_name='updates')
+    incident = models.ForeignKey(
+        Incident,
+        on_delete=models.CASCADE,
+        related_name='updates')
     note = models.TextField()
     updated_by = models.ForeignKey(
-        'staff.Staff', on_delete=models.SET_NULL, null=True, blank=True, related_name='incident_updates'
-    )
+        'staff.Staff',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='incident_updates')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

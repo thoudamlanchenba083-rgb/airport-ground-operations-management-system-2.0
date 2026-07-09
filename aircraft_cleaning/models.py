@@ -10,10 +10,14 @@ class CleaningTask(models.Model):
         ('SKIPPED', 'Skipped'),
     ]
 
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='cleaning_tasks')
+    flight = models.ForeignKey(
+        Flight,
+        on_delete=models.CASCADE,
+        related_name='cleaning_tasks')
 
     # Plain text for now — will become a FK to a shared vendor table once
-    # Module 20 (Vendor Management) is built, instead of borrowing another app's model.
+    # Module 20 (Vendor Management) is built, instead of borrowing another
+    # app's model.
     cleaning_company = models.CharField(max_length=100, blank=True, default='')
 
     assigned_staff = models.ForeignKey(
@@ -28,7 +32,10 @@ class CleaningTask(models.Model):
     waste_removed = models.BooleanField(default=False)
     cabin_ready = models.BooleanField(default=False)
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING')
 
     started_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)

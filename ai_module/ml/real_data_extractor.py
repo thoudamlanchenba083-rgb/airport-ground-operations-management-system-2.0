@@ -9,9 +9,7 @@ Known limitations (no real data source exists for these yet):
 - weather_risk: no weather table exists yet (see roadmap item: Weather API).
   Falls back to a fixed neutral value until that's integrated.
 """
-import numpy as np
 import pandas as pd
-from django.utils import timezone
 
 # Minimum real records required before we trust real data over synthetic.
 # Deliberately conservative - a handful of rows would just overfit noise.
@@ -39,6 +37,8 @@ def has_enough_real_delay_data():
 
 def has_enough_real_maintenance_data():
     return count_real_maintenance_records() >= MIN_REAL_MAINTENANCE_RECORDS
+
+
 def extract_real_flight_delay_data():
     """
     Builds a delay-prediction dataframe from real Flight / FlightWorkflowStep /
@@ -56,7 +56,8 @@ def extract_real_flight_delay_data():
         .order_by('flight__aircraft_id', 'flight__departure_time')
     )
 
-    # cache aircraft's prior real delay so later flights can use it as a feature
+    # cache aircraft's prior real delay so later flights can use it as a
+    # feature
     last_delay_by_aircraft = {}
     rows = []
 
@@ -69,7 +70,8 @@ def extract_real_flight_delay_data():
         aircraft_id = flight.aircraft_id
         prior_delay = last_delay_by_aircraft.get(aircraft_id, 0.0)
 
-        # gate congestion proxy: how many other flights scheduled within the same hour
+        # gate congestion proxy: how many other flights scheduled within the
+        # same hour
         window_start = scheduled.replace(minute=0, second=0, microsecond=0)
         window_end = window_start + pd.Timedelta(hours=1)
         concurrent_flights = Flight.objects.filter(
@@ -79,16 +81,21 @@ def extract_real_flight_delay_data():
 
         # crew readiness proxy: was crew assigned before scheduled departure?
         crew_step = flight.workflow_steps.filter(step='CREW_ASSIGNED').first()
-        crew_ready_pct = 1.0 if (crew_step and crew_step.completed_at <= scheduled) else 0.7
+        crew_ready_pct = 1.0 if (
+            crew_step and crew_step.completed_at <= scheduled) else 0.7
 
-        # maintenance flag: open/in-progress request on this aircraft before departure
+        # maintenance flag: open/in-progress request on this aircraft before
+        # departure
         maintenance_flag = int(
             MaintenanceRequest.objects.filter(
                 aircraft=flight.aircraft,
                 created_at__lte=scheduled,
-                status__in=['OPEN', 'PENDING_APPROVAL', 'APPROVED', 'IN_PROGRESS'],
-            ).exists()
-        )
+                status__in=[
+                    'OPEN',
+                    'PENDING_APPROVAL',
+                    'APPROVED',
+                    'IN_PROGRESS'],
+            ).exists())
 
         rows.append({
             'hour': scheduled.hour,
@@ -108,6 +115,8 @@ def extract_real_flight_delay_data():
     df = pd.DataFrame(rows)
     df['is_delayed'] = (df['delay_minutes'] > 15).astype(int)
     return df
+
+
 def extract_real_maintenance_data():
     """
     Builds a maintenance dataframe from real MaintenanceRequest history.
@@ -124,7 +133,8 @@ def extract_real_maintenance_data():
 
     priority_score_map = {'LOW': 25, 'MEDIUM': 55, 'HIGH': 85}
     rows = []
-    requests = MaintenanceRequest.objects.select_related('aircraft').order_by('aircraft_id', 'created_at')
+    requests = MaintenanceRequest.objects.select_related(
+        'aircraft').order_by('aircraft_id', 'created_at')
     last_service_by_aircraft = {}
 
     for req in requests:
@@ -133,17 +143,21 @@ def extract_real_maintenance_data():
 
         window_start = created - pd.Timedelta(days=30)
         reported_faults_last_30d = MaintenanceRequest.objects.filter(
-            aircraft_id=aircraft_id, created_at__gte=window_start, created_at__lt=created
-        ).count()
+            aircraft_id=aircraft_id,
+            created_at__gte=window_start,
+            created_at__lt=created).count()
 
         last_service = last_service_by_aircraft.get(aircraft_id)
-        days_since_service = (created - last_service).days if last_service else 180
+        days_since_service = (
+            created - last_service).days if last_service else 180
 
         base_score = priority_score_map.get(req.priority, 50)
-        urgency_score = min(
-            100,
-            base_score + reported_faults_last_30d * 4 + min(days_since_service, 200) / 200 * 10,
-        )
+        urgency_score = min(100, base_score +
+                            reported_faults_last_30d *
+                            4 +
+                            min(days_since_service, 200) /
+                            200 *
+                            10, )
 
         rows.append({
             'flight_hours_since_service': min(days_since_service, 200) * 2.5,

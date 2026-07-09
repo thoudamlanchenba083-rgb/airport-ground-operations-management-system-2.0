@@ -1,6 +1,5 @@
-﻿from django import forms
+from django import forms
 from django.contrib import admin
-from django.core.exceptions import ValidationError
 from .models import Airline, Aircraft, Flight, FlightWorkflowStep
 
 
@@ -29,14 +28,23 @@ class FlightAdminForm(forms.ModelForm):
                     f"aircraft capacity ({aircraft.capacity})."
                 )
             if passenger_count < 0:
-                self.add_error('passenger_count', "Passenger count cannot be negative.")
+                self.add_error(
+                    'passenger_count',
+                    "Passenger count cannot be negative.")
 
         return cleaned_data
 
 
 class FlightAdmin(admin.ModelAdmin):
     form = FlightAdminForm
-    list_display = ('flight_number', 'airline', 'aircraft', 'origin', 'destination', 'status', 'departure_time')
+    list_display = (
+        'flight_number',
+        'airline',
+        'aircraft',
+        'origin',
+        'destination',
+        'status',
+        'departure_time')
     list_filter = ('status', 'flight_type', 'airline')
     search_fields = ('flight_number', 'origin', 'destination')
 

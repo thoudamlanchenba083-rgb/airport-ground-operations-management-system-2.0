@@ -37,16 +37,28 @@ class CateringOrder(models.Model):
         ('CANCELLED', 'Cancelled'),
     ]
 
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='catering_orders')
+    flight = models.ForeignKey(
+        Flight,
+        on_delete=models.CASCADE,
+        related_name='catering_orders')
     catering_company = models.ForeignKey(
-        CateringCompany, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders'
-    )
+        CateringCompany,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='orders')
 
-    meal_type = models.CharField(max_length=20, choices=MEAL_TYPES, default='STANDARD')
+    meal_type = models.CharField(
+        max_length=20,
+        choices=MEAL_TYPES,
+        default='STANDARD')
     meal_count = models.PositiveIntegerField(default=0)
     is_special_meal = models.BooleanField(default=False)
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING')
     loading_completed = models.BooleanField(default=False)
     loaded_at = models.DateTimeField(null=True, blank=True)
 

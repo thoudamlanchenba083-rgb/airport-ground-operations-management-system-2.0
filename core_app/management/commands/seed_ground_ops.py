@@ -20,10 +20,16 @@ class Command(BaseCommand):
     help = "Seed test Staff and GroundEquipment records for AI resource optimization testing."
 
     def add_arguments(self, parser):
-        parser.add_argument('--staff-per-type', type=int, default=5,
-                             help='How many Staff records to create per staff_type (default: 5)')
-        parser.add_argument('--equipment-per-type', type=int, default=3,
-                             help='How many GroundEquipment records to create per EquipmentType (default: 3)')
+        parser.add_argument(
+            '--staff-per-type',
+            type=int,
+            default=5,
+            help='How many Staff records to create per staff_type (default: 5)')
+        parser.add_argument(
+            '--equipment-per-type',
+            type=int,
+            default=3,
+            help='How many GroundEquipment records to create per EquipmentType (default: 3)')
 
     def handle(self, *args, **options):
         staff_per_type = options['staff_per_type']
@@ -31,17 +37,21 @@ class Command(BaseCommand):
 
         self.stdout.write('Seeding staff...')
         staff_created = self._seed_staff(staff_per_type)
-        self.stdout.write(self.style.SUCCESS(f'  {staff_created} new Staff records created'))
+        self.stdout.write(self.style.SUCCESS(
+            f'  {staff_created} new Staff records created'))
 
         self.stdout.write('Seeding equipment types...')
         types_created = self._seed_equipment_types()
-        self.stdout.write(self.style.SUCCESS(f'  {types_created} new EquipmentType records created'))
+        self.stdout.write(self.style.SUCCESS(
+            f'  {types_created} new EquipmentType records created'))
 
         self.stdout.write('Seeding ground equipment...')
         equipment_created = self._seed_equipment(equipment_per_type)
-        self.stdout.write(self.style.SUCCESS(f'  {equipment_created} new GroundEquipment records created'))
+        self.stdout.write(self.style.SUCCESS(
+            f'  {equipment_created} new GroundEquipment records created'))
 
-        self.stdout.write(self.style.SUCCESS('Done. Re-run the RESOURCE prediction to see it use this data.'))
+        self.stdout.write(self.style.SUCCESS(
+            'Done. Re-run the RESOURCE prediction to see it use this data.'))
 
     def _seed_staff(self, per_type):
         created_count = 0
@@ -90,7 +100,13 @@ class Command(BaseCommand):
                 # last_maintenance alone isn't enough - a brand new record
                 # can't look high-risk regardless of its maintenance date.
                 # We backdate created_at further down to compensate.
-                last_maintenance = (now - timedelta(days=365)) if is_old_unit else (now - timedelta(days=15))
+                last_maintenance = (
+                    now -
+                    timedelta(
+                        days=365)) if is_old_unit else (
+                    now -
+                    timedelta(
+                        days=15))
 
                 equipment, created = GroundEquipment.objects.get_or_create(
                     equipment_id=equipment_id,

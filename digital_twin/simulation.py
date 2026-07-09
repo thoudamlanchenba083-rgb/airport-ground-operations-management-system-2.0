@@ -16,15 +16,19 @@ def _find_alternative_gate(gate, excluded_gate_ids, aircraft):
     """Best-fit replacement gate: same type, open, not under maintenance,
     not already occupied, big enough for the aircraft."""
     candidates = (
-        Gate.objects
-        .filter(gate_type=gate.gate_type, is_available=True, is_under_maintenance=False)
-        .exclude(id__in=excluded_gate_ids)
-        .order_by('width', 'length')
-    )
+        Gate.objects .filter(
+            gate_type=gate.gate_type,
+            is_available=True,
+            is_under_maintenance=False) .exclude(
+            id__in=excluded_gate_ids) .order_by(
+                'width',
+            'length'))
     for candidate in candidates:
-        if GateAssignment.objects.filter(gate=candidate, status='assigned').exists():
+        if GateAssignment.objects.filter(
+                gate=candidate, status='assigned').exists():
             continue
-        if aircraft and (candidate.width < aircraft.width or candidate.length < aircraft.length):
+        if aircraft and (
+                candidate.width < aircraft.width or candidate.length < aircraft.length):
             continue
         return candidate
     return None
@@ -47,10 +51,12 @@ def simulate_gate_closure(gate):
     used_alt_gate_ids = {gate.id}
 
     for flight in affected_flights:
-        alt_gate = _find_alternative_gate(gate, used_alt_gate_ids, flight.aircraft)
+        alt_gate = _find_alternative_gate(
+            gate, used_alt_gate_ids, flight.aircraft)
         if alt_gate:
             used_alt_gate_ids.add(alt_gate.id)
-            new_departure = flight.departure_time + timedelta(minutes=REASSIGNMENT_DELAY_MINUTES)
+            new_departure = flight.departure_time + \
+                timedelta(minutes=REASSIGNMENT_DELAY_MINUTES)
             delayed_flights.append({
                 'flight_number': flight.flight_number,
                 'airline': flight.airline.name,
@@ -78,10 +84,13 @@ def simulate_gate_closure(gate):
 
     staff_changes = []
     tasks = (
-        TurnaroundTask.objects
-        .filter(flight_id__in=flight_ids, status__in=['PENDING', 'IN_PROGRESS'])
-        .select_related('assigned_staff', 'flight')
-    )
+        TurnaroundTask.objects .filter(
+            flight_id__in=flight_ids,
+            status__in=[
+                'PENDING',
+                'IN_PROGRESS']) .select_related(
+            'assigned_staff',
+            'flight'))
     for task in tasks:
         if task.assigned_staff:
             staff_changes.append({

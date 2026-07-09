@@ -117,7 +117,7 @@ jobs:
           flake8 . \
             --exclude=env,migrations,__pycache__,.git \
             --max-line-length=120 \
-            --ignore=E501,W503 \
+            --ignore=E501,W503,W504 \
             --count
 
   frontend-tests:
@@ -140,5 +140,6 @@ jobs:
         run: npm ci
 
       - name: Run frontend tests
+
         working-directory: frontend
         run: npm run test

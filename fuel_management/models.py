@@ -1,5 +1,4 @@
 from django.db import models
-from django.conf import settings
 from flights.models import Flight
 
 
@@ -27,9 +26,15 @@ class FuelTruck(models.Model):
     ]
 
     truck_code = models.CharField(max_length=20, unique=True)
-    fuel_company = models.ForeignKey(FuelCompany, on_delete=models.CASCADE, related_name='trucks')
+    fuel_company = models.ForeignKey(
+        FuelCompany,
+        on_delete=models.CASCADE,
+        related_name='trucks')
     capacity_liters = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='AVAILABLE')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='AVAILABLE')
 
     def __str__(self):
         return self.truck_code
@@ -44,9 +49,22 @@ class FuelOperation(models.Model):
         ('CANCELLED', 'Cancelled'),
     ]
 
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='fuel_operations')
-    fuel_truck = models.ForeignKey(FuelTruck, on_delete=models.SET_NULL, null=True, blank=True, related_name='operations')
-    fuel_company = models.ForeignKey(FuelCompany, on_delete=models.SET_NULL, null=True, blank=True, related_name='operations')
+    flight = models.ForeignKey(
+        Flight,
+        on_delete=models.CASCADE,
+        related_name='fuel_operations')
+    fuel_truck = models.ForeignKey(
+        FuelTruck,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='operations')
+    fuel_company = models.ForeignKey(
+        FuelCompany,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='operations')
 
     fuel_operator = models.ForeignKey(
         'staff.Staff',
@@ -56,7 +74,10 @@ class FuelOperation(models.Model):
     )
 
     quantity_liters = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING')
 
     fuel_start_time = models.DateTimeField(null=True, blank=True)
     fuel_end_time = models.DateTimeField(null=True, blank=True)

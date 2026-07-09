@@ -9,18 +9,27 @@ from core_app.permissions import HasRole
 
 
 class BoardingSessionViewSet(viewsets.ModelViewSet):
-    queryset = BoardingSession.objects.select_related('flight').prefetch_related('groups').all()
+    queryset = BoardingSession.objects.select_related(
+        'flight').prefetch_related('groups').all()
     serializer_class = BoardingSessionSerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'GATE_MANAGER', 'GROUND_STAFF')]
+    permission_classes = [
+        HasRole(
+            'OPERATIONS_MANAGER',
+            'SUPERVISOR',
+            'GATE_MANAGER',
+            'GROUND_STAFF')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['flight', 'status', 'boarding_gate']
     search_fields = ['flight__flight_number', 'boarding_gate']
-    ordering_fields = ['created_at', 'boarding_started_at', 'boarding_completed_at']
+    ordering_fields = [
+        'created_at',
+        'boarding_started_at',
+        'boarding_completed_at']
 
     def perform_create(self, serializer):
         instance = serializer.save()
         log_action(self.request.user, 'CREATE', 'BoardingSession', instance.id,
-                    f'Created boarding session: {instance}', self.request)
+                   f'Created boarding session: {instance}', self.request)
 
     def perform_update(self, serializer):
         extra = {}
@@ -33,18 +42,23 @@ class BoardingSessionViewSet(viewsets.ModelViewSet):
             extra['boarding_completed_at'] = timezone.now()
         instance = serializer.save(**extra)
         log_action(self.request.user, 'UPDATE', 'BoardingSession', instance.id,
-                    f'Updated boarding session: {instance}', self.request)
+                   f'Updated boarding session: {instance}', self.request)
 
     def perform_destroy(self, instance):
         log_action(self.request.user, 'DELETE', 'BoardingSession', instance.id,
-                    f'Deleted boarding session: {instance}', self.request)
+                   f'Deleted boarding session: {instance}', self.request)
         instance.delete()
 
 
 class BoardingGroupViewSet(viewsets.ModelViewSet):
     queryset = BoardingGroup.objects.select_related('boarding_session').all()
     serializer_class = BoardingGroupSerializer
-    permission_classes = [HasRole('OPERATIONS_MANAGER', 'SUPERVISOR', 'GATE_MANAGER', 'GROUND_STAFF')]
+    permission_classes = [
+        HasRole(
+            'OPERATIONS_MANAGER',
+            'SUPERVISOR',
+            'GATE_MANAGER',
+            'GROUND_STAFF')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['boarding_session']
     search_fields = ['group_name']
@@ -52,4 +66,4 @@ class BoardingGroupViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         instance = serializer.save()
         log_action(self.request.user, 'CREATE', 'BoardingGroup', instance.id,
-                    f'Created boarding group: {instance}', self.request)
+                   f'Created boarding group: {instance}', self.request)

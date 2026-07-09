@@ -12,18 +12,28 @@ from core_app.permissions import HasRole
 
 
 class TurnaroundTaskViewSet(viewsets.ModelViewSet):
-    queryset = TurnaroundTask.objects.select_related('flight', 'assigned_staff', 'completed_by').all()
+    queryset = TurnaroundTask.objects.select_related(
+        'flight', 'assigned_staff', 'completed_by').all()
     serializer_class = TurnaroundTaskSerializer
-    permission_classes = [HasRole('GROUND_STAFF', 'OPERATIONS_MANAGER', 'SUPERVISOR', 'GATE_MANAGER')]
+    permission_classes = [
+        HasRole(
+            'GROUND_STAFF',
+            'OPERATIONS_MANAGER',
+            'SUPERVISOR',
+            'GATE_MANAGER')]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['flight', 'task_type', 'status', 'assigned_staff']
     search_fields = ['flight__flight_number', 'notes']
-    ordering_fields = ['scheduled_time', 'actual_start_time', 'actual_end_time', 'status']
+    ordering_fields = [
+        'scheduled_time',
+        'actual_start_time',
+        'actual_end_time',
+        'status']
 
     def perform_create(self, serializer):
         instance = serializer.save()
         log_action(self.request.user, 'CREATE', 'TurnaroundTask', instance.id,
-                    f'Created task: {instance}', self.request)
+                   f'Created task: {instance}', self.request)
 
     def perform_update(self, serializer):
         # Auto-stamp who completed it and when, based on status change
@@ -38,11 +48,11 @@ class TurnaroundTaskViewSet(viewsets.ModelViewSet):
 
         instance = serializer.save(**extra)
         log_action(self.request.user, 'UPDATE', 'TurnaroundTask', instance.id,
-                    f'Updated task: {instance}', self.request)
+                   f'Updated task: {instance}', self.request)
 
     def perform_destroy(self, instance):
         log_action(self.request.user, 'DELETE', 'TurnaroundTask', instance.id,
-                    f'Deleted task: {instance}', self.request)
+                   f'Deleted task: {instance}', self.request)
         instance.delete()
 
     @action(detail=False, methods=['get'], url_path='summary')
@@ -101,15 +111,13 @@ class TurnaroundTaskViewSet(viewsets.ModelViewSet):
 
         reason_labels = dict(TurnaroundTask.DELAY_REASON_CHOICES)
 
-        results = [
-            {
-                'reason': row['delay_reason'],
-                'reason_display': reason_labels.get(row['delay_reason'], row['delay_reason']),
-                'count': row['count'],
-                'percent': round((row['count'] / total) * 100, 1) if total else 0,
-            }
-            for row in breakdown
-        ]
+        results = [{'reason': row['delay_reason'],
+                    'reason_display': reason_labels.get(row['delay_reason'],
+                                                        row['delay_reason']),
+                    'count': row['count'],
+                    'percent': round((row['count'] / total) * 100,
+                                     1) if total else 0,
+                    } for row in breakdown]
 
         return Response({
             'total_delayed_tasks': total,

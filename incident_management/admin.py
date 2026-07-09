@@ -9,7 +9,14 @@ class IncidentUpdateInline(admin.TabularInline):
 
 @admin.register(Incident)
 class IncidentAdmin(admin.ModelAdmin):
-    list_display = ['incident_type', 'severity', 'status', 'flight', 'location', 'occurred_at', 'resolved_at']
+    list_display = [
+        'incident_type',
+        'severity',
+        'status',
+        'flight',
+        'location',
+        'occurred_at',
+        'resolved_at']
     list_filter = ['incident_type', 'severity', 'status']
     search_fields = ['flight__flight_number', 'location', 'description']
     inlines = [IncidentUpdateInline]

@@ -1,13 +1,12 @@
-﻿from django.contrib import admin
+from django.conf import settings
+from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import RedirectView
 from django.conf.urls.static import static
 from rest_framework import permissions
 from accounts.views import RateLimitedTokenObtainPairView, RateLimitedTokenRefreshView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 import os
-from django.views.static import serve as static_serve
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -21,8 +20,11 @@ schema_view = get_schema_view(
     permission_classes=(permissions.IsAuthenticated,),
 )
 
-FRONTEND = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend')
-from django.conf import settings
+FRONTEND = os.path.join(
+    os.path.dirname(
+        os.path.dirname(
+            os.path.abspath(__file__))),
+    'frontend')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -39,7 +41,7 @@ urlpatterns = [
     path('api/core/', include('core_app.urls')),
     path('api/turnaround/', include('turnaround.urls')),
     path('api/ground-equipment/', include('ground_equipment.urls')),
-    path('api/hr/', include('hr_management.urls')),  
+    path('api/hr/', include('hr_management.urls')),
     path('api/fuel/', include('fuel_management.urls')),
     path('api/cleaning/', include('aircraft_cleaning.urls')),
     path('api/water-lavatory/', include('water_lavatory_service.urls')),
@@ -50,5 +52,5 @@ urlpatterns = [
     path('api/ramp-operations/', include('ramp_operations.urls')),
     path('api/digital-twin/', include('digital_twin.urls')),
     path('api/ai/', include('ai_module.urls')),
-    
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

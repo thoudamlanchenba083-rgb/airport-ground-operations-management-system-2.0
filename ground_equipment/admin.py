@@ -1,17 +1,25 @@
-﻿from django.contrib import admin
+from django.contrib import admin
 from .models import EquipmentType, GroundEquipment, EquipmentAssignment
+
 
 @admin.register(EquipmentType)
 class EquipmentTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
     search_fields = ('name',)
 
+
 @admin.register(GroundEquipment)
 class GroundEquipmentAdmin(admin.ModelAdmin):
-    list_display = ('equipment_id', 'equipment_type', 'status', 'location', 'last_maintenance')
+    list_display = (
+        'equipment_id',
+        'equipment_type',
+        'status',
+        'location',
+        'last_maintenance')
     list_filter = ('status', 'equipment_type', 'created_at')
     search_fields = ('equipment_id', 'location')
     readonly_fields = ('created_at', 'updated_at')
+
 
 @admin.register(EquipmentAssignment)
 class EquipmentAssignmentAdmin(admin.ModelAdmin):

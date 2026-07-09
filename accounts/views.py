@@ -1,28 +1,25 @@
 import logging
 
-logger = logging.getLogger('accounts')
+from django.utils.decorators import method_decorator
 
 from rest_framework import viewsets, generics, permissions, status
-
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from django.contrib.auth import update_session_auth_hash
+from django_ratelimit.decorators import ratelimit
+
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
 from core_app.permissions import IsAdminUser
 
-from django_ratelimit.decorators import ratelimit
-from django.utils.decorators import method_decorator
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework.response import Response
-from rest_framework import status
+logger = logging.getLogger('accounts')
 
 
-@method_decorator(ratelimit(key='ip', rate='5/m', method='POST', block=True), name='post')
+@method_decorator(ratelimit(key='ip', rate='5/m',
+                  method='POST', block=True), name='post')
 class RateLimitedTokenObtainPairView(TokenObtainPairView):
     """Login endpoint — max 5 attempts per minute per IP."""
 
@@ -30,14 +27,19 @@ class RateLimitedTokenObtainPairView(TokenObtainPairView):
         username = request.data.get('username', 'unknown')
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
-            logger.info(f"Login successful for user '{username}' from IP {request.META.get('REMOTE_ADDR')}")
+            logger.info(
+                f"Login successful for user '{username}' from IP {request.META.get('REMOTE_ADDR')}")
         else:
-            logger.warning(f"Login failed for user '{username}' from IP {request.META.get('REMOTE_ADDR')} - status {response.status_code}")
+            logger.warning(
+                f"Login failed for user '{username}' from IP {request.META.get('REMOTE_ADDR')} - status {response.status_code}")
         return response
-@method_decorator(ratelimit(key='ip', rate='10/m', method='POST', block=True), name='post')
+
+
+@method_decorator(ratelimit(key='ip', rate='10/m',
+                  method='POST', block=True), name='post')
 class RateLimitedTokenRefreshView(TokenRefreshView):
     """Token refresh — max 10 per minute per IP."""
-    pass
+
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -48,6 +50,7 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         from core_app.email_utils import send_welcome_email
         send_welcome_email(user)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -63,7 +66,8 @@ class ProfileView(APIView):
         return Response(serializer.data)
 
     def put(self, request):
-        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        serializer = UserSerializer(
+            request.user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -77,7 +81,8 @@ class ChangePasswordView(APIView):
         serializer = ChangePasswordSerializer(data=request.data)
         if serializer.is_valid():
             user = request.user
-            if not user.check_password(serializer.validated_data['old_password']):
+            if not user.check_password(
+                    serializer.validated_data['old_password']):
                 return Response(
                     {'old_password': 'Incorrect password.'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -106,4 +111,12 @@ class LogoutView(APIView):
             return Response(
                 {'detail': 'Invalid or expired token.'},
                 status=status.HTTP_400_BAD_REQUEST
+            )
+        except AttributeError:
+            # Raised if 'rest_framework_simplejwt.token_blacklist' is ever
+            # missing from INSTALLED_APPS — fail with a clear message
+            # instead of an opaque 500.
+            return Response(
+                {'detail': 'Logout is temporarily unavailable. Please contact an administrator.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
             )

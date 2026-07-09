@@ -1,3 +1,21 @@
+from rest_framework.decorators import action
+from .permissions import IsSupervisor
+from .serializers import (
+    ApprovalRequestSerializer,
+    ApprovalStepSerializer,
+    MaintenanceApprovalRequestSerializer,
+    GateChangeApprovalRequestSerializer,
+    FlightDelayApprovalRequestSerializer,
+    EmergencyFlightApprovalRequestSerializer)
+from .models import (
+    ApprovalRequest,
+    ApprovalStep,
+    MaintenanceApprovalRequest,
+    GateChangeApprovalRequest,
+    FlightDelayApprovalRequest,
+    EmergencyFlightApprovalRequest)
+from django.utils import timezone
+from rest_framework.response import Response
 from rest_framework import viewsets, permissions
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -15,20 +33,6 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['description', 'model_name']
     ordering_fields = ['timestamp']
 
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django.utils import timezone
-from .models import (
-    ApprovalRequest, ApprovalStep, MaintenanceApprovalRequest,
-    GateChangeApprovalRequest, FlightDelayApprovalRequest, EmergencyFlightApprovalRequest
-)
-from .serializers import (
-    ApprovalRequestSerializer, ApprovalStepSerializer, MaintenanceApprovalRequestSerializer,
-    GateChangeApprovalRequestSerializer, FlightDelayApprovalRequestSerializer,
-    EmergencyFlightApprovalRequestSerializer
-)
-from .permissions import IsSupervisor, IsViewerReadOnly
-
 
 class ApprovalRequestViewSet(viewsets.ModelViewSet):
     queryset = ApprovalRequest.objects.all()
@@ -42,16 +46,17 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsSupervisor])
     def approve(self, request, pk=None):
         approval_request = self.get_object()
-        staff = getattr(request.user, 'staff_profile', None)
         step = approval_request.approval_steps.filter(status='pending').order_by('step_order').first()
         if not step:
-            return Response({'detail': 'No pending approval step found.'}, status=400)
+            return Response(
+                {'detail': 'No pending approval step found.'}, status=400)
         step.status = 'approved'
         step.approved_at = timezone.now()
         step.approved_by_notes = request.data.get('notes', '')
         step.save()
 
-        if not approval_request.approval_steps.filter(status='pending').exists():
+        if not approval_request.approval_steps.filter(
+                status='pending').exists():
             approval_request.status = 'approved'
             approval_request.save()
 
@@ -60,7 +65,8 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsSupervisor])
     def reject(self, request, pk=None):
         approval_request = self.get_object()
-        step = approval_request.approval_steps.filter(status='pending').order_by('step_order').first()
+        step = approval_request.approval_steps.filter(
+            status='pending').order_by('step_order').first()
         if step:
             step.status = 'rejected'
             step.approved_at = timezone.now()

@@ -17,7 +17,11 @@ class AIPredictionSerializer(serializers.ModelSerializer):
             'input_data', 'result', 'confidence_score',
             'status', 'created_by', 'created_by_username', 'created_at'
         ]
-        read_only_fields = ['result', 'confidence_score', 'status', 'created_at']
+        read_only_fields = [
+            'result',
+            'confidence_score',
+            'status',
+            'created_at']
 
 
 class AIChatMessageSerializer(serializers.ModelSerializer):
@@ -28,7 +32,8 @@ class AIChatMessageSerializer(serializers.ModelSerializer):
 
 
 class FlightScheduleUploadSerializer(serializers.ModelSerializer):
-    uploaded_by_username = serializers.CharField(source='uploaded_by.username', read_only=True)
+    uploaded_by_username = serializers.CharField(
+        source='uploaded_by.username', read_only=True)
 
     class Meta:
         model = FlightScheduleUpload

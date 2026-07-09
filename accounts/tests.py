@@ -5,6 +5,7 @@ from rest_framework import status
 
 User = get_user_model()
 
+
 class AccountsAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -16,7 +17,8 @@ class AccountsAPITest(TestCase):
         )
 
     def get_token(self, username, password):
-        response = self.client.post('/api/token/', {'username': username, 'password': password})
+        response = self.client.post(
+            '/api/token/', {'username': username, 'password': password})
         return response.data['access']
 
     def test_register_new_user(self):

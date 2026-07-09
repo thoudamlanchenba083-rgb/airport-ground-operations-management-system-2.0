@@ -49,12 +49,13 @@ SYSTEM_PROMPT = (
     "helpfully, in whatever length and tone actually fits the question (not forced into the terse "
     "ops style). Don't refuse or redirect general questions back to ops topics, and don't claim "
     "you can only help with airport operations - that's no longer true. Only reach for the ops "
-    "tools when the question is actually about this system's data."
-)
+    "tools when the question is actually about this system's data.")
 
 
 def _find_flight(flight_number):
-    return Flight.objects.filter(flight_number__iexact=(flight_number or "").strip()).first()
+    return Flight.objects.filter(
+        flight_number__iexact=(
+            flight_number or "").strip()).first()
 
 
 # ---------------------------------------------------------------------------
@@ -64,7 +65,8 @@ def _find_flight(flight_number):
 def _tool_get_flight_status(args):
     flight = _find_flight(args.get("flight_number", ""))
     if not flight:
-        return {"error": f"No flight found with number '{args.get('flight_number')}'."}
+        return {
+            "error": f"No flight found with number '{args.get('flight_number')}'."}
     return {
         "flight_number": flight.flight_number,
         "airline": flight.airline.name,
@@ -79,36 +81,50 @@ def _tool_get_flight_status(args):
 def _tool_predict_delay(args):
     flight = _find_flight(args.get("flight_number", ""))
     if not flight:
-        return {"error": f"No flight found with number '{args.get('flight_number')}'."}
+        return {
+            "error": f"No flight found with number '{args.get('flight_number')}'."}
     from .ml.predictor import predict_delay
     result, confidence = predict_delay(flight)
-    return {"flight_number": flight.flight_number, "confidence": confidence, **result}
+    return {
+        "flight_number": flight.flight_number,
+        "confidence": confidence,
+        **result}
 
 
 def _tool_gate_info(args):
-    flight_number, gate_number = args.get("flight_number"), args.get("gate_number")
+    flight_number, gate_number = args.get(
+        "flight_number"), args.get("gate_number")
     if flight_number:
         flight = _find_flight(flight_number)
         if not flight:
             return {"error": f"No flight found with number '{flight_number}'."}
         gate_step = flight.workflow_steps.filter(step='GATE_ASSIGNED').first()
         if gate_step:
-            return {"flight_number": flight.flight_number, "gate_assigned": True,
-                     "assigned_at": gate_step.completed_at.strftime("%Y-%m-%d %H:%M")}
+            return {
+                "flight_number": flight.flight_number,
+                "gate_assigned": True,
+                "assigned_at": gate_step.completed_at.strftime("%Y-%m-%d %H:%M")}
         from .views import recommend_gate
         result, confidence = recommend_gate(flight)
         return {"flight_number": flight.flight_number, "gate_assigned": False,
-                 "recommendation": result, "confidence": confidence}
+                "recommendation": result, "confidence": confidence}
     if gate_number:
         gate = Gate.objects.filter(gate_number__iexact=gate_number).first()
         if not gate:
             return {"error": f"No gate found with number '{gate_number}'."}
-        return {"gate_number": gate.gate_number, "terminal": gate.terminal, "available": gate.is_available}
+        return {
+            "gate_number": gate.gate_number,
+            "terminal": gate.terminal,
+            "available": gate.is_available}
     return {"error": "Provide a flight_number or gate_number."}
 
 
 def _tool_gate_availability(args):
-    available = list(Gate.objects.filter(is_available=True).values_list('gate_number', flat=True))
+    available = list(
+        Gate.objects.filter(
+            is_available=True).values_list(
+            'gate_number',
+            flat=True))
     return {"available_count": len(available), "gates": available[:20]}
 
 
@@ -116,10 +132,14 @@ def _predict_tool(predictor_name):
     def _run(args):
         flight = _find_flight(args.get("flight_number", ""))
         if not flight:
-            return {"error": f"No flight found with number '{args.get('flight_number')}'."}
+            return {
+                "error": f"No flight found with number '{args.get('flight_number')}'."}
         from .ml import predictor as p
         result, confidence = getattr(p, predictor_name)(flight)
-        return {"flight_number": flight.flight_number, "confidence": confidence, **result}
+        return {
+            "flight_number": flight.flight_number,
+            "confidence": confidence,
+            **result}
     return _run
 
 
@@ -177,14 +197,18 @@ def _tool_list_flights(args):
             if hi < lo:
                 lo, hi = hi, lo
             matches = [
-                f for f in matches
-                if lo <= (f.departure_time.hour * 60 + f.departure_time.minute) <= hi
-            ]
+                f for f in matches if lo <= (
+                    f.departure_time.hour *
+                    60 +
+                    f.departure_time.minute) <= hi]
         except ValueError:
             pass
 
     if not matches:
-        return {"found": 0, "flights": [], "note": "No matching flights in the database."}
+        return {
+            "found": 0,
+            "flights": [],
+            "note": "No matching flights in the database."}
 
     return {
         "found": len(matches),
@@ -211,11 +235,11 @@ def _tool_explain_delay(args):
     """
     flight = _find_flight(args.get("flight_number", ""))
     if not flight:
-        return {"error": f"No flight found with number '{args.get('flight_number')}'."}
+        return {
+            "error": f"No flight found with number '{args.get('flight_number')}'."}
 
-    delayed_tasks = list(
-        flight.turnaround_tasks.filter(status='DELAYED').order_by('scheduled_time')
-    )
+    delayed_tasks = list(flight.turnaround_tasks.filter(
+        status='DELAYED').order_by('scheduled_time'))
 
     if not delayed_tasks:
         return {
@@ -231,7 +255,8 @@ def _tool_explain_delay(args):
     ]
     estimated_delay_minutes = len(delayed_tasks) * 15
     from datetime import timedelta
-    new_eta = flight.departure_time + timedelta(minutes=estimated_delay_minutes)
+    new_eta = flight.departure_time + \
+        timedelta(minutes=estimated_delay_minutes)
 
     return {
         "flight_number": flight.flight_number,
@@ -259,13 +284,15 @@ def _tool_gate_congestion(args):
     from turnaround.models import TurnaroundTask
 
     today = timezone.now().date()
-    todays_assignments = GateAssignment.objects.filter(gate=gate, assigned_at__date=today)
+    todays_assignments = GateAssignment.objects.filter(
+        gate=gate, assigned_at__date=today)
     assignments_count = todays_assignments.count()
     flight_ids = list(todays_assignments.values_list('flight_id', flat=True))
     delayed_tasks_count = TurnaroundTask.objects.filter(
         flight_id__in=flight_ids, status='DELAYED'
     ).count() if flight_ids else 0
-    is_occupied = GateAssignment.objects.filter(gate=gate, status='assigned').exists()
+    is_occupied = GateAssignment.objects.filter(
+        gate=gate, status='assigned').exists()
 
     score = 0
     if is_occupied:
@@ -295,7 +322,8 @@ def _tool_gate_congestion(args):
 def _tool_get_baggage_status(args):
     from baggage.models import Baggage
     tag = (args.get("baggage_tag") or "").strip()
-    bag = Baggage.objects.filter(baggage_tag__iexact=tag).select_related('flight').first()
+    bag = Baggage.objects.filter(
+        baggage_tag__iexact=tag).select_related('flight').first()
     if not bag:
         return {"error": f"No baggage found with tag '{tag}'."}
     latest = bag.tracking_history.order_by('-updated_at').first()
@@ -313,7 +341,8 @@ def _tool_get_maintenance_requests(args):
     from maintenance.models import MaintenanceRequest
     reg = (args.get("aircraft_registration") or "").strip()
     flight_number = (args.get("flight_number") or "").strip()
-    qs = MaintenanceRequest.objects.select_related('aircraft').exclude(status__in=['RESOLVED', 'CLOSED'])
+    qs = MaintenanceRequest.objects.select_related(
+        'aircraft').exclude(status__in=['RESOLVED', 'CLOSED'])
     if flight_number:
         flight = _find_flight(flight_number)
         if not flight:
@@ -325,7 +354,9 @@ def _tool_get_maintenance_requests(args):
         return {"error": "Provide a flight_number or aircraft_registration."}
     requests = list(qs.order_by('-priority')[:10])
     if not requests:
-        return {"open_requests": [], "message": "No open maintenance requests."}
+        return {
+            "open_requests": [],
+            "message": "No open maintenance requests."}
     return {"open_requests": [
         {"aircraft": r.aircraft.registration_number, "issue": r.issue_description,
          "priority": r.priority, "status": r.get_status_display()}
@@ -356,7 +387,8 @@ def _tool_get_unread_notifications(args):
     user_obj = User.objects.filter(username__iexact=username).first()
     if not user_obj:
         return {"error": f"No user found with username '{username}'."}
-    unread = Notification.objects.filter(user=user_obj, is_read=False).order_by('-created_at')
+    unread = Notification.objects.filter(
+        user=user_obj, is_read=False).order_by('-created_at')
     return {
         "unread_count": unread.count(),
         "recent": [{"type": n.get_type_display(), "message": n.message} for n in unread[:5]],
@@ -370,7 +402,8 @@ def _tool_get_unread_notifications(args):
 def _tool_get_uld_status(args):
     from cargo_management.models import ULD
     uld_id = (args.get("uld_id") or "").strip()
-    uld = ULD.objects.filter(uld_id__iexact=uld_id).select_related('flight').first()
+    uld = ULD.objects.filter(
+        uld_id__iexact=uld_id).select_related('flight').first()
     if not uld:
         return {"error": f"No ULD found with id '{uld_id}'."}
     return {
@@ -386,7 +419,10 @@ def _tool_get_uld_status(args):
 def _tool_get_incidents(args):
     from incident_management.models import Incident
     flight_number = (args.get("flight_number") or "").strip()
-    qs = Incident.objects.exclude(status__in=['RESOLVED', 'CLOSED']).order_by('-occurred_at')
+    qs = Incident.objects.exclude(
+        status__in=[
+            'RESOLVED',
+            'CLOSED']).order_by('-occurred_at')
     if flight_number:
         flight = _find_flight(flight_number)
         if not flight:
@@ -404,13 +440,14 @@ def _tool_get_incidents(args):
 
 
 def _tool_get_ramp_inspection(args):
-    from ramp_operations.models import RampInspection
     flight = _find_flight(args.get("flight_number", ""))
     if not flight:
-        return {"error": f"No flight found with number '{args.get('flight_number')}'."}
+        return {
+            "error": f"No flight found with number '{args.get('flight_number')}'."}
     inspection = flight.ramp_inspections.order_by('-created_at').first()
     if not inspection:
-        return {"message": f"No ramp inspection recorded yet for {flight.flight_number}."}
+        return {
+            "message": f"No ramp inspection recorded yet for {flight.flight_number}."}
     return {
         "flight_number": flight.flight_number,
         "stand": inspection.stand,
@@ -425,10 +462,12 @@ def _tool_get_ramp_inspection(args):
 def _tool_get_fuel_status(args):
     flight = _find_flight(args.get("flight_number", ""))
     if not flight:
-        return {"error": f"No flight found with number '{args.get('flight_number')}'."}
+        return {
+            "error": f"No flight found with number '{args.get('flight_number')}'."}
     op = flight.fuel_operations.order_by('-created_at').first()
     if not op:
-        return {"message": f"No fuel operation recorded yet for {flight.flight_number}."}
+        return {
+            "message": f"No fuel operation recorded yet for {flight.flight_number}."}
     return {
         "flight_number": flight.flight_number,
         "status": op.get_status_display(),
@@ -445,10 +484,12 @@ def _tool_get_fuel_status(args):
 def _tool_get_catering_status(args):
     flight = _find_flight(args.get("flight_number", ""))
     if not flight:
-        return {"error": f"No flight found with number '{args.get('flight_number')}'."}
+        return {
+            "error": f"No flight found with number '{args.get('flight_number')}'."}
     orders = list(flight.catering_orders.order_by('-created_at')[:5])
     if not orders:
-        return {"message": f"No catering orders recorded yet for {flight.flight_number}."}
+        return {
+            "message": f"No catering orders recorded yet for {flight.flight_number}."}
     return {"flight_number": flight.flight_number, "orders": [
         {"meal_type": o.get_meal_type_display(), "meal_count": o.meal_count,
          "status": o.get_status_display(), "loading_completed": o.loading_completed}
@@ -459,10 +500,12 @@ def _tool_get_catering_status(args):
 def _tool_get_cleaning_status(args):
     flight = _find_flight(args.get("flight_number", ""))
     if not flight:
-        return {"error": f"No flight found with number '{args.get('flight_number')}'."}
+        return {
+            "error": f"No flight found with number '{args.get('flight_number')}'."}
     task = flight.cleaning_tasks.order_by('-created_at').first()
     if not task:
-        return {"message": f"No cleaning task recorded yet for {flight.flight_number}."}
+        return {
+            "message": f"No cleaning task recorded yet for {flight.flight_number}."}
     return {
         "flight_number": flight.flight_number,
         "status": task.get_status_display(),
@@ -476,10 +519,12 @@ def _tool_get_cleaning_status(args):
 def _tool_get_water_lavatory_status(args):
     flight = _find_flight(args.get("flight_number", ""))
     if not flight:
-        return {"error": f"No flight found with number '{args.get('flight_number')}'."}
+        return {
+            "error": f"No flight found with number '{args.get('flight_number')}'."}
     service = flight.water_lavatory_services.order_by('-created_at').first()
     if not service:
-        return {"message": f"No water/lavatory service recorded yet for {flight.flight_number}."}
+        return {
+            "message": f"No water/lavatory service recorded yet for {flight.flight_number}."}
     return {
         "flight_number": flight.flight_number,
         "status": service.get_status_display(),
@@ -492,10 +537,12 @@ def _tool_get_water_lavatory_status(args):
 def _tool_get_boarding_status(args):
     flight = _find_flight(args.get("flight_number", ""))
     if not flight:
-        return {"error": f"No flight found with number '{args.get('flight_number')}'."}
+        return {
+            "error": f"No flight found with number '{args.get('flight_number')}'."}
     session = getattr(flight, 'boarding_session', None)
     if not session:
-        return {"message": f"No boarding session recorded yet for {flight.flight_number}."}
+        return {
+            "message": f"No boarding session recorded yet for {flight.flight_number}."}
     return {
         "flight_number": flight.flight_number,
         "status": session.get_status_display(),
@@ -513,7 +560,7 @@ TOOLS = [
     {"name": "get_flight_status",
      "description": "Get the current status, route, and scheduled times for a specific flight.",
      "input_schema": {"type": "object", "properties": {"flight_number": {"type": "string", "description": "e.g. AI202"}},
-                       "required": ["flight_number"]}},
+                      "required": ["flight_number"]}},
     {"name": "predict_delay",
      "description": "Get the ML delay-risk prediction for a specific flight.",
      "input_schema": {"type": "object", "properties": {"flight_number": {"type": "string"}}, "required": ["flight_number"]}},
@@ -534,18 +581,18 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {"flight_number": {"type": "string"}}, "required": ["flight_number"]}},
     {"name": "check_schedule",
      "description": ("Answers flight availability/schedule questions by checking BOTH the uploaded "
-                      "Excel/CSV reference sheet AND the system's own live flight database, and "
-                      "returns a pre-formatted answer with 'According to sheet:' and 'According to "
-                      "database:' sections already built in. Pass the user's question through as the "
-                      "query, e.g. 'any flights available?', 'any flights between 8pm and 9pm', "
-                      "'flights tomorrow', 'flight at 3:30pm from Delhi to Mumbai'. Return the "
-                      "resulting answer text verbatim as your whole response - do not rewrite it."),
+                     "Excel/CSV reference sheet AND the system's own live flight database, and "
+                     "returns a pre-formatted answer with 'According to sheet:' and 'According to "
+                     "database:' sections already built in. Pass the user's question through as the "
+                     "query, e.g. 'any flights available?', 'any flights between 8pm and 9pm', "
+                     "'flights tomorrow', 'flight at 3:30pm from Delhi to Mumbai'. Return the "
+                     "resulting answer text verbatim as your whole response - do not rewrite it."),
      "input_schema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}},
     {"name": "list_flights",
      "description": ("Look up real flights recorded in this system's own database (the Flights module) by day, "
-                      "time window, and/or route, returned as raw data (not pre-formatted). Use this only for "
-                      "flight lookups that are NOT availability/schedule questions - prefer check_schedule "
-                      "for anything like 'any flights available?' or 'flights today?'."),
+                     "time window, and/or route, returned as raw data (not pre-formatted). Use this only for "
+                     "flight lookups that are NOT availability/schedule questions - prefer check_schedule "
+                     "for anything like 'any flights available?' or 'flights today?'."),
      "input_schema": {"type": "object", "properties": {
          "day": {"type": "string", "description": "'today', 'tomorrow', or YYYY-MM-DD. Omit for no date filter."},
          "origin": {"type": "string"},
@@ -555,12 +602,12 @@ TOOLS = [
      }, "required": []}},
     {"name": "explain_delay",
      "description": ("Explain WHY a specific flight is delayed, using real recorded turnaround-task delay "
-                      "reasons (not the ML risk score) and a new estimated departure time. Use this whenever "
-                      "someone asks 'why is <flight> delayed' or 'what's holding up <flight>'."),
+                     "reasons (not the ML risk score) and a new estimated departure time. Use this whenever "
+                     "someone asks 'why is <flight> delayed' or 'what's holding up <flight>'."),
      "input_schema": {"type": "object", "properties": {"flight_number": {"type": "string"}}, "required": ["flight_number"]}},
     {"name": "get_gate_congestion",
      "description": ("Get the live congestion score/level for a specific gate and why it's busy (flights "
-                      "handled today, delayed tasks, maintenance status). Use for 'why is gate X congested/busy'."),
+                     "handled today, delayed tasks, maintenance status). Use for 'why is gate X congested/busy'."),
      "input_schema": {"type": "object", "properties": {"gate_number": {"type": "string"}}, "required": ["gate_number"]}},
     {"name": "get_baggage_status",
      "description": "Get current tracking status and location for a specific baggage tag.",

@@ -11,6 +11,11 @@ class RampInspectionAdmin(admin.ModelAdmin):
 
 @admin.register(PushbackOperation)
 class PushbackOperationAdmin(admin.ModelAdmin):
-    list_display = ['flight', 'marshaller', 'tow_vehicle_code', 'status', 'requested_at']
+    list_display = [
+        'flight',
+        'marshaller',
+        'tow_vehicle_code',
+        'status',
+        'requested_at']
     list_filter = ['status']
     search_fields = ['flight__flight_number', 'tow_vehicle_code']

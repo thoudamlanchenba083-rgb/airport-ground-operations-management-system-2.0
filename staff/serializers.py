@@ -22,7 +22,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
 class StaffAssignmentSerializer(serializers.ModelSerializer):
     staff_name = serializers.CharField(source='staff.name', read_only=True)
-    flight_number = serializers.CharField(source='flight.flight_number', read_only=True)
+    flight_number = serializers.CharField(
+        source='flight.flight_number', read_only=True)
 
     class Meta:
         model = StaffAssignment

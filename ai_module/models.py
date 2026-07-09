@@ -29,7 +29,10 @@ class AIPrediction(models.Model):
     input_data = models.JSONField(default=dict)
     result = models.JSONField(default=dict)
     confidence_score = models.FloatField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING')
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL,
         null=True, blank=True
@@ -53,7 +56,10 @@ class AIChatMessage(models.Model):
         ('assistant', 'Assistant'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_messages')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='chat_messages')
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -76,12 +82,17 @@ class FlightScheduleUpload(models.Model):
     Only the most recent upload is treated as the "active" schedule the
     chatbot checks against (see chatbot.py schedule_check intent).
     """
-    file = models.FileField(upload_to=schedule_upload_path, null=True, blank=True)
+    file = models.FileField(
+        upload_to=schedule_upload_path,
+        null=True,
+        blank=True)
     original_filename = models.CharField(max_length=255)
-    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     row_count = models.IntegerField(default=0)
-    status = models.CharField(max_length=20, default='PROCESSED')  # PROCESSED | FAILED
+    status = models.CharField(max_length=20,
+                              default='PROCESSED')  # PROCESSED | FAILED
     error_message = models.TextField(blank=True)
 
     class Meta:
@@ -97,13 +108,17 @@ class FlightScheduleRow(models.Model):
     scheduled_time is the primary departure time used for "is there a
     flight at this time" style chatbot lookups.
     """
-    upload = models.ForeignKey(FlightScheduleUpload, on_delete=models.CASCADE, related_name='rows')
+    upload = models.ForeignKey(
+        FlightScheduleUpload,
+        on_delete=models.CASCADE,
+        related_name='rows')
     flight_number = models.CharField(max_length=30, blank=True)
     origin = models.CharField(max_length=100, blank=True)
     destination = models.CharField(max_length=100, blank=True)
     scheduled_time = models.DateTimeField(null=True, blank=True)
     arrival_time = models.DateTimeField(null=True, blank=True)
-    details = models.JSONField(default=dict, blank=True)  # any other columns from the sheet
+    # any other columns from the sheet
+    details = models.JSONField(default=dict, blank=True)
 
     class Meta:
         ordering = ['scheduled_time']
