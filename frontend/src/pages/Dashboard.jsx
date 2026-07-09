@@ -1,4 +1,4 @@
-Ôªøimport { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Plane, Activity, Clock, XCircle, Target, TrendingUp, Cloud, Wrench,
@@ -102,7 +102,7 @@ function StatCard({ icon: Icon, chip, label, value, accent, seed }) {
       </div>
       <div>
         <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">{label}</p>
-        <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{value ?? '‚Äî'}</p>
+        <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{value ?? 'ó'}</p>
       </div>
       <div className={accent}>
         <Sparkline seed={seed} />
@@ -183,7 +183,7 @@ export default function Dashboard() {
   const { user } = useAuth()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  const isViewer = user?.role === 'VIEWER'
+  const canWrite = user?.role === 'ADMIN' || user?.role === 'GROUND_STAFF'
   const [flights, setFlights] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -359,7 +359,7 @@ export default function Dashboard() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-            Welcome back{user?.username ? `, ${user.username}` : ''} <span aria-hidden>üëã</span>
+            Welcome back{user?.username ? `, ${user.username}` : ''} <span aria-hidden>??</span>
           </h2>
           <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
             {now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -374,7 +374,7 @@ export default function Dashboard() {
             className="glass-pill glass-interactive flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-200 px-4 py-2.5 disabled:opacity-50"
           >
             <RefreshCw size={16} className={intelLoading ? 'animate-spin' : ''} />
-            {intelLoading ? 'Refreshing‚Ä¶' : 'Refresh AI Insights'}
+            {intelLoading ? 'RefreshingÖ' : 'Refresh AI Insights'}
           </button>
           <Link
             to="/flights"
@@ -488,10 +488,10 @@ export default function Dashboard() {
                         : 'bg-neutral-500/10 text-neutral-500 dark:text-neutral-400'
                     }`}>
                       {weather.live_data_count === weather.flights_analyzed
-                        ? '‚óè Live'
+                        ? '? Live'
                         : weather.live_data_count > 0
-                        ? `‚óè ${weather.live_data_count}/${weather.flights_analyzed} Live`
-                        : '‚óã Simulated'}
+                        ? `? ${weather.live_data_count}/${weather.flights_analyzed} Live`
+                        : '? Simulated'}
                     </span>
                   )}
                 </div>
@@ -637,7 +637,7 @@ export default function Dashboard() {
                     <span className="text-xs text-neutral-500 dark:text-neutral-400">
                       Gates: {resources.gates.available}/{resources.gates.total} free
                       {resources.gates.peak_forecast_demand > resources.gates.available && (
-                        <span className="text-amber-600 dark:text-amber-400"> ¬∑ peak demand {resources.gates.peak_forecast_demand}</span>
+                        <span className="text-amber-600 dark:text-amber-400"> ∑ peak demand {resources.gates.peak_forecast_demand}</span>
                       )}
                     </span>
                   </div>
@@ -678,7 +678,7 @@ export default function Dashboard() {
               <Plane size={16} />
             </div>
             <h3 className="font-semibold text-neutral-900 dark:text-white">Recent Flights</h3>
-            {loading && <span className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">Loading‚Ä¶</span>}
+            {loading && <span className="text-xs text-neutral-400 dark:text-neutral-500 animate-pulse">LoadingÖ</span>}
           </div>
           <div className="flex items-center gap-2">
             <button className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-neutral-600 dark:text-neutral-300 bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-black/5 dark:border-white/10">
@@ -701,12 +701,12 @@ export default function Dashboard() {
                   <th className="px-5 py-3 font-medium">Destination</th>
                   <th className="px-5 py-3 font-medium">Status</th>
                   <th className="px-5 py-3 font-medium">Departure</th>
-                  {!isViewer && <th className="px-5 py-3 font-medium">Actions</th>}
+                  {canWrite && <th className="px-5 py-3 font-medium">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5 dark:divide-white/5">
                 {recent.length === 0 && (
-                  <tr><td colSpan={isViewer ? 6 : 7} className="px-5 py-6 text-center text-neutral-400 dark:text-neutral-500">No flights available</td></tr>
+                  <tr><td colSpan={canWrite ? 7 : 6} className="px-5 py-6 text-center text-neutral-400 dark:text-neutral-500">No flights available</td></tr>
                 )}
                 {recent.map((f) => (
                   <tr key={f.id} className="hover:bg-black/2 dark:hover:bg-white/3 transition-colors">
@@ -730,9 +730,9 @@ export default function Dashboard() {
                       </div>
                     </td>
                     <td className="px-5 py-3 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
-                      {f.scheduled_departure ? new Date(f.scheduled_departure).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '‚Äî'}
+                      {f.scheduled_departure ? new Date(f.scheduled_departure).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'ó'}
                     </td>
-                    {!isViewer && (
+                    {canWrite && (
                       <td className="px-5 py-3">
                         {nextWorkflowStep(f.status) ? (
                           <button
@@ -744,7 +744,7 @@ export default function Dashboard() {
                           </button>
                         ) : (
                           <span className="text-xs text-neutral-400 dark:text-neutral-600">
-                            {f.status === 'ARRIVED' ? 'Completed' : '‚Äî'}
+                            {f.status === 'ARRIVED' ? 'Completed' : 'ó'}
                           </span>
                         )}
                       </td>
@@ -788,21 +788,21 @@ export default function Dashboard() {
             <div className="icon-chip icon-chip-violet w-11! h-11! rounded-xl!"><DoorOpen size={18} /></div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Total Gates</p>
-              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? '‚Äî' : gates.length}</p>
+              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? 'ó' : gates.length}</p>
             </div>
           </div>
           <div className="glass glass-interactive rounded-[26px] p-4 flex items-center gap-3">
             <div className="icon-chip icon-chip-amber w-11! h-11! rounded-xl!"><Users size={18} /></div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Staff Members</p>
-              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? '‚Äî' : staffList.length}</p>
+              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? 'ó' : staffList.length}</p>
             </div>
           </div>
           <div className="glass glass-interactive rounded-[26px] p-4 flex items-center gap-3">
             <div className="icon-chip icon-chip-rose w-11! h-11! rounded-xl!"><Wrench size={18} /></div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Maintenance Jobs</p>
-              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? '‚Äî' : maintenanceList.length}</p>
+              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-0.5">{analyticsLoading ? 'ó' : maintenanceList.length}</p>
             </div>
           </div>
         </div>

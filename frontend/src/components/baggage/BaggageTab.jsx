@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 import { useAuth } from '../../context/AuthContext'
 
@@ -15,7 +15,7 @@ const STATUSES = ['CHECKED_IN', 'LOADED', 'IN_TRANSIT', 'ARRIVED', 'CLAIMED', 'M
 
 export default function BaggageTab() {
   const { user } = useAuth()
-  const isViewer = user?.role === 'VIEWER'
+  const canWrite = ['ADMIN', 'BAGGAGE_SUPERVISOR', 'GROUND_STAFF'].includes(user?.role)
   const [baggage,   setBaggage]   = useState([])
   const [flights,   setFlights]   = useState([])
   const [loading,   setLoading]   = useState(true)
@@ -91,8 +91,8 @@ export default function BaggageTab() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-end">
           <div className="glass-strong w-full max-w-md h-full overflow-y-auto p-5">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-neutral-900 dark:text-white">Tracking — {selected.baggage_tag}</h3>
-              <button onClick={() => setSelected(null)} className="text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-100 text-xl">✕</button>
+              <h3 className="font-bold text-neutral-900 dark:text-white">Tracking � {selected.baggage_tag}</h3>
+              <button onClick={() => setSelected(null)} className="text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-100 text-xl">?</button>
             </div>
 
             {/* Add tracking form */}
@@ -137,7 +137,7 @@ export default function BaggageTab() {
                     </span>
                     <span className="text-xs text-neutral-400 dark:text-neutral-500">{new Date(t.updated_at).toLocaleString()}</span>
                   </div>
-                  {t.location && <p className="text-xs text-neutral-600 dark:text-neutral-300">📍 {t.location}</p>}
+                  {t.location && <p className="text-xs text-neutral-600 dark:text-neutral-300">?? {t.location}</p>}
                   {t.notes && <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{t.notes}</p>}
                 </div>
               ))}
@@ -154,7 +154,7 @@ export default function BaggageTab() {
           placeholder="Search tag or passenger..."
           className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
         />
-        {!isViewer && (
+        {canWrite && (
           <button
             onClick={() => setShowForm(v => !v)}
             className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg"
@@ -165,7 +165,7 @@ export default function BaggageTab() {
       </div>
 
       {/* Add form */}
-      {showForm && !isViewer && (
+      {showForm && canWrite && (
         <div className="glass rounded-xl p-4 mb-4 grid grid-cols-2 gap-3">
           <input
             placeholder="Baggage Tag (e.g. BG001)"
@@ -246,7 +246,7 @@ export default function BaggageTab() {
                   >
                     Tracking
                   </button>
-                  {!isViewer && (
+                  {canWrite && (
                     <button
                       onClick={() => deleteBaggage(b.id)}
                       className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded"
