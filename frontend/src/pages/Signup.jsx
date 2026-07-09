@@ -52,7 +52,7 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-10 relative overflow-hidden">
+    <div className="min-h-screen bg-[#171717] flex items-center justify-center px-4 py-10 relative overflow-hidden">
 
       {/* Ambient blue waves - same optimized .liquid-blob used on the Login
           screen (GPU-composited, transform-only animation). */}
@@ -60,7 +60,7 @@ export default function Signup() {
         className="liquid-blob"
         style={{
           top: '-8%', left: '-10%', width: '34rem', height: '34rem',
-          background: 'radial-gradient(circle, rgba(56,189,248,0.30), transparent 70%)',
+          background: 'radial-gradient(circle, rgba(120,120,118,0.28), transparent 70%)',
           animationDelay: '0s',
         }}
       />
@@ -68,7 +68,7 @@ export default function Signup() {
         className="liquid-blob"
         style={{
           bottom: '-12%', right: '-10%', width: '36rem', height: '36rem',
-          background: 'radial-gradient(circle, rgba(59,130,246,0.30), transparent 70%)',
+          background: 'radial-gradient(circle, rgba(90,90,88,0.28), transparent 70%)',
           animationDelay: '-10s',
         }}
       />
@@ -76,7 +76,7 @@ export default function Signup() {
         className="liquid-blob"
         style={{
           top: '35%', left: '45%', width: '26rem', height: '26rem',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.18), transparent 70%)',
+          background: 'radial-gradient(circle, rgba(150,150,146,0.16), transparent 70%)',
           animationDelay: '-18s',
         }}
       />

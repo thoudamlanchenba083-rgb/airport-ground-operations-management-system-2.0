@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import PublicNavbar from '../components/PublicNavbar'
 import usePageMeta from '../hooks/usePageMeta'
 
@@ -49,8 +50,9 @@ const crew = [
 
 export default function Team() {
   usePageMeta('Team', 'Meet the crew building and operating AeroGround.')
+  const navigate = useNavigate()
   return (
-    <div style={{ backgroundColor: '#040404', minHeight: '100vh', color: '#f0ede8' }}>
+    <div style={{ backgroundColor: '#171717', minHeight: '100vh', color: '#f0ede8' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IM+Fell+English:ital@1&family=Rajdhani:wght@500;600;700&display=swap');
 
@@ -58,7 +60,7 @@ export default function Team() {
         .team-aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
         .team-ab{position:absolute;border-radius:50%;filter:blur(150px);opacity:.05;}
         .team-ab1{width:620px;height:620px;background:#d4c9a8;top:-160px;left:-120px;}
-        .team-ab2{width:480px;height:480px;background:#4e8fcc;bottom:-140px;right:-80px;}
+        .team-ab2{width:480px;height:480px;background:#4a4a48;bottom:-140px;right:-80px;}
 
         .team-hero{position:relative;z-index:1;text-align:center;padding:108px 2rem 20px;}
         .team-eyebrow{display:inline-flex;align-items:center;gap:10px;padding:6px 18px;border-radius:50px;font-family:'Rajdhani',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#d4c9a8;border:1px solid rgba(212,201,168,0.2);background:rgba(212,201,168,0.06);backdrop-filter:blur(10px);margin-bottom:22px;}
@@ -86,6 +88,10 @@ export default function Team() {
         .crew-name{font-family:'Cinzel',serif;font-size:.95rem;font-weight:700;letter-spacing:.8px;color:#f0ede8;margin-bottom:4px;margin-top:14px;}
         .crew-role{font-family:'Rajdhani',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--glow);margin-bottom:12px;}
         .crew-bio{font-family:'IM Fell English',serif;font-style:italic;font-size:.83rem;color:#8a8578;line-height:1.68;}
+
+        .team-cta{position:relative;z-index:1;text-align:center;padding-bottom:6rem;}
+        .team-cta-btn{font-family:'Rajdhani',sans-serif;background:#f0ede8;color:#0a0a0a;border:none;padding:14px 38px;border-radius:50px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-size:.85rem;cursor:pointer;transition:transform .2s,box-shadow .2s;}
+        .team-cta-btn:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(240,237,232,0.18);}
 
         @media(max-width:640px){.team-grid{grid-template-columns:1fr 1fr;}}
         @media(max-width:420px){.team-grid{grid-template-columns:1fr;}}
@@ -119,6 +125,10 @@ export default function Team() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="team-cta">
+          <button className="team-cta-btn" onClick={() => navigate('/login')}>Launch Dashboard</button>
         </div>
       </div>
     </div>

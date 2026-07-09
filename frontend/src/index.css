@@ -34,7 +34,7 @@ body {
 
 .dark body {
   color: #e5e7eb;
-  background: radial-gradient(ellipse 1400px 900px at 20% -10%, #14161c 0%, #0a0b0f 45%, #060608 100%);
+  background: radial-gradient(ellipse 1400px 900px at 20% -10%, #1a1a1a 0%, #101010 45%, #060606 100%);
   background-attachment: fixed;
 }
 
@@ -153,6 +153,9 @@ body {
   height: 60%;
   background: radial-gradient(ellipse at top, rgba(59,130,246,0.22), transparent 70%);
   pointer-events: none;
+}
+.dark .glass-hero::after {
+  background: radial-gradient(ellipse at top, rgba(255,255,255,0.06), transparent 70%);
 }
 
 /* Pill-shaped glass - nav chips, topbar buttons, badges */

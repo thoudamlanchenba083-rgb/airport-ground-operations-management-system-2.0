@@ -171,7 +171,7 @@ export default function LandingPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Cinzel:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap');
         :root {
-          --bg:#040404;--carb:#0e0e0e;--surf:rgba(255,255,255,0.03);
+          --bg:#171717;--carb:#0e0e0e;--surf:rgba(255,255,255,0.03);
           --glass:rgba(6,6,6,0.78);--border:rgba(255,255,255,0.07);--border-hi:rgba(255,255,255,0.15);
           --accent:#d4c9a8;--accent2:#c8b882;--blue:#4e8fcc;--teal:#3bbfb5;
           --green:#3dd68c;--amber:#f5a623;--red:#f27070;--violet:#9d78f0;
@@ -201,7 +201,7 @@ export default function LandingPage() {
         .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
         .ab{position:absolute;border-radius:50%;filter:blur(160px);opacity:.038;animation:abF 24s ease-in-out infinite;}
         .ab1{width:800px;height:800px;background:#d4c9a8;top:-220px;left:-180px;}
-        .ab2{width:560px;height:560px;background:#4e8fcc;top:35%;right:-150px;animation-delay:-9s;}
+        .ab2{width:560px;height:560px;background:#4a4a48;top:35%;right:-150px;animation-delay:-9s;}
         .ab3{width:460px;height:460px;background:#3bbfb5;bottom:-80px;left:40%;animation-delay:-18s;}
         .ab4{width:320px;height:320px;background:#9d78f0;bottom:30%;left:20%;animation-delay:-6s;}
         .nav-wrap{position:fixed;top:0;left:0;right:0;z-index:1000;height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 var(--px);background:rgba(4,4,4,0.45);backdrop-filter:blur(32px) saturate(160%);border-bottom:1px solid rgba(255,255,255,0.04);transition:all .35s;}
@@ -451,6 +451,12 @@ export default function LandingPage() {
 
         {/* HERO */}
         <section className="hero-banner">
+          <div className="banner-img-strip" aria-hidden="true">
+            <div className="banner-panel"><img src="/images/landing/cards/card-runway-fog.jpg" alt="" /></div>
+            <div className="banner-panel"><img src="/images/landing/cards/card-jet-contrail.jpg" alt="" /></div>
+            <div className="banner-panel"><img src="/images/landing/cards/card-bw-reflection.jpg" alt="" /></div>
+          </div>
+          <div className="banner-overlay" />
           <div className="scan-line" />
 
           {/* Live board */}

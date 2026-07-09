@@ -129,7 +129,7 @@ export default function Analytics() {
   const mutedText    = isDark ? '#9ca3af' : '#6b7280'
   const emptyText    = isDark ? '#6b7280' : '#9ca3af'
   const tooltipStyle = {
-    backgroundColor: isDark ? 'rgba(20,22,30,0.85)' : 'rgba(255,255,255,0.85)',
+    backgroundColor: isDark ? 'rgba(18,18,18,0.9)' : 'rgba(255,255,255,0.85)',
     backdropFilter: 'blur(12px)',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(15,23,42,0.08)'}`,
     color: isDark ? '#fff' : '#111827',
