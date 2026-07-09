@@ -1,12 +1,10 @@
 from django.test import TestCase, override_settings
-from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from accounts.models import User
 from flights.models import Airline, Aircraft, Flight
-from staff.models import Staff, Shift, Schedule
 from django.utils import timezone
-from datetime import timedelta, time, date
+from datetime import timedelta
 
 
 # ─────────────────────────────────────────
@@ -21,18 +19,28 @@ class RateLimitDisabledTestCase(TestCase):
 # HELPERS
 # ─────────────────────────────────────────
 
-def make_user(username='testuser', password='testpass123', role='GROUND_STAFF'):
-    return User.objects.create_user(username=username, password=password, role=role)
+def make_user(
+        username='testuser',
+        password='testpass123',
+        role='GROUND_STAFF'):
+    return User.objects.create_user(
+        username=username, password=password, role=role)
+
 
 def make_admin(username='adminuser', password='adminpass123'):
     return User.objects.create_user(
         username=username, password=password, role='ADMIN', is_staff=True
     )
 
+
 def get_token(username, password):
     client = APIClient()
-    res = client.post('/api/token/', {'username': username, 'password': password}, format='json')
+    res = client.post('/api/token/',
+                      {'username': username,
+                       'password': password},
+                      format='json')
     return res.data.get('access')
+
 
 def auth_client(token):
     client = APIClient()
@@ -162,13 +170,22 @@ class FlightTests(TestCase):
             'aircraft': self.aircraft.id,
             'origin': 'Chennai',
             'destination': 'Mumbai',
-            'departure_time': (timezone.now() + timedelta(hours=2)).isoformat(),
-            'arrival_time': (timezone.now() + timedelta(hours=4)).isoformat(),
+            'departure_time': (
+                timezone.now() +
+                timedelta(
+                    hours=2)).isoformat(),
+            'arrival_time': (
+                timezone.now() +
+                timedelta(
+                    hours=4)).isoformat(),
             'status': 'SCHEDULED',
         }
 
     def test_create_flight(self):
-        res = self.client.post('/api/flights/flights/', self._flight_payload(), format='json')
+        res = self.client.post(
+            '/api/flights/flights/',
+            self._flight_payload(),
+            format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(res.data['flight_number'], 'FL001')
 
@@ -187,8 +204,14 @@ class FlightTests(TestCase):
         self.assertGreaterEqual(res.data['count'], 1)
 
     def test_create_flight_duplicate_number(self):
-        self.client.post('/api/flights/flights/', self._flight_payload(), format='json')
-        res = self.client.post('/api/flights/flights/', self._flight_payload(), format='json')
+        self.client.post(
+            '/api/flights/flights/',
+            self._flight_payload(),
+            format='json')
+        res = self.client.post(
+            '/api/flights/flights/',
+            self._flight_payload(),
+            format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_flight_invalid_status(self):
@@ -203,7 +226,10 @@ class FlightTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_flight_has_updated_at(self):
-        res = self.client.post('/api/flights/flights/', self._flight_payload(), format='json')
+        res = self.client.post(
+            '/api/flights/flights/',
+            self._flight_payload(),
+            format='json')
         self.assertIn('updated_at', res.data)
 
 
@@ -229,28 +255,54 @@ class StaffTests(TestCase):
         }
 
     def test_create_staff(self):
-        res = self.client.post('/api/staff/staff/', self._staff_payload(), format='json')
+        res = self.client.post(
+            '/api/staff/staff/',
+            self._staff_payload(),
+            format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
     def test_duplicate_email_rejected(self):
-        self.client.post('/api/staff/staff/', self._staff_payload(), format='json')
-        res = self.client.post('/api/staff/staff/', self._staff_payload(employee_id='EMP002'), format='json')
+        self.client.post(
+            '/api/staff/staff/',
+            self._staff_payload(),
+            format='json')
+        res = self.client.post(
+            '/api/staff/staff/',
+            self._staff_payload(
+                employee_id='EMP002'),
+            format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_duplicate_employee_id_rejected(self):
-        self.client.post('/api/staff/staff/', self._staff_payload(), format='json')
-        res = self.client.post('/api/staff/staff/', self._staff_payload(email='other@test.com'), format='json')
+        self.client.post(
+            '/api/staff/staff/',
+            self._staff_payload(),
+            format='json')
+        res = self.client.post(
+            '/api/staff/staff/',
+            self._staff_payload(
+                email='other@test.com'),
+            format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_ground_staff_cannot_create_staff(self):
-        make_user(username='grounduser', password='groundpass1', role='GROUND_STAFF')
+        make_user(
+            username='grounduser',
+            password='groundpass1',
+            role='GROUND_STAFF')
         token = get_token('grounduser', 'groundpass1')
         client = auth_client(token)
-        res = client.post('/api/staff/staff/', self._staff_payload(), format='json')
+        res = client.post(
+            '/api/staff/staff/',
+            self._staff_payload(),
+            format='json')
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_list_staff(self):
-        self.client.post('/api/staff/staff/', self._staff_payload(), format='json')
+        self.client.post(
+            '/api/staff/staff/',
+            self._staff_payload(),
+            format='json')
         res = self.client.get('/api/staff/staff/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(res.data['count'], 1)
@@ -275,7 +327,8 @@ class EdgeCaseTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_patch_nonexistent_flight(self):
-        res = self.client.patch('/api/flights/99999/', {'status': 'CANCELLED'}, format='json')
+        res = self.client.patch('/api/flights/99999/',
+                                {'status': 'CANCELLED'}, format='json')
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_nonexistent_staff(self):

@@ -17,6 +17,13 @@ class FuelTruckAdmin(admin.ModelAdmin):
 
 @admin.register(FuelOperation)
 class FuelOperationAdmin(admin.ModelAdmin):
-    list_display = ['flight', 'fuel_truck', 'fuel_company', 'quantity_liters', 'status', 'fuel_start_time', 'fuel_end_time']
+    list_display = [
+        'flight',
+        'fuel_truck',
+        'fuel_company',
+        'quantity_liters',
+        'status',
+        'fuel_start_time',
+        'fuel_end_time']
     list_filter = ['status', 'fuel_company']
     search_fields = ['flight__flight_number']

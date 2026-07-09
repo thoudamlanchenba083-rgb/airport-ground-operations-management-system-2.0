@@ -16,10 +16,16 @@ class Gate(models.Model):
         choices=GATE_TYPE_CHOICES,
         default='domestic'
     )
-    width = models.DecimalField(max_digits=6, decimal_places=2, default=45.00,
-                                 help_text='Usable width in meters, used for aircraft compatibility checks')
-    length = models.DecimalField(max_digits=6, decimal_places=2, default=45.00,
-                                  help_text='Usable length in meters, used for aircraft compatibility checks')
+    width = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=45.00,
+        help_text='Usable width in meters, used for aircraft compatibility checks')
+    length = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=45.00,
+        help_text='Usable length in meters, used for aircraft compatibility checks')
     is_under_maintenance = models.BooleanField(default=False)
 
     class Meta:

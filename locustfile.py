@@ -19,11 +19,14 @@ class AirportOpsUser(HttpUser):
         })
         if response.status_code == 200:
             self.token = response.json().get("access")
-            self.client.headers.update({"Authorization": f"Bearer {self.token}"})
+            self.client.headers.update(
+                {"Authorization": f"Bearer {self.token}"})
 
     @task(5)
     def list_flights(self):
-        self.client.get("/api/flights/flights/", name="/api/flights/flights/ [list]")
+        self.client.get(
+            "/api/flights/flights/",
+            name="/api/flights/flights/ [list]")
 
     @task(3)
     def list_gates(self):
@@ -35,15 +38,22 @@ class AirportOpsUser(HttpUser):
 
     @task(2)
     def list_notifications(self):
-        self.client.get("/api/notifications/", name="/api/notifications/ [list]")
+        self.client.get(
+            "/api/notifications/",
+            name="/api/notifications/ [list]")
+
     @task(1)
     def view_flight_detail(self):
-        response = self.client.get("/api/flights/flights/", name="/api/flights/flights/ [list-for-detail]")
+        response = self.client.get(
+            "/api/flights/flights/",
+            name="/api/flights/flights/ [list-for-detail]")
         if response.status_code == 200:
             results = response.json().get("results", [])
             if results:
                 flight_id = random.choice(results)["id"]
-                self.client.get(f"/api/flights/flights/{flight_id}/", name="/api/flights/flights/:id/ [detail]")
+                self.client.get(
+                    f"/api/flights/flights/{flight_id}/",
+                    name="/api/flights/flights/:id/ [detail]")
 
     @task(1)
     def create_airline(self):

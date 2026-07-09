@@ -12,6 +12,7 @@ logger = logging.getLogger('gates')
 
 class GateAssignmentError(Exception):
     """Raised when a gate assignment/auto-assignment cannot be completed."""
+
     def __init__(self, message, details=None):
         self.message = message
         self.details = details or []
@@ -23,15 +24,18 @@ class GateAssignmentService:
     @staticmethod
     def assign(gate: Gate, flight, user) -> GateAssignment:
         """Validates and creates a manual gate assignment, toggling gate availability."""
-        can_assign, reason = BusinessRuleValidator.can_assign_gate_to_flight(gate, flight)
+        can_assign, reason = BusinessRuleValidator.can_assign_gate_to_flight(
+            gate, flight)
         if not can_assign:
-            logger.warning(f"Gate assignment failed: {reason} (attempted by {user})")
+            logger.warning(
+                f"Gate assignment failed: {reason} (attempted by {user})")
             raise GateAssignmentError(reason)
 
         instance = GateAssignment.objects.create(gate=gate, flight=flight)
         gate.is_available = False
         gate.save()
-        logger.info(f"Gate {gate.gate_number} assigned to flight {flight} by {user}")
+        logger.info(
+            f"Gate {gate.gate_number} assigned to flight {flight} by {user}")
         return instance
 
     @staticmethod
@@ -40,6 +44,7 @@ class GateAssignmentService:
         gate = assignment.gate
         gate.is_available = True
         gate.save()
+
     @staticmethod
     def auto_assign(flight, user) -> GateAssignment:
         """
@@ -59,7 +64,8 @@ class GateAssignmentService:
         chosen = None
         reasons_tried = []
         for gate in candidates:
-            ok, reason = BusinessRuleValidator.can_assign_gate_to_flight(gate, flight)
+            ok, reason = BusinessRuleValidator.can_assign_gate_to_flight(
+                gate, flight)
             if ok:
                 chosen = gate
                 break
@@ -68,12 +74,11 @@ class GateAssignmentService:
         if chosen is None:
             raise GateAssignmentError(
                 f'No available {flight.get_flight_type_display()} gate currently fits '
-                f'this flight without a conflict.',
-                details=reasons_tried,
-            )
+                f'this flight without a conflict.', details=reasons_tried, )
 
         instance = GateAssignment.objects.create(flight=flight, gate=chosen)
         chosen.is_available = False
         chosen.save()
-        logger.info(f"Gate {chosen.gate_number} auto-assigned to flight {flight.flight_number} by {user}")
+        logger.info(
+            f"Gate {chosen.gate_number} auto-assigned to flight {flight.flight_number} by {user}")
         return instance

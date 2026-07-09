@@ -28,7 +28,14 @@ class UserAdmin(BaseUserAdmin):
     model = User
 
     # Columns shown on the user list page (/admin/accounts/user/)
-    list_display = ('username', 'email', 'role', 'phone', 'is_active', 'is_staff', 'last_login')
+    list_display = (
+        'username',
+        'email',
+        'role',
+        'phone',
+        'is_active',
+        'is_staff',
+        'last_login')
     list_filter = ('role', 'is_active', 'is_staff')
     search_fields = ('username', 'email', 'phone')
     ordering = ('username',)
@@ -46,7 +53,6 @@ class UserAdmin(BaseUserAdmin):
     # username + password (hashed) + role for a new account in one step.
     add_fieldsets = (
         (None, {
-            'classes': ('wide',),
-            'fields': ('username', 'email', 'phone', 'role', 'password1', 'password2'),
-        }),
-    )
+            'classes': (
+                'wide',), 'fields': (
+                'username', 'email', 'phone', 'role', 'password1', 'password2'), }), )

@@ -8,7 +8,6 @@ from django.db.models import Avg, Count
 from .models import AIPrediction, AIChatMessage, FlightScheduleUpload
 from .serializers import AIPredictionSerializer, AIChatMessageSerializer, FlightScheduleUploadSerializer
 from .excel_import import import_flight_schedule
-from flights.models import Flight
 from gates.models import Gate
 from .ml.predictor import (
     predict_delay,
@@ -24,10 +23,13 @@ from .chatbot import ChatbotEngine
 from . import llm_engine
 from . import gemini_engine
 from django.conf import settings
+
+
 def recommend_gate(flight):
     gates = list(Gate.objects.filter(is_available=True)[:10])
     if not gates:
-        return {'message': 'No available gates found', 'recommended_gate': None}, 0.0
+        return {'message': 'No available gates found',
+                'recommended_gate': None}, 0.0
 
     ranked = predict_best_gate(flight, gates)
     best_gate, best_score = ranked[0]
@@ -58,11 +60,14 @@ class AIPredictionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        prediction = serializer.save(created_by=self.request.user, status='PENDING')
+        prediction = serializer.save(
+            created_by=self.request.user,
+            status='PENDING')
         try:
             handler = PREDICTION_HANDLERS.get(prediction.prediction_type)
             if handler:
-                result, confidence = handler(prediction.flight, prediction.input_data)
+                result, confidence = handler(
+                    prediction.flight, prediction.input_data)
                 prediction.result = result
                 prediction.confidence_score = confidence
                 prediction.status = 'COMPLETED'
@@ -104,7 +109,8 @@ class AIChatViewSet(viewsets.ViewSet):
 
     def list(self, request):
         session = request.query_params.get('session_id', '')
-        msgs = AIChatMessage.objects.filter(user=request.user, session_id=session)
+        msgs = AIChatMessage.objects.filter(
+            user=request.user, session_id=session)
         return Response(AIChatMessageSerializer(msgs, many=True).data)
 
     @action(detail=False, methods=['post'])
@@ -117,7 +123,8 @@ class AIChatViewSet(viewsets.ViewSet):
             user=request.user, role='user',
             content=content, session_id=session_id
         )
-        reply = self._generate_reply(content, user=request.user, session_id=session_id)
+        reply = self._generate_reply(
+            content, user=request.user, session_id=session_id)
         bot_msg = AIChatMessage.objects.create(
             user=request.user, role='assistant',
             content=reply, session_id=session_id
@@ -144,13 +151,17 @@ class AIChatViewSet(viewsets.ViewSet):
                 continue  # try the next provider, or fall through to offline
 
         try:
-            return ChatbotEngine.respond(message, user=user, session_id=session_id)
+            return ChatbotEngine.respond(
+                message, user=user, session_id=session_id)
         except Exception as e:
             return f"Sorry, I hit an error answering that: {str(e)}"
+
     @action(detail=False, methods=['delete'])
     def clear(self, request):
         session_id = request.data.get('session_id', '')
-        AIChatMessage.objects.filter(user=request.user, session_id=session_id).delete()
+        AIChatMessage.objects.filter(
+            user=request.user,
+            session_id=session_id).delete()
         return Response({'message': 'Chat cleared'})
 
 
@@ -169,22 +180,27 @@ class FlightScheduleViewSet(viewsets.ViewSet):
         upload = FlightScheduleUpload.objects.order_by('-uploaded_at').first()
         if not upload:
             return Response({'active': False})
-        return Response({'active': True, **FlightScheduleUploadSerializer(upload).data})
+        return Response(
+            {'active': True, **FlightScheduleUploadSerializer(upload).data})
 
     def create(self, request):
         """POST /api/ai/schedule/ - upload a new sheet (multipart 'file')."""
         f = request.FILES.get('file')
         if not f:
-            return Response({'error': 'No file provided. Attach it under the "file" field.'}, status=400)
+            return Response(
+                {'error': 'No file provided. Attach it under the "file" field.'}, status=400)
         if not f.name.lower().endswith(('.xlsx', '.xls', '.csv')):
-            return Response({'error': 'Please upload a .xlsx, .xls, or .csv file.'}, status=400)
+            return Response(
+                {'error': 'Please upload a .xlsx, .xls, or .csv file.'}, status=400)
 
         upload = import_flight_schedule(f, f.name, user=request.user)
         if upload.status == 'FAILED':
             return Response(
                 {'error': f"Couldn't read that file: {upload.error_message}"}, status=400
             )
-        return Response(FlightScheduleUploadSerializer(upload).data, status=201)
+        return Response(
+            FlightScheduleUploadSerializer(upload).data,
+            status=201)
 
     @action(detail=False, methods=['delete'])
     def clear(self, request):

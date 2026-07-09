@@ -16,10 +16,16 @@ class Aircraft(models.Model):
     registration_number = models.CharField(max_length=20, unique=True)
     aircraft_type = models.CharField(max_length=100)
     capacity = models.PositiveIntegerField()
-    width = models.DecimalField(max_digits=6, decimal_places=2, default=36.00,
-                                 help_text='Wingspan in meters, used for gate compatibility checks')
-    length = models.DecimalField(max_digits=6, decimal_places=2, default=40.00,
-                                  help_text='Fuselage length in meters, used for gate compatibility checks')
+    width = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=36.00,
+        help_text='Wingspan in meters, used for gate compatibility checks')
+    length = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=40.00,
+        help_text='Fuselage length in meters, used for gate compatibility checks')
 
     def __str__(self):
         return self.registration_number
@@ -48,7 +54,8 @@ class Flight(models.Model):
         ('EMERGENCY', 'Emergency'),
     ]
 
-    # Ordered sequence used to enforce valid forward transitions for a normal departure flow
+    # Ordered sequence used to enforce valid forward transitions for a normal
+    # departure flow
     WORKFLOW_ORDER = [
         'SCHEDULED',
         'GATE_ASSIGNED',
@@ -180,9 +187,15 @@ class FlightService(models.Model):
         ('completed', 'Completed'),
     ]
 
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='services')
+    flight = models.ForeignKey(
+        Flight,
+        on_delete=models.CASCADE,
+        related_name='services')
     service_type = models.CharField(max_length=20, choices=SERVICE_TYPES)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending')
     started_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 

@@ -24,9 +24,15 @@ def _call_claude(messages):
         raise RuntimeError("ANTHROPIC_API_KEY is not configured")
     resp = requests.post(
         ANTHROPIC_API_URL,
-        headers={"x-api-key": api_key, "anthropic-version": ANTHROPIC_VERSION, "content-type": "application/json"},
+        headers={
+            "x-api-key": api_key,
+            "anthropic-version": ANTHROPIC_VERSION,
+            "content-type": "application/json"},
         json={
-            "model": getattr(settings, "AI_CHAT_MODEL", "claude-sonnet-4-6"),
+            "model": getattr(
+                settings,
+                "AI_CHAT_MODEL",
+                "claude-sonnet-4-6"),
             "max_tokens": 1024,
             "system": SYSTEM_PROMPT,
             "messages": messages,
@@ -40,12 +46,13 @@ def _call_claude(messages):
 
 def get_reply(message, user=None, session_id=''):
     history = fetch_history(user, session_id)
-    messages = [{"role": role, "content": content} for role, content in history] \
-        or [{"role": "user", "content": message}]
+    messages = [{"role": role, "content": content} for role,
+                content in history] or [{"role": "user", "content": message}]
 
     for _ in range(MAX_TOOL_ROUNDTRIPS):
         content_blocks = _call_claude(messages).get("content", [])
-        text = "\n".join(b["text"] for b in content_blocks if b.get("type") == "text").strip()
+        text = "\n".join(
+            b["text"] for b in content_blocks if b.get("type") == "text").strip()
         tool_uses = [b for b in content_blocks if b.get("type") == "tool_use"]
 
         if not tool_uses:

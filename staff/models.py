@@ -23,6 +23,7 @@ class Staff(models.Model):
     phone = models.CharField(max_length=20)
     email = models.EmailField(unique=True)
     is_active = models.BooleanField(default=True)
+
     class Meta:
         indexes = [
             models.Index(fields=['staff_type']),
@@ -32,8 +33,6 @@ class Staff(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.employee_id})"
-
-    
 
 
 class Shift(models.Model):
@@ -56,9 +55,16 @@ class Schedule(models.Model):
     def __str__(self):
         return f"{self.staff.name} - {self.shift.shift_name} on {self.date}"
 
+
 class StaffAssignment(models.Model):
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='assignments')
-    flight = models.ForeignKey('flights.Flight', on_delete=models.CASCADE, related_name='staff_assignments')
+    staff = models.ForeignKey(
+        Staff,
+        on_delete=models.CASCADE,
+        related_name='assignments')
+    flight = models.ForeignKey(
+        'flights.Flight',
+        on_delete=models.CASCADE,
+        related_name='staff_assignments')
     role = models.CharField(max_length=50, blank=True)
     assigned_at = models.DateTimeField(auto_now_add=True)
 

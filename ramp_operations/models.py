@@ -10,19 +10,32 @@ class RampInspection(models.Model):
     ]
 
     flight = models.ForeignKey(
-        Flight, on_delete=models.SET_NULL, null=True, blank=True, related_name='ramp_inspections'
-    )
-    stand = models.CharField(max_length=20, blank=True, default='', help_text='Parking stand or gate number')
+        Flight,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ramp_inspections')
+    stand = models.CharField(
+        max_length=20,
+        blank=True,
+        default='',
+        help_text='Parking stand or gate number')
 
     inspector = models.ForeignKey(
-        'staff.Staff', on_delete=models.SET_NULL, null=True, blank=True, related_name='ramp_inspections'
-    )
+        'staff.Staff',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ramp_inspections')
 
     cone_placement_ok = models.BooleanField(default=False)
     safety_zone_clear = models.BooleanField(default=False)
     fod_check_clear = models.BooleanField(default=False)
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING')
     findings = models.TextField(blank=True, default='')
 
     inspected_at = models.DateTimeField(null=True, blank=True)
@@ -48,17 +61,29 @@ class PushbackOperation(models.Model):
         ('REJECTED', 'Rejected'),
     ]
 
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='pushback_operations')
+    flight = models.ForeignKey(
+        Flight,
+        on_delete=models.CASCADE,
+        related_name='pushback_operations')
 
     marshaller = models.ForeignKey(
-        'staff.Staff', on_delete=models.SET_NULL, null=True, blank=True, related_name='marshalling_operations'
-    )
+        'staff.Staff',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='marshalling_operations')
     approved_by = models.ForeignKey(
-        'staff.Staff', on_delete=models.SET_NULL, null=True, blank=True, related_name='pushback_approvals'
-    )
+        'staff.Staff',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pushback_approvals')
 
     tow_vehicle_code = models.CharField(max_length=20, blank=True, default='')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='REQUESTED')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='REQUESTED')
 
     requested_at = models.DateTimeField(auto_now_add=True)
     approved_at = models.DateTimeField(null=True, blank=True)

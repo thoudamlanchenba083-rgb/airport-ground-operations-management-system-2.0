@@ -9,8 +9,10 @@ class CateringCompanySerializer(serializers.ModelSerializer):
 
 
 class CateringOrderSerializer(serializers.ModelSerializer):
-    flight_number = serializers.CharField(source='flight.flight_number', read_only=True)
-    catering_company_name = serializers.CharField(source='catering_company.name', read_only=True)
+    flight_number = serializers.CharField(
+        source='flight.flight_number', read_only=True)
+    catering_company_name = serializers.CharField(
+        source='catering_company.name', read_only=True)
 
     class Meta:
         model = CateringOrder
@@ -24,8 +26,8 @@ class CateringOrderSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         loading_completed = data.get(
-            'loading_completed', getattr(self.instance, 'loading_completed', False)
-        )
+            'loading_completed', getattr(
+                self.instance, 'loading_completed', False))
         status = data.get('status', getattr(self.instance, 'status', None))
         if loading_completed and status != 'LOADED':
             raise serializers.ValidationError(
