@@ -6,7 +6,12 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'role', 'phone', 'is_staff']
-        read_only_fields = ['is_staff']
+        # 'role' must stay read-only here: this serializer backs both
+        # UserViewSet (admin-only, fine) AND ProfileView.put() (any
+        # authenticated user editing THEMSELVES). Without this, any user
+        # could PUT /api/accounts/profile/ with {"role": "ADMIN"} and
+        # self-promote. Role changes must go through UserViewSet (ADMIN only).
+        read_only_fields = ['is_staff', 'role']
 
 
 # Roles selectable at public self-registration. ADMIN is deliberately excluded —
