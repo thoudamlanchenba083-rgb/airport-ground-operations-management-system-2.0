@@ -6,21 +6,22 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from datetime import datetime
+from core_app.permissions import HasRole
 from .models import Department, Designation, HRProfile, LeaveType, LeaveRequest, Attendance, Payroll
 from .serializers import (
-    DepartmentSerializer,
-    DesignationSerializer,
-    HRProfileSerializer,
-    LeaveTypeSerializer,
-    LeaveRequestSerializer,
-    AttendanceSerializer,
-    PayrollSerializer)
+    DepartmentSerializer, DesignationSerializer, HRProfileSerializer,
+    LeaveTypeSerializer, LeaveRequestSerializer, AttendanceSerializer, PayrollSerializer
+)
+
+# HR/org-management roles: manage department structure, HR profiles,
+# approve leave, generate/mark payroll. ADMIN is always included by HasRole.
+IsHRManagement = HasRole('HR', 'OPERATIONS_MANAGER', 'SUPERVISOR')
 
 
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsHRManagement]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'created_at']
@@ -29,7 +30,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
 class DesignationViewSet(viewsets.ModelViewSet):
     queryset = Designation.objects.all()
     serializer_class = DesignationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsHRManagement]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['department']
     search_fields = ['name', 'description']
@@ -39,7 +40,7 @@ class DesignationViewSet(viewsets.ModelViewSet):
 class HRProfileViewSet(viewsets.ModelViewSet):
     queryset = HRProfile.objects.all()
     serializer_class = HRProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsHRManagement]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['department', 'designation']
     search_fields = ['staff__name', 'aadhar_number', 'pan_number']
@@ -57,15 +58,20 @@ class LeaveTypeViewSet(viewsets.ReadOnlyModelViewSet):
 
 class LeaveRequestViewSet(viewsets.ModelViewSet):
     serializer_class = LeaveRequestSerializer
-    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['staff', 'leave_type', 'status']
     ordering_fields = ['start_date', 'created_at']
 
+    def get_permissions(self):
+        # Any authenticated staff member can submit/view their own leave
+        # request (self-service). Only HR/management can approve or reject.
+        if self.action in ['approve', 'reject']:
+            return [IsHRManagement()]
+        return [IsAuthenticated()]
+
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser or user.role in [
-                'ADMIN', 'HR', 'OPERATIONS_MANAGER', 'SUPERVISOR']:
+        if user.is_superuser or user.role in ['ADMIN', 'HR', 'OPERATIONS_MANAGER', 'SUPERVISOR']:
             return LeaveRequest.objects.all()
         return LeaveRequest.objects.filter(staff=user.staff_profile)
 
@@ -114,15 +120,22 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
 
 class AttendanceViewSet(viewsets.ModelViewSet):
     serializer_class = AttendanceSerializer
-    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['staff', 'status', 'date']
     ordering_fields = ['date', 'created_at']
 
+    def get_permissions(self):
+        # check_in/check_out are self-service (act on the caller's own
+        # staff profile), as is viewing your own attendance history.
+        # Directly creating/editing/deleting arbitrary attendance records
+        # is an HR/management task.
+        if self.action in ['check_in', 'check_out', 'list', 'retrieve']:
+            return [IsAuthenticated()]
+        return [IsHRManagement()]
+
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser or user.role in [
-                'ADMIN', 'HR', 'OPERATIONS_MANAGER', 'SUPERVISOR']:
+        if user.is_superuser or user.role in ['ADMIN', 'HR', 'OPERATIONS_MANAGER', 'SUPERVISOR']:
             return Attendance.objects.all()
         return Attendance.objects.filter(staff=user.staff_profile)
 
@@ -133,8 +146,10 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         today = timezone.now().date()
 
         attendance, created = Attendance.objects.get_or_create(
-            staff=staff, date=today, defaults={
-                'status': 'present', 'check_in_time': timezone.now().time()})
+            staff=staff,
+            date=today,
+            defaults={'status': 'present', 'check_in_time': timezone.now().time()}
+        )
 
         if not created:
             attendance.check_in_time = timezone.now().time()
@@ -169,15 +184,21 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
 class PayrollViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollSerializer
-    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['staff', 'status', 'month']
     ordering_fields = ['month', 'created_at']
 
+    def get_permissions(self):
+        # Staff can view their own payroll (queryset already scopes this).
+        # Generating payroll, editing records, and marking paid are
+        # HR/management-only actions — this is financial data.
+        if self.action in ['list', 'retrieve']:
+            return [IsAuthenticated()]
+        return [IsHRManagement()]
+
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser or user.role in [
-                'ADMIN', 'HR', 'OPERATIONS_MANAGER', 'SUPERVISOR']:
+        if user.is_superuser or user.role in ['ADMIN', 'HR', 'OPERATIONS_MANAGER', 'SUPERVISOR']:
             return Payroll.objects.all()
         return Payroll.objects.filter(staff=user.staff_profile)
 
@@ -204,9 +225,10 @@ class PayrollViewSet(viewsets.ModelViewSet):
         created_count = 0
         for staff in Staff.objects.all():
             payroll, created = Payroll.objects.get_or_create(
-                staff=staff, month=month_date, defaults={
-                    'base_salary': staff.salary if hasattr(
-                        staff, 'salary') else 0})
+                staff=staff,
+                month=month_date,
+                defaults={'base_salary': staff.salary if hasattr(staff, 'salary') else 0}
+            )
             if created:
                 created_count += 1
 
