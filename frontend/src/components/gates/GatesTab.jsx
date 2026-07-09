@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import axiosClient from '../../api/axiosClient'
 import { useAuth } from '../../context/AuthContext'
 
 export default function GatesTab() {
   const { user } = useAuth()
+  // Matches backend IsGateManager: only ADMIN, GATE_MANAGER, OPERATIONS_MANAGER, GROUND_STAFF can write.
   const canWrite = ['ADMIN', 'GATE_MANAGER', 'OPERATIONS_MANAGER', 'GROUND_STAFF'].includes(user?.role)
   const [gates, setGates] = useState([])
   const [loading, setLoading] = useState(true)

@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 
 export default function AirlinesTab() {
   const { user } = useAuth()
-  const isViewer = user?.role === 'VIEWER'
+  // Matches backend IsAuthenticatedReadOnly: only ADMIN and GROUND_STAFF can write to airlines.
+  const canWrite = user?.role === 'ADMIN' || user?.role === 'GROUND_STAFF'
   const [airlines, setAirlines] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -50,6 +51,7 @@ export default function AirlinesTab() {
 
   return (
     <div>
+      {canWrite && (
       <form onSubmit={handleAdd} className="glass rounded-[26px] p-4 mb-4 flex flex-wrap gap-3 items-end">
         <div>
           <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Name</label>
@@ -76,6 +78,7 @@ export default function AirlinesTab() {
         </button>
         {formError && <p className="text-red-600 text-xs w-full">{formError}</p>}
       </form>
+      )}
 
       {loading && <p className="text-neutral-500 dark:text-neutral-400">Loading...</p>}
       {error && <p className="text-red-600">{error}</p>}
@@ -86,25 +89,27 @@ export default function AirlinesTab() {
               <tr>
                 <th className="px-4 py-2">Name</th>
                 <th className="px-4 py-2">Code</th>
-                <th className="px-4 py-2 w-20">Actions</th>
+                {canWrite && <th className="px-4 py-2 w-20">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {airlines.length === 0 && (
-                <tr><td colSpan="3" className="px-4 py-4 text-neutral-400 dark:text-neutral-400">No airlines found</td></tr>
+                <tr><td colSpan={canWrite ? 3 : 2} className="px-4 py-4 text-neutral-400 dark:text-neutral-400">No airlines found</td></tr>
               )}
               {airlines.map((a) => (
                 <tr key={a.id} className="border-b border-black/5 dark:border-white/5 text-neutral-800 dark:text-neutral-200">
                   <td className="px-4 py-2">{a.name}</td>
                   <td className="px-4 py-2">{a.code}</td>
-                  <td className="px-4 py-2">
-                    <button
-                      onClick={() => handleDelete(a.id)}
-                      className="text-red-600 hover:underline text-xs"
-                    >
-                      Delete
-                    </button>
-                  </td>
+                  {canWrite && (
+                    <td className="px-4 py-2">
+                      <button
+                        onClick={() => handleDelete(a.id)}
+                        className="text-red-600 hover:underline text-xs"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
