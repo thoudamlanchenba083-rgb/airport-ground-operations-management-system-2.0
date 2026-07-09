@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 
 export default function GatesTab() {
   const { user } = useAuth()
-  const isViewer = user?.role === 'VIEWER'
+  // Matches backend IsGateManager: only ADMIN, GATE_MANAGER, OPERATIONS_MANAGER, GROUND_STAFF can write.
+  const canWrite = ['ADMIN', 'GATE_MANAGER', 'OPERATIONS_MANAGER', 'GROUND_STAFF'].includes(user?.role)
   const [gates, setGates] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -60,7 +61,7 @@ export default function GatesTab() {
           placeholder="Search gate or terminal..."
           className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
         />
-        {!isViewer && (
+        {canWrite && (
           <button
             onClick={() => setShowForm(v => !v)}
             className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg"
@@ -126,7 +127,7 @@ export default function GatesTab() {
                     {g.is_available ? 'Available' : 'Unavailable'}
                   </span>
                 </td>
-                {!isViewer && (
+                {canWrite && (
                   <td className="px-4 py-3 flex gap-2">
                     <button
                       onClick={() => toggleAvailability(g)}
