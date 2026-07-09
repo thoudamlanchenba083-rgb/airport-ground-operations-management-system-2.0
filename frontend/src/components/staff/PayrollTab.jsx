@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react'
 import axiosClient from '../../api/axiosClient'
+import { useAuth } from '../../context/AuthContext'
 
 const STATUS_STYLES = {
   pending: 'bg-yellow-100 text-yellow-700',
@@ -35,6 +36,11 @@ function formatApiError(e, fallback) {
 }
 
 export default function PayrollTab() {
+  const { user } = useAuth()
+  // Matches backend IsHRManagement (HasRole('HR','OPERATIONS_MANAGER','SUPERVISOR')):
+  // generating payroll, editing records, deleting, and marking paid are
+  // HR/management-only. Everyone can still view their own payroll (list/retrieve).
+  const canWrite = ['ADMIN', 'HR', 'OPERATIONS_MANAGER', 'SUPERVISOR'].includes(user?.role)
   const [payroll, setPayroll] = useState([])
   const [staffList, setStaffList] = useState([])
   const [loading, setLoading] = useState(true)
@@ -158,12 +164,16 @@ export default function PayrollTab() {
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Salary / Payroll</h3>
         <div className="flex gap-2">
-          <button onClick={() => setShowGenerate(true)} className="bg-black/5 dark:bg-white/10 text-neutral-800 dark:text-white px-4 py-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/15 text-sm border border-black/10 dark:border-white/10">Generate for Month</button>
-          <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">+ Add Payroll Record</button>
+          {canWrite && (
+            <>
+              <button onClick={() => setShowGenerate(true)} className="bg-black/5 dark:bg-white/10 text-neutral-800 dark:text-white px-4 py-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/15 text-sm border border-black/10 dark:border-white/10">Generate for Month</button>
+              <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">+ Add Payroll Record</button>
+            </>
+          )}
         </div>
       </div>
 
-      {showGenerate && (
+      {showGenerate && canWrite && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="glass-strong rounded-[26px] p-6 w-full max-w-sm">
             <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">Generate Payroll</h4>
@@ -179,7 +189,7 @@ export default function PayrollTab() {
         </div>
       )}
 
-      {showForm && (
+      {showForm && canWrite && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="glass-strong rounded-[26px] p-6 w-full max-w-md">
             <h4 className="text-lg font-bold mb-4 text-neutral-900 dark:text-white">{editItem ? 'Edit Payroll Record' : 'Add Payroll Record'}</h4>
@@ -224,12 +234,12 @@ export default function PayrollTab() {
               <th className="px-4 py-2 text-left">Deductions</th>
               <th className="px-4 py-2 text-left">Net Salary</th>
               <th className="px-4 py-2 text-left">Status</th>
-              <th className="px-4 py-2 text-left">Actions</th>
+              {canWrite && <th className="px-4 py-2 text-left">Actions</th>}
             </tr>
           </thead>
           <tbody>
             {payroll.length === 0 && (
-              <tr><td colSpan={9} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">No payroll records found.</td></tr>
+              <tr><td colSpan={canWrite ? 9 : 8} className="px-4 py-6 text-center text-neutral-400 dark:text-neutral-500">No payroll records found.</td></tr>
             )}
             {payroll.map(p => (
               <tr key={p.id} className="border-t border-black/5 dark:border-white/5 hover:bg-black/2 dark:hover:bg-white/3 text-neutral-800 dark:text-neutral-200">
@@ -245,15 +255,17 @@ export default function PayrollTab() {
                     {p.status_display ?? p.status}
                   </span>
                 </td>
-                <td className="px-4 py-2">
-                  <div className="flex gap-2 flex-wrap">
-                    <button onClick={() => openEdit(p)} className="text-blue-600 hover:underline text-xs">Edit</button>
-                    {p.status !== 'paid' && (
-                      <button onClick={() => handleMarkPaid(p.id)} className="text-green-600 hover:underline text-xs">Mark Paid</button>
-                    )}
-                    <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:underline text-xs">Delete</button>
-                  </div>
-                </td>
+                {canWrite && (
+                  <td className="px-4 py-2">
+                    <div className="flex gap-2 flex-wrap">
+                      <button onClick={() => openEdit(p)} className="text-blue-600 hover:underline text-xs">Edit</button>
+                      {p.status !== 'paid' && (
+                        <button onClick={() => handleMarkPaid(p.id)} className="text-green-600 hover:underline text-xs">Mark Paid</button>
+                      )}
+                      <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:underline text-xs">Delete</button>
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

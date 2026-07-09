@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import MaintenanceRequest, MaintenanceLog
@@ -35,7 +36,10 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
             'create',
             'update',
             'partial_update',
-                'destroy']:
+            'destroy',
+            'approve',
+            'reject',
+                'start']:
             return [IsMaintenanceStaff()]
         return [IsAdminUser()]
 
@@ -52,7 +56,28 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
             f'Created maintenance request: {instance.id}',
             self.request)
 
+    # Transitions that must go through the dedicated approve/reject/start
+    # actions (role-restricted + carry their own business rules/emails).
+    # Direct PATCH/PUT to /status is otherwise open to any IsMaintenanceStaff
+    # user (e.g. MAINTENANCE_ENGINEER, GROUND_STAFF) and must not be used to
+    # bypass the supervisor/admin-only approval gate.
+    RESTRICTED_STATUS_TRANSITIONS = {
+        ('PENDING_APPROVAL', 'APPROVED'),
+        ('PENDING_APPROVAL', 'REJECTED'),
+        ('APPROVED', 'IN_PROGRESS'),
+    }
+
     def perform_update(self, serializer):
+        new_status = serializer.validated_data.get('status')
+        if new_status is not None:
+            old_status = serializer.instance.status
+            if (old_status, new_status) in self.RESTRICTED_STATUS_TRANSITIONS \
+                    and not is_supervisor_or_admin(self.request.user):
+                raise PermissionDenied(
+                    'This status change must go through the approve/reject/start '
+                    'endpoints, which only supervisors, operations managers or '
+                    'admins can use.'
+                )
         instance = serializer.save()
         log_action(
             self.request.user,
