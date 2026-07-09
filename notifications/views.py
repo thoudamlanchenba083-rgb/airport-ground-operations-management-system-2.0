@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import Notification
 from .serializers import NotificationSerializer
 
+
 class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -15,11 +16,12 @@ class NotificationViewSet(viewsets.ModelViewSet):
         # Notifications are system-generated (flight/maintenance/baggage
         # events) — regular users don't create them directly, only admins
         # (or backend signals, which bypass permission checks entirely).
-        # But every user CAN read/update/delete their own notifications,FV
+        # But every user CAN read/update/delete their own notifications,
         # since get_queryset already scopes non-staff to their own data.
         if self.action == 'create':
             return [permissions.IsAdminUser()]
         return [permissions.IsAuthenticated()]
+
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return Notification.objects.none()
