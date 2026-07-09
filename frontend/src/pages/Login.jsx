@@ -35,7 +35,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#171717] flex items-center justify-center px-4 relative overflow-hidden">
+    <div className="dark min-h-screen bg-[#171717] flex items-center justify-center px-4 relative overflow-hidden">
 
       {/* Ambient blue waves - same optimized .liquid-blob used across the
           app (GPU-composited, transform-only animation), just tinted to

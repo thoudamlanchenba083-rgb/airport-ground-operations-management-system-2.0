@@ -52,7 +52,7 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen bg-[#171717] flex items-center justify-center px-4 py-10 relative overflow-hidden">
+    <div className="dark min-h-screen bg-[#171717] flex items-center justify-center px-4 py-10 relative overflow-hidden">
 
       {/* Ambient blue waves - same optimized .liquid-blob used on the Login
           screen (GPU-composited, transform-only animation). */}
