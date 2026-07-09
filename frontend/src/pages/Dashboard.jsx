@@ -183,7 +183,8 @@ export default function Dashboard() {
   const { user } = useAuth()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  const isViewer = user?.role === 'VIEWER'
+  // Matches backend IsAuthenticatedReadOnly: only ADMIN and GROUND_STAFF can write to flights.
+  const canWrite = user?.role === 'ADMIN' || user?.role === 'GROUND_STAFF'
   const [flights, setFlights] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -701,12 +702,12 @@ export default function Dashboard() {
                   <th className="px-5 py-3 font-medium">Destination</th>
                   <th className="px-5 py-3 font-medium">Status</th>
                   <th className="px-5 py-3 font-medium">Departure</th>
-                  {!isViewer && <th className="px-5 py-3 font-medium">Actions</th>}
+                  {canWrite && <th className="px-5 py-3 font-medium">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5 dark:divide-white/5">
                 {recent.length === 0 && (
-                  <tr><td colSpan={isViewer ? 6 : 7} className="px-5 py-6 text-center text-neutral-400 dark:text-neutral-500">No flights available</td></tr>
+                  <tr><td colSpan={canWrite ? 7 : 6} className="px-5 py-6 text-center text-neutral-400 dark:text-neutral-500">No flights available</td></tr>
                 )}
                 {recent.map((f) => (
                   <tr key={f.id} className="hover:bg-black/2 dark:hover:bg-white/3 transition-colors">
@@ -732,7 +733,7 @@ export default function Dashboard() {
                     <td className="px-5 py-3 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
                       {f.scheduled_departure ? new Date(f.scheduled_departure).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—'}
                     </td>
-                    {!isViewer && (
+                    {canWrite && (
                       <td className="px-5 py-3">
                         {nextWorkflowStep(f.status) ? (
                           <button
