@@ -198,15 +198,33 @@ export default function PayrollTab() {
                 <option value="" className="bg-neutral-800 text-white">Select Staff</option>
                 {staffList.map(s => <option key={s.id} value={s.id} className="bg-neutral-800 text-white">{s.name} ({s.employee_id})</option>)}
               </select>
-              <input required type="month" placeholder="Month" value={form.month?.slice(0,7) ?? ''} onChange={e => setForm({ ...form, month: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
-              <input required type="number" step="0.01" min="0" placeholder="Base Salary" value={form.base_salary} onChange={e => setForm({ ...form, base_salary: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
-              <div className="grid grid-cols-2 gap-3">
-                <input type="number" step="0.01" min="0" max="999" placeholder="Overtime Hours (max 999)" value={form.overtime_hours} onChange={e => setForm({ ...form, overtime_hours: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
-                <input type="number" step="0.01" min="0" placeholder="Overtime Rate/hr" value={form.overtime_rate} onChange={e => setForm({ ...form, overtime_rate: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+              <div>
+                <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Month</label>
+                <input required type="month" value={form.month?.slice(0,7) ?? ''} onChange={e => setForm({ ...form, month: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Base Salary</label>
+                <input required type="number" step="0.01" min="0" placeholder="0.00" value={form.base_salary} onChange={e => setForm({ ...form, base_salary: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <input type="number" step="0.01" min="0" placeholder="Bonus" value={form.bonus} onChange={e => setForm({ ...form, bonus: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
-                <input type="number" step="0.01" min="0" placeholder="Deductions" value={form.deductions} onChange={e => setForm({ ...form, deductions: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+                <div>
+                  <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Overtime Hours <span className="opacity-60">(max 999)</span></label>
+                  <input type="number" step="0.01" min="0" max="999" value={form.overtime_hours} onChange={e => setForm({ ...form, overtime_hours: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Overtime Rate <span className="opacity-60">(per hr)</span></label>
+                  <input type="number" step="0.01" min="0" value={form.overtime_rate} onChange={e => setForm({ ...form, overtime_rate: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Bonus</label>
+                  <input type="number" step="0.01" min="0" value={form.bonus} onChange={e => setForm({ ...form, bonus: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Deductions</label>
+                  <input type="number" step="0.01" min="0" value={form.deductions} onChange={e => setForm({ ...form, deductions: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm" />
+                </div>
               </div>
               <select style={{ colorScheme: 'dark' }} value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm">
                 <option value="pending" className="bg-neutral-800 text-white">Pending</option>
