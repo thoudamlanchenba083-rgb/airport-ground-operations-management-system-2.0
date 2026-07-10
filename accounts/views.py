@@ -130,7 +130,14 @@ class CsrfTokenView(APIView):
     page refresh). Deliberately open (AllowAny) - a CSRF token on its own
     grants no access, it just unlocks the ability to submit state-changing
     requests using whatever session/cookie auth the browser already has.
+
+    authentication_classes = [] is required, not just permission_classes -
+    if a stale/expired access_token cookie is present (e.g. left over from
+    a previous session), CookieJWTAuthentication.authenticate() raises
+    before permissions are ever checked, so AllowAny alone doesn't save
+    this endpoint from a spurious 401.
     """
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
