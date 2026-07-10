@@ -1,6 +1,5 @@
 ﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DJANGO_ADMIN_URL } from '../api/config'
 
 const NAV_LINKS = [
   { key: 'home', label: 'Home', path: '/' },
@@ -67,16 +66,7 @@ export default function PublicNavbar({ active }) {
               {l.label}
             </span>
           ))}
-          <a
-            href={DJANGO_ADMIN_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="pnav-btn"
-            style={{ background: 'transparent' }}
-          >
-            Django Admin
-          </a>
-          <button className="pnav-btn" onClick={() => navigate('/login')}>Launch â†’</button>
+          <button className="pnav-btn" onClick={() => navigate('/login')}>Launch →</button>
         </div>
 
         <button
@@ -85,10 +75,9 @@ export default function PublicNavbar({ active }) {
           aria-label="Toggle menu"
           aria-expanded={mobOpen}
         >
-          {mobOpen ? 'âœ•' : 'â˜°'}
+          {mobOpen ? '✕' : '☰'}
         </button>
       </nav>
-
       {mobOpen && (
         <div className="pnav-mob">
           {NAV_LINKS.map(l => (
@@ -96,15 +85,7 @@ export default function PublicNavbar({ active }) {
               {l.label}
             </span>
           ))}
-          <a
-            href={DJANGO_ADMIN_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setMobOpen(false)}
-          >
-            Django Admin
-          </a>
-          <button onClick={() => { setMobOpen(false); navigate('/login') }}>Launch Dashboard â†’</button>
+          <button onClick={() => { setMobOpen(false); navigate('/login') }}>Launch Dashboard →</button>
         </div>
       )}
 

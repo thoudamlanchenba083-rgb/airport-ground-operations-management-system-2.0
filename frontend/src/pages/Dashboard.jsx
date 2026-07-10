@@ -4,6 +4,7 @@ import {
   Plane, Activity, Clock, XCircle, Target, TrendingUp, Cloud, Wrench,
   Users, User, RefreshCw, ArrowRight, Sparkles, SlidersHorizontal,
   MoreVertical, DoorOpen, Package, Bell, ChevronRight, Gauge, BarChart3,
+  ShieldCheck,
 } from 'lucide-react'
 import {
   PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -14,6 +15,7 @@ import DelayCausesCard from '../components/DelayCausesCard'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import usePageMeta from '../hooks/usePageMeta'
+import { DJANGO_ADMIN_URL } from '../api/config'
 
 // Keyed on the REAL Flight.STATUS_CHOICES values from the backend
 // (flights/models.py) - the old version keyed on display-style strings
@@ -369,6 +371,17 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
+          {user?.is_staff && (
+            <a
+              href={DJANGO_ADMIN_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass-pill glass-interactive flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-200 px-4 py-2.5"
+            >
+              <ShieldCheck size={16} />
+              Django Admin
+            </a>
+          )}
           <button
             onClick={loadIntel}
             disabled={intelLoading}
