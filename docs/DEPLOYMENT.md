@@ -7,6 +7,24 @@ This app has two deployable pieces:
 
 Database: PostgreSQL in production (SQLite is local-dev only).
 
+## Current Production Deployment
+
+| Piece | Platform | URL |
+|---|---|---|
+| Frontend | Vercel | `https://airport-ground-operations-managemen.vercel.app` |
+| Backend API | Railway | `https://web-production-d42cc.up.railway.app` |
+| Database | Railway (Postgres add-on, same project) | internal `DATABASE_URL`, not publicly exposed |
+| Source | GitHub | `https://github.com/thoudamlanchenba083-rgb/airport-ground-operations-management-system-2.0` |
+
+**How it's wired up:**
+- Both Vercel and Railway deploy automatically on every push to the `main` branch of the GitHub repo above.
+- Railway's `web` service runs the Django backend (Gunicorn) and has "Public Networking" enabled to expose the `*.up.railway.app` domain.
+- Railway's `Postgres` service is attached to the `web` service, which injects `DATABASE_URL` automatically — no manual connection string needed.
+- Vercel builds `frontend/` (`npm run build`) and serves the static `dist/` output. Its API base URL is configured to point at the Railway backend domain above.
+- On Railway, `ALLOWED_HOSTS` includes the `web-production-d42cc.up.railway.app` domain, and on the backend `CORS_ALLOWED_ORIGINS` / `CSRF_TRUSTED_ORIGINS` include the Vercel frontend domain.
+
+**To redeploy:** just push to `main` — both platforms pick it up automatically. To roll back, use Railway's deployment history / Vercel's "Instant Rollback" button rather than a manual redeploy.
+
 ## 1. Environment Variables (Production)
 
 Create a `.env` (or configure these in your host's environment settings — never commit this file):
@@ -14,9 +32,12 @@ Create a `.env` (or configure these in your host's environment settings — neve
 ```env
 SECRET_KEY=<generate a long random value>
 DEBUG=False
-ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
-CORS_ALLOWED_ORIGINS=https://yourdomain.com
+ALLOWED_HOSTS=web-production-d42cc.up.railway.app
+CORS_ALLOWED_ORIGINS=https://airport-ground-operations-managemen.vercel.app
+CSRF_TRUSTED_ORIGINS=https://airport-ground-operations-managemen.vercel.app
 
+# On Railway this is injected automatically when Postgres is attached to the service —
+# no need to set it manually there. Only set it yourself for other hosts.
 DATABASE_URL=postgresql://<user>:<password>@<host>:5432/<dbname>
 
 EMAIL_HOST_USER=<your-smtp-user>
@@ -26,6 +47,8 @@ OPENWEATHER_API_KEY=<optional>
 ANTHROPIC_API_KEY=<optional>
 GEMINI_API_KEY=<optional>
 ```
+
+> Replace the `ALLOWED_HOSTS` / `CORS_ALLOWED_ORIGINS` / `CSRF_TRUSTED_ORIGINS` values above with your own domains if you fork or redeploy this project elsewhere.
 
 Generate a strong `SECRET_KEY`:
 ```powershell
@@ -74,15 +97,19 @@ isn't trying to collect your React source files as static assets.
 
 ## 5. Post-Deployment Checklist
 
-- [ ] `DEBUG=False` confirmed in production env
-- [ ] `ALLOWED_HOSTS` set to real domain(s), not `*`
-- [ ] `CORS_ALLOWED_ORIGINS` restricted to real frontend domain
-- [ ] HTTPS enforced (via reverse proxy — Nginx/Caddy — or hosting platform)
-- [ ] Static files collected (`collectstatic`) and served correctly
-- [ ] Superuser account created
-- [ ] Swagger/ReDoc reachable at `/swagger/` and `/redoc/`
-- [ ] Logs directory (`logs/`) writable by the app process
-- [ ] `.env` file is NOT committed to git (check `.gitignore`)
+Status for the current live deployment (Vercel + Railway):
+
+- [x] `DEBUG=False` confirmed in production env
+- [x] `ALLOWED_HOSTS` set to real domain (`web-production-d42cc.up.railway.app`), not `*`
+- [x] `CORS_ALLOWED_ORIGINS` restricted to real frontend domain (Vercel)
+- [x] HTTPS enforced (both Vercel and Railway terminate TLS for you automatically)
+- [x] Static files collected (`collectstatic`) and served correctly
+- [x] Superuser account created
+- [x] Swagger/ReDoc reachable at `/swagger/` and `/redoc/`
+- [x] Logs directory (`logs/`) writable by the app process
+- [x] `.env` file is NOT committed to git (check `.gitignore`)
+
+Use this same checklist when standing up a new environment (staging, a fork, etc.) — reset the boxes above and work through them again.
 
 ## 6. Environment Management
 

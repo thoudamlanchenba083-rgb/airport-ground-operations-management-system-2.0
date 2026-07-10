@@ -6,6 +6,19 @@ Built as a real operations platform, not a toy CRUD app: role-based access contr
 
 ---
 
+## 🚀 Live Deployment
+
+| Piece | URL |
+|---|---|
+| Frontend (Vercel) | [airport-ground-operations-managemen.vercel.app](https://airport-ground-operations-managemen.vercel.app) |
+| Backend API (Railway) | [web-production-d42cc.up.railway.app](https://web-production-d42cc.up.railway.app) |
+| API Docs (Swagger) | [web-production-d42cc.up.railway.app/swagger/](https://web-production-d42cc.up.railway.app/swagger/) |
+| Database | PostgreSQL (Railway, same project as backend) |
+
+See [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) for the full deployment setup and how to redeploy.
+
+---
+
 ## 📖 What This Project Does
 
 Think of it as the internal software an airport's ground operations team would use to run a terminal day-to-day:
@@ -145,7 +158,7 @@ airport-ground-operations-management-system-2.0/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/airport-ground-operations-management-system.git
+git clone https://github.com/thoudamlanchenba083-rgb/airport-ground-operations-management-system-2.0.git
 cd airport-ground-operations-management-system-2.0
 ```
 
