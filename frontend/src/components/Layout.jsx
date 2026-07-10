@@ -1,4 +1,4 @@
-﻿import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, PlaneTakeoff, DoorOpen, Package, Wrench,
   Settings2, Users, Bell, BarChart3, Sparkles, LineChart, LogOut, Radar, Flame, HeartPulse,
@@ -30,8 +30,8 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const visibleNavItems = navItems.filter((item) => canAccessPage(user, item.page))
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     navigate('/', { replace: true })
   }
   return (

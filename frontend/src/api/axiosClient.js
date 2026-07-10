@@ -1,7 +1,18 @@
 import axios from 'axios'
+import { API_BASE_URL } from './config'
 
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: API_BASE_URL,
+  // Send/receive the httpOnly JWT cookies (and read the CSRF cookie) on
+  // every request - required now that tokens live in cookies, not JS.
+  withCredentials: true,
+  // Reads the 'csrftoken' cookie and sends it as 'X-CSRFToken' automatically
+  // on unsafe (state-changing) requests, matching Django's CSRF cookie/header
+  // names. withXSRFToken is needed so this also applies cross-origin
+  // (frontend/backend on different domains), not just same-origin.
+  xsrfCookieName: 'csrftoken',
+  xsrfHeaderName: 'X-CSRFToken',
+  withXSRFToken: true,
   // Without this, a slow/hung backend call (e.g. the AI dashboard endpoint
   // waiting on an external weather API) leaves the UI spinning forever with
   // no feedback. 20s is generous enough for real requests but still bails
@@ -9,19 +20,15 @@ const axiosClient = axios.create({
   timeout: 20000,
 })
 
-axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
 // Plain axios instance for the refresh call itself, so it never
-// carries a (possibly expired) Authorization header and never
-// re-triggers this same interceptor.
+// re-triggers this same interceptor. Needs the same cookie/CSRF config
+// since the refresh token now lives in a cookie too.
 const refreshClient = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  xsrfCookieName: 'csrftoken',
+  xsrfHeaderName: 'X-CSRFToken',
+  withXSRFToken: true,
 })
 
 let isRefreshing = false
@@ -59,41 +66,28 @@ axiosClient.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    const refreshToken = localStorage.getItem('refresh_token')
-    if (!refreshToken) {
-      return Promise.reject(error)
-    }
-
+    // The cookie carries the refresh token automatically - nothing to read
+    // or check here manually. If there's no valid refresh cookie, the
+    // request below will simply come back 401 and we fall through to the
+    // catch block, same as before.
     if (isRefreshing) {
       // Queue this request until the in-flight refresh finishes.
       return new Promise((resolve, reject) => {
         pendingQueue.push({ resolve, reject })
-      }).then((newToken) => {
-        originalRequest.headers.Authorization = `Bearer ${newToken}`
-        return axiosClient(originalRequest)
-      })
+      }).then(() => axiosClient(originalRequest))
     }
 
     originalRequest._retry = true
     isRefreshing = true
 
     try {
-      const { data } = await refreshClient.post('/token/refresh/', {
-        refresh: refreshToken,
-      })
-      localStorage.setItem('access_token', data.access)
-      // ROTATE_REFRESH_TOKENS is on server-side, so store the new refresh token too.
-      if (data.refresh) {
-        localStorage.setItem('refresh_token', data.refresh)
-      }
-      resolvePending(null, data.access)
-      originalRequest.headers.Authorization = `Bearer ${data.access}`
+      await refreshClient.post('/token/refresh/')
+      // New access/refresh cookies were set by the Set-Cookie response
+      // headers already - nothing to store manually.
+      resolvePending(null)
       return axiosClient(originalRequest)
     } catch (refreshError) {
-      resolvePending(refreshError, null)
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user')
+      resolvePending(refreshError)
       window.location.href = '/login'
       return Promise.reject(refreshError)
     } finally {

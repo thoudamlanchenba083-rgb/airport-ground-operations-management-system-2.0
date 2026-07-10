@@ -1,4 +1,4 @@
-from django.conf import settings
+﻿from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
@@ -27,7 +27,7 @@ FRONTEND = os.path.join(
     'frontend')
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path(settings.ADMIN_URL, admin.site.urls),
     path('api/token/', RateLimitedTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', RateLimitedTokenRefreshView.as_view(), name='token_refresh'),
     path('api/accounts/', include('accounts.urls')),
@@ -54,3 +54,4 @@ urlpatterns = [
     path('api/ai/', include('ai_module.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

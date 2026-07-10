@@ -1,4 +1,4 @@
-from django.test import TestCase
+﻿from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
@@ -43,7 +43,7 @@ class GroundEquipmentAPITest(TestCase):
     def get_token(self, username, password):
         response = self.client.post(
             '/api/token/', {'username': username, 'password': password})
-        return response.data['access']
+        return self.client.cookies['access_token'].value
 
     def test_unauthenticated_cannot_access_equipment(self):
         response = self.client.get('/api/ground-equipment/equipment/')
@@ -116,7 +116,7 @@ class EquipmentAssignmentAPITest(TestCase):
     def get_token(self, username, password):
         response = self.client.post(
             '/api/token/', {'username': username, 'password': password})
-        return response.data['access']
+        return self.client.cookies['access_token'].value
 
     def authenticate(self):
         token = self.get_token('assignuser', 'assign123')
@@ -193,7 +193,7 @@ class PredictFailureAPITest(TestCase):
     def get_token(self, username, password):
         response = self.client.post(
             '/api/token/', {'username': username, 'password': password})
-        return response.data['access']
+        return self.client.cookies['access_token'].value
 
     def authenticate(self):
         token = self.get_token('predictuser', 'predict123')
@@ -263,7 +263,7 @@ class InvalidAssignmentScenariosTest(TestCase):
     def get_token(self, username, password):
         response = self.client.post(
             '/api/token/', {'username': username, 'password': password})
-        return response.data['access']
+        return self.client.cookies['access_token'].value
 
     def authenticate(self):
         token = self.get_token('invaliduser', 'invalid123')

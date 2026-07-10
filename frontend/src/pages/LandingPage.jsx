@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import usePageMeta from '../hooks/usePageMeta'
+import { DJANGO_ADMIN_URL } from '../api/config'
 
 const profiles = [
   { img: '/images/team/backend.jpg', name: 'Thoudam Lanchenba', role: 'Backend Developer', bio: 'Develops the Django backend, creates REST APIs, implements authentication and authorization, configures URL routing.' },
@@ -11,46 +12,46 @@ const profiles = [
 ]
 
 const slides = [
-  { icon: '✈️', title: 'Flight Tracking', desc: 'Live schedules, status updates, and AI-powered delay predictions across every flight in your network.', chip: 'Real-Time' },
-  { icon: '🧳', title: 'Baggage Handling', desc: 'End-to-end baggage tracking from check-in to claim, with full status history and exception alerts.', chip: 'Full Lifecycle' },
-  { icon: '🚪', title: 'Gate Management', desc: 'Real-time gate availability, dynamic reassignment, and occupancy tracking across every terminal.', chip: 'Live Status' },
-  { icon: '👷', title: 'Staff Scheduling', desc: 'Coordinate ground crew, security, and maintenance teams with conflict-free shift management.', chip: 'Role-Based' },
-  { icon: '🔧', title: 'Maintenance Logs', desc: 'Track aircraft maintenance requests from report to resolution with full audit trails and DGCA compliance.', chip: 'Audit Ready' },
-  { icon: '📋', title: 'Operational Reports', desc: 'Exportable insights across flights, gates, baggage, and staff with custom date range filtering.', chip: 'Exportable' },
+  { icon: 'âœˆï¸', title: 'Flight Tracking', desc: 'Live schedules, status updates, and AI-powered delay predictions across every flight in your network.', chip: 'Real-Time' },
+  { icon: 'ðŸ§³', title: 'Baggage Handling', desc: 'End-to-end baggage tracking from check-in to claim, with full status history and exception alerts.', chip: 'Full Lifecycle' },
+  { icon: 'ðŸšª', title: 'Gate Management', desc: 'Real-time gate availability, dynamic reassignment, and occupancy tracking across every terminal.', chip: 'Live Status' },
+  { icon: 'ðŸ‘·', title: 'Staff Scheduling', desc: 'Coordinate ground crew, security, and maintenance teams with conflict-free shift management.', chip: 'Role-Based' },
+  { icon: 'ðŸ”§', title: 'Maintenance Logs', desc: 'Track aircraft maintenance requests from report to resolution with full audit trails and DGCA compliance.', chip: 'Audit Ready' },
+  { icon: 'ðŸ“‹', title: 'Operational Reports', desc: 'Exportable insights across flights, gates, baggage, and staff with custom date range filtering.', chip: 'Exportable' },
 ]
 
 const capabilities = [
-  { num: '01', icon: '📡', title: 'Real-Time Sync', desc: 'Live data from flight APIs, baggage scanners, and gate sensors updates every 30 seconds across all operator dashboards.', tag: '30-sec refresh' },
-  { num: '02', icon: '🔐', title: 'Role-Based Access', desc: 'Four distinct access tiers — Admin, Manager, Staff, and Technician — with granular module permissions and audit trails.', tag: '4 Access Tiers' },
-  { num: '03', icon: '🤖', title: 'AI Predictions', desc: 'Machine learning models flag delay risks 40 minutes in advance, allowing pre-emptive gate reassignment and passenger rebooking.', tag: 'AI-Powered' },
-  { num: '04', icon: '🔔', title: 'Smart Alerts', desc: 'Priority-ranked notifications delivered to the right operator the instant a conflict, delay, or exception is detected.', tag: 'Instant Delivery' },
-  { num: '05', icon: '📊', title: 'Exportable Reports', desc: 'Custom date-range reports across all modules — flights, gates, baggage, and staff — in PDF and Excel formats.', tag: 'Multi-Format' },
-  { num: '06', icon: '🛡️', title: 'Compliance Ready', desc: 'Full audit trails, DGCA-compliant maintenance records, and ISO 27001 data handling standards built into every module.', tag: 'ISO 27001' },
+  { num: '01', icon: 'ðŸ“¡', title: 'Real-Time Sync', desc: 'Live data from flight APIs, baggage scanners, and gate sensors updates every 30 seconds across all operator dashboards.', tag: '30-sec refresh' },
+  { num: '02', icon: 'ðŸ”', title: 'Role-Based Access', desc: 'Four distinct access tiers â€” Admin, Manager, Staff, and Technician â€” with granular module permissions and audit trails.', tag: '4 Access Tiers' },
+  { num: '03', icon: 'ðŸ¤–', title: 'AI Predictions', desc: 'Machine learning models flag delay risks 40 minutes in advance, allowing pre-emptive gate reassignment and passenger rebooking.', tag: 'AI-Powered' },
+  { num: '04', icon: 'ðŸ””', title: 'Smart Alerts', desc: 'Priority-ranked notifications delivered to the right operator the instant a conflict, delay, or exception is detected.', tag: 'Instant Delivery' },
+  { num: '05', icon: 'ðŸ“Š', title: 'Exportable Reports', desc: 'Custom date-range reports across all modules â€” flights, gates, baggage, and staff â€” in PDF and Excel formats.', tag: 'Multi-Format' },
+  { num: '06', icon: 'ðŸ›¡ï¸', title: 'Compliance Ready', desc: 'Full audit trails, DGCA-compliant maintenance records, and ISO 27001 data handling standards built into every module.', tag: 'ISO 27001' },
 ]
 
 const alerts = [
-  { priority: 'med', icon: '⚠️', iconBg: 'rgba(245,166,35,0.1)', type: 'Gate Conflict · Medium Priority', msg: 'Gate B7 reassignment required — aircraft 9W-314 swap with IndiGo 6E-504', time: '2 minutes ago · Assigned to Ops Manager' },
-  { priority: 'high', icon: '🔧', iconBg: 'rgba(242,112,112,0.1)', type: 'Maintenance · High Priority', msg: 'VT-ANM brake inspection overdue — aircraft grounded pending clearance from Tech Ops', time: '11 minutes ago · Escalated to Chief Technician' },
-  { priority: 'low', icon: '✅', iconBg: 'rgba(61,214,140,0.1)', type: 'Baggage · Resolved', msg: 'Carousel 3 exception cleared — all 14 flagged items reunited with passengers at claim', time: '18 minutes ago · Auto-resolved by system' },
-  { priority: 'info', icon: 'ℹ️', iconBg: 'rgba(78,143,204,0.1)', type: 'Staff Ops · Informational', msg: 'Shift handover complete — Zone D crew transferred to Zone A to support boarding surge on SG-109', time: '26 minutes ago · Logged by Duty Manager' },
-  { priority: 'med', icon: '🕐', iconBg: 'rgba(245,166,35,0.1)', type: 'Flight Delay · Medium Priority', msg: 'SG-109 MAA→CCU delayed 12 minutes due to late inbound connection from BOM sector', time: '31 minutes ago · Passenger notifications sent' },
-  { priority: 'low', icon: '🎯', iconBg: 'rgba(61,214,140,0.1)', type: 'System · Informational', msg: 'Scheduled data sync with AOCC completed — all 47 active flights reconciled successfully', time: '45 minutes ago · Automated system process' },
+  { priority: 'med', icon: 'âš ï¸', iconBg: 'rgba(245,166,35,0.1)', type: 'Gate Conflict Â· Medium Priority', msg: 'Gate B7 reassignment required â€” aircraft 9W-314 swap with IndiGo 6E-504', time: '2 minutes ago Â· Assigned to Ops Manager' },
+  { priority: 'high', icon: 'ðŸ”§', iconBg: 'rgba(242,112,112,0.1)', type: 'Maintenance Â· High Priority', msg: 'VT-ANM brake inspection overdue â€” aircraft grounded pending clearance from Tech Ops', time: '11 minutes ago Â· Escalated to Chief Technician' },
+  { priority: 'low', icon: 'âœ…', iconBg: 'rgba(61,214,140,0.1)', type: 'Baggage Â· Resolved', msg: 'Carousel 3 exception cleared â€” all 14 flagged items reunited with passengers at claim', time: '18 minutes ago Â· Auto-resolved by system' },
+  { priority: 'info', icon: 'â„¹ï¸', iconBg: 'rgba(78,143,204,0.1)', type: 'Staff Ops Â· Informational', msg: 'Shift handover complete â€” Zone D crew transferred to Zone A to support boarding surge on SG-109', time: '26 minutes ago Â· Logged by Duty Manager' },
+  { priority: 'med', icon: 'ðŸ•', iconBg: 'rgba(245,166,35,0.1)', type: 'Flight Delay Â· Medium Priority', msg: 'SG-109 MAAâ†’CCU delayed 12 minutes due to late inbound connection from BOM sector', time: '31 minutes ago Â· Passenger notifications sent' },
+  { priority: 'low', icon: 'ðŸŽ¯', iconBg: 'rgba(61,214,140,0.1)', type: 'System Â· Informational', msg: 'Scheduled data sync with AOCC completed â€” all 47 active flights reconciled successfully', time: '45 minutes ago Â· Automated system process' },
 ]
 
 const tlData = [
-  { step: 'Step 01', title: 'Login & Role Assignment', desc: 'Staff authenticate and are assigned their operational role — Admin, Manager, Staff, or Technician — with tailored module access and dashboard views configured automatically.' },
+  { step: 'Step 01', title: 'Login & Role Assignment', desc: 'Staff authenticate and are assigned their operational role â€” Admin, Manager, Staff, or Technician â€” with tailored module access and dashboard views configured automatically.' },
   { step: 'Step 02', title: 'Real-Time Data Sync', desc: 'The system pulls live data from flight APIs, baggage scanners, and gate sensors every 30 seconds, surfacing the most current operational picture across all terminals.' },
-  { step: 'Step 03', title: 'Assign & Dispatch', desc: 'Duty managers assign gates, schedule staff shifts, and log maintenance requests — all from a single consolidated operational view without switching between systems.' },
+  { step: 'Step 03', title: 'Assign & Dispatch', desc: 'Duty managers assign gates, schedule staff shifts, and log maintenance requests â€” all from a single consolidated operational view without switching between systems.' },
   { step: 'Step 04', title: 'Monitor & Alert', desc: 'The built-in notification engine alerts the right operator the instant a delay, gate conflict, baggage exception, or maintenance flag is raised anywhere in the system.' },
   { step: 'Step 05', title: 'Report & Optimise', desc: 'After each operational cycle, exportable reports surface performance patterns, recurring bottlenecks, and efficiency metrics to drive continuous improvement.' },
 ]
 
 const tickerData = [
-  { label: 'AI-202 DEL→BOM', color: '#4e8fcc', val: 'Boarding · B4' },
-  { label: '6E-411 BLR→HYD', color: '#3dd68c', val: 'On Time · A12' },
-  { label: 'SG-109 MAA→CCU', color: '#f5a623', val: 'Delayed +12m · C7' },
-  { label: 'UK-803 BOM→GOI', color: '#9d78f0', val: 'Departed · D2' },
-  { label: '9W-314 DEL→MAA', color: '#3dd68c', val: 'On Time · E6' },
+  { label: 'AI-202 DELâ†’BOM', color: '#4e8fcc', val: 'Boarding Â· B4' },
+  { label: '6E-411 BLRâ†’HYD', color: '#3dd68c', val: 'On Time Â· A12' },
+  { label: 'SG-109 MAAâ†’CCU', color: '#f5a623', val: 'Delayed +12m Â· C7' },
+  { label: 'UK-803 BOMâ†’GOI', color: '#9d78f0', val: 'Departed Â· D2' },
+  { label: '9W-314 DELâ†’MAA', color: '#3dd68c', val: 'On Time Â· E6' },
   { label: 'System Uptime', color: '#3dd68c', val: '99.98%' },
   { label: 'Gates Active', color: '#4e8fcc', val: '42 / 45' },
   { label: 'Baggage Tracked', color: '#d4c9a8', val: '3,247 pcs' },
@@ -64,21 +65,21 @@ const zigzagData = [
     num: '01',
     tag: 'Ground Handling',
     title: 'Every Turnaround, Choreographed',
-    desc: 'From the moment wheels touch tarmac to the next departure, ground crews work against the clock — refuelling, baggage, boarding stairs — every step logged and coordinated in one system.',
+    desc: 'From the moment wheels touch tarmac to the next departure, ground crews work against the clock â€” refuelling, baggage, boarding stairs â€” every step logged and coordinated in one system.',
   },
   {
     img: '/images/landing/zigzag/zz-2-night-window.jpg',
     num: '02',
     tag: 'Live Tracking',
     title: 'Visibility That Never Sleeps',
-    desc: 'Whether a flight is climbing over a sleeping city or taxiing to a gate, its status streams into the same live board — no gaps between departure and arrival.',
+    desc: 'Whether a flight is climbing over a sleeping city or taxiing to a gate, its status streams into the same live board â€” no gaps between departure and arrival.',
   },
   {
     img: '/images/landing/zigzag/zz-3-wing-clouds.jpg',
     num: '03',
     tag: 'AI Forecasting',
     title: 'Weather Read Before It Lands',
-    desc: 'Skies like these are exactly what the delay-risk models are trained to read — visibility, wind, and cloud cover folded into a forecast before conditions reach the runway.',
+    desc: 'Skies like these are exactly what the delay-risk models are trained to read â€” visibility, wind, and cloud cover folded into a forecast before conditions reach the runway.',
   },
   {
     img: '/images/landing/zigzag/zz-4-night-runway.jpg',
@@ -92,7 +93,7 @@ const zigzagData = [
     num: '05',
     tag: 'End-to-End Lifecycle',
     title: 'Wheels-Up, Fully Accounted For',
-    desc: 'The instant a flight lifts off, it starts its next lifecycle — tracked, reported, and reconciled automatically until it lands and the cycle begins again.',
+    desc: 'The instant a flight lifts off, it starts its next lifecycle â€” tracked, reported, and reconciled automatically until it lands and the cycle begins again.',
   },
 ]
 
@@ -144,7 +145,7 @@ function Reveal({ children, style, className = '' }) {
 }
 
 export default function LandingPage() {
-  usePageMeta('Home', 'AeroGround — Comprehensive airport ground operations management for flights, gates, baggage, maintenance, and staff.')
+  usePageMeta('Home', 'AeroGround â€” Comprehensive airport ground operations management for flights, gates, baggage, maintenance, and staff.')
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
   const [mobOpen, setMobOpen] = useState(false)
@@ -426,8 +427,8 @@ export default function LandingPage() {
             <span style={{cursor:"pointer"}} onClick={() => navigate("/services")}>Services</span>
             <span style={{cursor:"pointer"}} onClick={() => navigate("/about")}>About</span>
             <span style={{cursor:"pointer"}} onClick={() => navigate("/team")}>Team</span>
-            <a href="http://localhost:8000/admin" target="_blank" rel="noopener noreferrer" className="btn-nav" style={{ background: 'transparent', textDecoration: 'none', display: 'inline-block' }}>Django Admin</a>
-            <button className="btn-nav" onClick={() => navigate('/login')}>Launch →</button>
+            <a href={DJANGO_ADMIN_URL} target="_blank" rel="noopener noreferrer" className="btn-nav" style={{ background: 'transparent', textDecoration: 'none', display: 'inline-block' }}>Django Admin</a>
+            <button className="btn-nav" onClick={() => navigate('/login')}>Launch â†’</button>
           </div>
           <button
             className="hamburger"
@@ -435,7 +436,7 @@ export default function LandingPage() {
             aria-label="Toggle menu"
             aria-expanded={mobOpen}
           >
-            {mobOpen ? '✕' : '☰'}
+            {mobOpen ? 'âœ•' : 'â˜°'}
           </button>
         </nav>
         {mobOpen && (
@@ -444,8 +445,8 @@ export default function LandingPage() {
             <span style={{cursor:"pointer"}} onClick={() => { setMobOpen(false); navigate("/services") }}>Services</span>
             <span style={{cursor:"pointer"}} onClick={() => { setMobOpen(false); navigate("/about") }}>About</span>
             <span style={{cursor:"pointer"}} onClick={() => { setMobOpen(false); navigate("/team") }}>Team</span>
-            <a href="http://localhost:8000/admin" target="_blank" rel="noopener noreferrer" onClick={() => setMobOpen(false)} style={{ textDecoration: 'none' }}>Django Admin</a>
-            <button onClick={() => { setMobOpen(false); navigate('/login') }}>Launch Dashboard →</button>
+            <a href={DJANGO_ADMIN_URL} target="_blank" rel="noopener noreferrer" onClick={() => setMobOpen(false)} style={{ textDecoration: 'none' }}>Django Admin</a>
+            <button onClick={() => { setMobOpen(false); navigate('/login') }}>Launch Dashboard â†’</button>
           </div>
         )}
 
@@ -467,11 +468,11 @@ export default function LandingPage() {
                 <span className="live-badge"><span />Live</span>
               </div>
               <div className="flight-list">
-                <div className="f-row"><span className="f-code">AI-202</span><span className="f-route">DEL → BOM</span><span className="f-gate">B4</span><span className="status s-b">Boarding</span></div>
-                <div className="f-row"><span className="f-code">6E-411</span><span className="f-route">BLR → HYD</span><span className="f-gate">A12</span><span className="status s-o">On Time</span></div>
-                <div className="f-row"><span className="f-code">SG-109</span><span className="f-route">MAA → CCU</span><span className="f-gate">C7</span><span className="status s-d">Delayed 12m</span></div>
-                <div className="f-row"><span className="f-code">UK-803</span><span className="f-route">BOM → GOI</span><span className="f-gate">D2</span><span className="status s-x">Departed</span></div>
-                <div className="f-row"><span className="f-code">9W-314</span><span className="f-route">DEL → MAA</span><span className="f-gate">E6</span><span className="status s-o">On Time</span></div>
+                <div className="f-row"><span className="f-code">AI-202</span><span className="f-route">DEL â†’ BOM</span><span className="f-gate">B4</span><span className="status s-b">Boarding</span></div>
+                <div className="f-row"><span className="f-code">6E-411</span><span className="f-route">BLR â†’ HYD</span><span className="f-gate">A12</span><span className="status s-o">On Time</span></div>
+                <div className="f-row"><span className="f-code">SG-109</span><span className="f-route">MAA â†’ CCU</span><span className="f-gate">C7</span><span className="status s-d">Delayed 12m</span></div>
+                <div className="f-row"><span className="f-code">UK-803</span><span className="f-route">BOM â†’ GOI</span><span className="f-gate">D2</span><span className="status s-x">Departed</span></div>
+                <div className="f-row"><span className="f-code">9W-314</span><span className="f-route">DEL â†’ MAA</span><span className="f-gate">E6</span><span className="status s-o">On Time</span></div>
               </div>
               <div className="mini-kpis">
                 <div className="mk"><span className="mk-v"><Counter target={47} /></span><div className="mk-l">Flights</div></div>
@@ -483,7 +484,7 @@ export default function LandingPage() {
 
           <div className="hero-content">
             <div className="hero-left">
-              <Reveal><div className="hero-eyebrow"><span className="live-dot" />Ground Operations Platform · Est. 2026</div></Reveal>
+              <Reveal><div className="hero-eyebrow"><span className="live-dot" />Ground Operations Platform Â· Est. 2026</div></Reveal>
               <Reveal style={{ transitionDelay: '.1s' }}>
                 <h1 className="hero-title">
                   Airport<br /><span className="outline-word">Ground</span><br />Operations
@@ -492,12 +493,12 @@ export default function LandingPage() {
               </Reveal>
               <Reveal style={{ transitionDelay: '.2s' }}><div className="hero-rule" /></Reveal>
               <Reveal style={{ transitionDelay: '.25s' }}>
-                <p className="hero-desc">A unified command platform giving every operator <strong>total situational awareness</strong> — flights, baggage, gates, staff, and maintenance coordinated from a single interface, in real time.</p>
+                <p className="hero-desc">A unified command platform giving every operator <strong>total situational awareness</strong> â€” flights, baggage, gates, staff, and maintenance coordinated from a single interface, in real time.</p>
               </Reveal>
               <Reveal style={{ transitionDelay: '.35s' }}>
                 <div className="hero-actions">
-                  <button className="btn-primary" onClick={() => navigate('/login')}>→ Launch Dashboard</button>
-                  <a href="#services" className="btn-outline">⚡ Explore Features</a>
+                  <button className="btn-primary" onClick={() => navigate('/login')}>â†’ Launch Dashboard</button>
+                  <a href="#services" className="btn-outline">âš¡ Explore Features</a>
                 </div>
               </Reveal>
             </div>
@@ -520,10 +521,10 @@ export default function LandingPage() {
         <div className="stats-bar">
           <div className="stats-grid">
             {[
-              { icon: '✈', target: 500, suffix: '+', lbl: 'Flights Managed Daily' },
-              { icon: '👷', target: 120, suffix: '+', lbl: 'Ground Staff Coordinated' },
-              { icon: '🚪', target: 45, suffix: '', lbl: 'Live Gates Tracked' },
-              { icon: '⚡', target: 99.9, suffix: '%', lbl: 'System Uptime' },
+              { icon: 'âœˆ', target: 500, suffix: '+', lbl: 'Flights Managed Daily' },
+              { icon: 'ðŸ‘·', target: 120, suffix: '+', lbl: 'Ground Staff Coordinated' },
+              { icon: 'ðŸšª', target: 45, suffix: '', lbl: 'Live Gates Tracked' },
+              { icon: 'âš¡', target: 99.9, suffix: '%', lbl: 'System Uptime' },
             ].map((s, i) => (
               <Reveal key={i} style={{ transitionDelay: `${i * .1}s` }}>
                 <div className="stat-card">
@@ -562,9 +563,9 @@ export default function LandingPage() {
             })}
           </div>
           <div className="slider-controls">
-            <button className="slider-btn" onClick={() => goSlide(curSlide - 1)}>←</button>
+            <button className="slider-btn" onClick={() => goSlide(curSlide - 1)}>â†</button>
             <div className="dots">{slides.map((_, i) => <button key={i} className={`dot${i === curSlide ? ' active' : ''}`} onClick={() => goSlide(i)} />)}</div>
-            <button className="slider-btn" onClick={() => goSlide(curSlide + 1)}>→</button>
+            <button className="slider-btn" onClick={() => goSlide(curSlide + 1)}>â†’</button>
           </div>
         </section>
 
@@ -708,7 +709,7 @@ export default function LandingPage() {
         {/* TIMELINE */}
         <section className="section" style={{ paddingTop: 0 }}>
           <div style={{ textAlign: 'center', marginBottom: 52 }}>
-            <div className="deco-rule"><span>✦</span></div>
+            <div className="deco-rule"><span>âœ¦</span></div>
             <Reveal><div className="sec-label" style={{ justifyContent: 'center' }}>Workflow</div></Reveal>
             <Reveal><h2 className="sec-title">From Login<br /><span className="italic">to Lift-off</span></h2></Reveal>
             <Reveal><p className="sec-sub" style={{ margin: '0 auto' }}>How Airport Ops turns raw operational data into coordinated, decisive ground action.</p></Reveal>
@@ -731,10 +732,10 @@ export default function LandingPage() {
           <div style={{ position: 'relative', zIndex: 1 }}>
             <Reveal><div className="cta-eyebrow">Command Your Airport</div></Reveal>
             <Reveal><h2 className="cta-title">Take Control of<br /><span className="it">Every Operation.</span></h2></Reveal>
-            <Reveal><p className="cta-sub">Log in to your Airport Ops dashboard and orchestrate every moving part of your ground operations — in real time, from one unified command centre.</p></Reveal>
+            <Reveal><p className="cta-sub">Log in to your Airport Ops dashboard and orchestrate every moving part of your ground operations â€” in real time, from one unified command centre.</p></Reveal>
             <Reveal>
               <div className="cta-btns">
-                <button className="btn-primary" onClick={() => navigate('/login')}>→ Launch Dashboard</button>
+                <button className="btn-primary" onClick={() => navigate('/login')}>â†’ Launch Dashboard</button>
                 <button className="btn-outline" onClick={() => navigate('/login')}>Create Account</button>
               </div>
             </Reveal>
@@ -746,20 +747,20 @@ export default function LandingPage() {
           <div className="footer-status">
             <div className="status-left">
               <div className="status-ind"><span className="pulse" />All Systems Operational</div>
-              <span className="sdiv" /><span className="stxt">Last checked: just now · Uptime 99.98%</span>
-              <span className="sdiv" /><span className="stxt">47 flights active · 3 delayed · 12 boarding</span>
+              <span className="sdiv" /><span className="stxt">Last checked: just now Â· Uptime 99.98%</span>
+              <span className="sdiv" /><span className="stxt">47 flights active Â· 3 delayed Â· 12 boarding</span>
             </div>
-            <span className="stxt">Version 2.0 · Live</span>
+            <span className="stxt">Version 2.0 Â· Live</span>
           </div>
           <div className="footer-grid">
             <div className="foot-brand">
               <div className="foot-brand-name"><img src="/brand/aeroground-logo-white.png" alt="AeroGround" className="foot-logo-img" />AeroGround</div>
-              <p>A complete ground operations management platform for modern airports — built for reliability, real-time visibility, and total operational control.</p>
+              <p>A complete ground operations management platform for modern airports â€” built for reliability, real-time visibility, and total operational control.</p>
               <div className="foot-socials">
-                <span className="social-btn">⌥</span><span className="social-btn">in</span>
-                <span className="social-btn">𝕏</span><span className="social-btn">▶</span>
+                <span className="social-btn">âŒ¥</span><span className="social-btn">in</span>
+                <span className="social-btn">ð•</span><span className="social-btn">â–¶</span>
               </div>
-              <div className="foot-badge"><span>●</span>ISO 27001 Certified · DGCA Compliant</div>
+              <div className="foot-badge"><span>â—</span>ISO 27001 Certified Â· DGCA Compliant</div>
             </div>
             <div className="foot-col">
               <h4>Company</h4>
@@ -773,15 +774,15 @@ export default function LandingPage() {
             <div className="foot-contact">
               <h4>Contact Us</h4>
               <div className="contact-list">
-                <div className="contact-item"><div className="ci-icon">📧</div><div><div className="ci-label">Email</div><div className="ci-value">ops@airportops.in</div></div></div>
-                <div className="contact-item"><div className="ci-icon">📞</div><div><div className="ci-label">Phone</div><div className="ci-value">+91 44 2233 4455</div></div></div>
-                <div className="contact-item"><div className="ci-icon">📍</div><div><div className="ci-label">Address</div><div className="ci-value">Chennai International Airport, TN – 600027</div></div></div>
-                <div className="contact-item"><div className="ci-icon">🕐</div><div><div className="ci-label">Operations</div><div className="ci-value">24 / 7 / 365</div></div></div>
+                <div className="contact-item"><div className="ci-icon">ðŸ“§</div><div><div className="ci-label">Email</div><div className="ci-value">ops@airportops.in</div></div></div>
+                <div className="contact-item"><div className="ci-icon">ðŸ“ž</div><div><div className="ci-label">Phone</div><div className="ci-value">+91 44 2233 4455</div></div></div>
+                <div className="contact-item"><div className="ci-icon">ðŸ“</div><div><div className="ci-label">Address</div><div className="ci-value">Chennai International Airport, TN â€“ 600027</div></div></div>
+                <div className="contact-item"><div className="ci-icon">ðŸ•</div><div><div className="ci-label">Operations</div><div className="ci-value">24 / 7 / 365</div></div></div>
               </div>
             </div>
           </div>
           <div className="footer-bottom">
-            <span>© 2026 Airport Ground Operations Management System. All rights reserved.</span>
+            <span>Â© 2026 Airport Ground Operations Management System. All rights reserved.</span>
             <div className="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms of Use</a></div>
           </div>
         </footer>

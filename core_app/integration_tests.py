@@ -7,9 +7,9 @@ from django.utils import timezone
 from datetime import timedelta
 
 
-# ─────────────────────────────────────────
+# -----------------------------------------
 # HELPERS
-# ─────────────────────────────────────────
+# -----------------------------------------
 
 def make_admin(username='admin', password='adminpass123'):
     return User.objects.create_user(
@@ -31,7 +31,7 @@ def get_token(username, password):
                       {'username': username,
                        'password': password},
                       format='json')
-    return res.data.get('access')
+    return client.cookies['access_token'].value
 
 
 def auth_client(token):
@@ -40,16 +40,19 @@ def auth_client(token):
     return client
 
 
-# ─────────────────────────────────────────
+# -----------------------------------------
 # INTEGRATION: Full Auth Flow
-# ─────────────────────────────────────────
+# -----------------------------------------
 
 @override_settings(RATELIMIT_ENABLE=False)
 class AuthFlowIntegrationTest(TestCase):
-    """Register → Login → Access protected → Logout flow."""
+    """Register -> Login -> Access protected -> Logout flow."""
 
     def test_full_auth_flow(self):
-        client = APIClient()
+        # enforce_csrf_checks=True so the logout step below actually
+        # exercises CSRF validation (Django's test client disables it by
+        # default).
+        client = APIClient(enforce_csrf_checks=True)
 
         # 1. Register
         res = client.post('/api/accounts/register/', {
@@ -60,44 +63,44 @@ class AuthFlowIntegrationTest(TestCase):
         }, format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
-        # 2. Login
+        # 2. Login - sets access/refresh as httpOnly cookies, plus a
+        # non-httpOnly csrftoken cookie for subsequent state-changing calls.
         res = client.post('/api/token/', {
             'username': 'flowuser',
             'password': 'flowpass123',
         }, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        access = res.data['access']
-        refresh = res.data['refresh']
+        self.assertIn('access_token', res.cookies)
+        self.assertIn('refresh_token', res.cookies)
 
-        # 3. Access protected endpoint
-        authed = auth_client(access)
-        res = authed.get('/api/flights/flights/')
+        # 3. Access protected endpoint via the cookie alone - no header needed
+        res = client.get('/api/flights/flights/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        # 4. Refresh token
-        res = client.post('/api/token/refresh/',
-                          {'refresh': refresh}, format='json')
+        # 4. Refresh token - reads the refresh cookie automatically, writes
+        # back a new (rotated) access/refresh pair as cookies.
+        res = client.post('/api/token/refresh/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertIn('access', res.data)
-        new_refresh = res.data.get('refresh', refresh)  # rotated token
+        self.assertIn('access_token', res.cookies)
 
-        # 5. Logout (blacklist the latest refresh token)
-        res = authed.post('/api/accounts/logout/',
-                          {'refresh': new_refresh}, format='json')
-        self.assertIn(res.status_code, [
-            status.HTTP_200_OK,
-            status.HTTP_205_RESET_CONTENT,
-            status.HTTP_204_NO_CONTENT,
-        ])
+        # 5. Logout (blacklists the refresh token, clears cookies). Cookie-
+        # authenticated state-changing requests require the CSRF header.
+        csrf_token = client.cookies['csrftoken'].value
+        res = client.post('/api/accounts/logout/', HTTP_X_CSRFTOKEN=csrf_token)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-# ─────────────────────────────────────────
+        # 6. Confirm the session is actually gone
+        res = client.get('/api/flights/flights/')
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+# -----------------------------------------
 # INTEGRATION: Full Flight CRUD Flow
-# ─────────────────────────────────────────
+# -----------------------------------------
 
 
 @override_settings(RATELIMIT_ENABLE=False)
 class FlightCRUDIntegrationTest(TestCase):
-    """Create → Read → Update → Delete a flight end-to-end."""
+    """Create -> Read -> Update -> Delete a flight end-to-end."""
 
     def setUp(self):
         self.admin = make_admin()
@@ -163,13 +166,13 @@ class FlightCRUDIntegrationTest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
 
-# ─────────────────────────────────────────
+# -----------------------------------------
 # INTEGRATION: Full Staff CRUD Flow
-# ─────────────────────────────────────────
+# -----------------------------------------
 
 @override_settings(RATELIMIT_ENABLE=False)
 class StaffCRUDIntegrationTest(TestCase):
-    """Create → Read → Update → Delete a staff member end-to-end."""
+    """Create -> Read -> Update -> Delete a staff member end-to-end."""
 
     def setUp(self):
         self.admin = make_admin()
@@ -210,9 +213,9 @@ class StaffCRUDIntegrationTest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
 
-# ─────────────────────────────────────────
+# -----------------------------------------
 # INTEGRATION: Role-Based Access Control
-# ─────────────────────────────────────────
+# -----------------------------------------
 
 @override_settings(RATELIMIT_ENABLE=False)
 class RBACIntegrationTest(TestCase):

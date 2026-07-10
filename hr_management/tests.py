@@ -1,4 +1,4 @@
-from django.test import TestCase
+﻿from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
@@ -57,7 +57,7 @@ class HRManagementBaseTest(TestCase):
         response = self.client.post(
             '/api/token/', {'username': username, 'password': password}
         )
-        return response.data['access']
+        return self.client.cookies['access_token'].value
 
     def authenticate(self, username, password):
         token = self.get_token(username, password)

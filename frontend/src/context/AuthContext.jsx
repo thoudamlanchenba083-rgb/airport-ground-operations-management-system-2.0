@@ -10,19 +10,29 @@ export function AuthProvider({ children }) {
   })
 
   const login = async (username, password) => {
-    const res = await axiosClient.post('/token/', { username, password })
-    localStorage.setItem('access_token', res.data.access)
-    localStorage.setItem('refresh_token', res.data.refresh)
+    // The access/refresh tokens are set as httpOnly cookies by the server -
+    // never touched here, so frontend JS never has direct access to them.
+    await axiosClient.post('/token/', { username, password })
 
     const profileRes = await axiosClient.get('/accounts/profile/')
+    // The cached profile itself isn't a credential, so it's fine in
+    // localStorage - it's just used to avoid a flash of "logged out" UI
+    // before the profile call above resolves on next page load.
     localStorage.setItem('user', JSON.stringify(profileRes.data))
     setUser(profileRes.data)
     return profileRes.data
   }
 
-  const logout = () => {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
+  const logout = async () => {
+    try {
+      // Blacklists the refresh token server-side and clears the httpOnly
+      // cookies - these can't be cleared from JS directly since they're
+      // httpOnly, so this call is required, not just a nice-to-have.
+      await axiosClient.post('/accounts/logout/')
+    } catch {
+      // Even if the server call fails (e.g. already-expired token), still
+      // clear local state below so the UI reflects a logged-out state.
+    }
     localStorage.removeItem('user')
     setUser(null)
   }

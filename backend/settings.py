@@ -6,7 +6,7 @@ import sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# True whenever running `manage.py test` (or pytest via manage.py) —
+# True whenever running `manage.py test` (or pytest via manage.py) -
 # used below to disable rate-limiting so test suites don't get
 # throttled by the same 5/min login limit real users face.
 TESTING = 'test' in sys.argv or 'pytest' in sys.modules
@@ -62,9 +62,9 @@ INSTALLED_APPS = [
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -130,14 +130,49 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 AUTH_USER_MODEL = 'accounts.User'
 
+# --- Admin path (configurable so it isn't always the default scanner-bait /admin/) ---
+# Set ADMIN_URL in your env to something private, e.g. ADMIN_URL=ops-console/.
+# Must end with a trailing slash. Defaults to 'admin/' so nothing breaks if unset.
+ADMIN_URL = config('ADMIN_URL', default='admin/')
+
 # --- CORS (explicit list only, no silent allow-all) ---
 _cors_origins = config('CORS_ALLOWED_ORIGINS', default='')
 CORS_ALLOWED_ORIGINS = [o.strip()
                         for o in _cors_origins.split(',') if o.strip()]
 
+# Needed so the browser actually sends the httpOnly JWT cookies (and the
+# CSRF cookie) on cross-origin requests to this API.
+CORS_ALLOW_CREDENTIALS = True
+
+# --- JWT cookie settings ---
+# SameSite=None + Secure works whether the frontend ends up on the same
+# parent domain as the API or a completely different one - it's the safe
+# default until that's decided. It does require real HTTPS in production
+# (browsers silently drop SameSite=None cookies that aren't Secure).
+# In DEBUG (local dev over plain http), Secure=True would make browsers
+# refuse to store the cookie at all, so we relax to Lax+non-secure locally -
+# fine there, since a Vite dev server on a different port than Django's is
+# still "same-site" (same scheme+domain, only the port differs).
+JWT_COOKIE_SECURE = not DEBUG
+JWT_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+
+CSRF_COOKIE_SECURE = JWT_COOKIE_SECURE
+CSRF_COOKIE_SAMESITE = JWT_COOKIE_SAMESITE
+# Must stay False (the default) - the frontend's JS needs to read this
+# cookie's value to send it back as the X-CSRFToken header.
+CSRF_COOKIE_HTTPONLY = False
+
+# Django 4+ requires this explicitly for any cross-origin POST that relies on
+# session/cookie auth (the admin panel, primarily - JWT-based API endpoints
+# aren't affected). Reuses CORS_ALLOWED_ORIGINS by default so you don't have
+# to maintain the same domain list twice; override with CSRF_TRUSTED_ORIGINS
+# in your env if the admin is served from a different origin than the API.
+_csrf_trusted = config('CSRF_TRUSTED_ORIGINS', default='')
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_trusted.split(',') if o.strip()] or CORS_ALLOWED_ORIGINS
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'accounts.authentication.CookieJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -195,4 +230,64 @@ SWAGGER_SETTINGS = {
         },
     },
     'DEFAULT_AUTO_SCHEMA_CLASS': 'drf_yasg.inspectors.SwaggerAutoSchema',
+}
+
+
+# --- Logging: surface production errors instead of losing them silently ---
+# Always logs to console (captured by most hosts - Render/Railway/Heroku all
+# show stdout in their log viewers) and to a rotating local file. Email-on-error
+# only activates if you set ADMINS/EMAIL_* env vars below; otherwise it's a no-op.
+LOGS_DIR = BASE_DIR / 'logs'
+os.makedirs(LOGS_DIR, exist_ok=True)
+
+_admin_email = config('ADMIN_EMAIL', default='')
+ADMINS = [('Admin', _admin_email)] if _admin_email else []
+MANAGERS = ADMINS
+
+SERVER_EMAIL = config('SERVER_EMAIL', default=EMAIL_HOST_USER)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} [{levelname}] {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'django.log',
+            'maxBytes': 5 * 1024 * 1024,  # 5MB per file
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'file', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
 }

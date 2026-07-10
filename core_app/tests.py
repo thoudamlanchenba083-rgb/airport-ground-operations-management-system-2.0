@@ -7,17 +7,17 @@ from django.utils import timezone
 from datetime import timedelta
 
 
-# ─────────────────────────────────────────
+# -----------------------------------------
 # Disable rate limiting for all tests
-# ─────────────────────────────────────────
+# -----------------------------------------
 @override_settings(RATELIMIT_ENABLE=False)
 class RateLimitDisabledTestCase(TestCase):
     pass
 
 
-# ─────────────────────────────────────────
+# -----------------------------------------
 # HELPERS
-# ─────────────────────────────────────────
+# -----------------------------------------
 
 def make_user(
         username='testuser',
@@ -39,7 +39,7 @@ def get_token(username, password):
                       {'username': username,
                        'password': password},
                       format='json')
-    return res.data.get('access')
+    return client.cookies['access_token'].value
 
 
 def auth_client(token):
@@ -48,9 +48,9 @@ def auth_client(token):
     return client
 
 
-# ─────────────────────────────────────────
+# -----------------------------------------
 # AUTH TESTS
-# ─────────────────────────────────────────
+# -----------------------------------------
 
 @override_settings(RATELIMIT_ENABLE=False)
 class RegistrationTests(TestCase):
@@ -122,8 +122,8 @@ class LoginTests(TestCase):
             'password': 'loginpass1',
         }, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertIn('access', res.data)
-        self.assertIn('refresh', res.data)
+        self.assertIn('access_token', res.cookies)
+        self.assertIn('refresh_token', res.cookies)
 
     def test_login_wrong_password(self):
         res = self.client.post('/api/token/', {
@@ -144,9 +144,9 @@ class LoginTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-# ─────────────────────────────────────────
+# -----------------------------------------
 # FLIGHT TESTS
-# ─────────────────────────────────────────
+# -----------------------------------------
 
 @override_settings(RATELIMIT_ENABLE=False)
 class FlightTests(TestCase):
@@ -233,9 +233,9 @@ class FlightTests(TestCase):
         self.assertIn('updated_at', res.data)
 
 
-# ─────────────────────────────────────────
+# -----------------------------------------
 # STAFF TESTS
-# ─────────────────────────────────────────
+# -----------------------------------------
 
 @override_settings(RATELIMIT_ENABLE=False)
 class StaffTests(TestCase):
@@ -308,9 +308,9 @@ class StaffTests(TestCase):
         self.assertGreaterEqual(res.data['count'], 1)
 
 
-# ─────────────────────────────────────────
+# -----------------------------------------
 # EDGE CASE TESTS
-# ─────────────────────────────────────────
+# -----------------------------------------
 
 @override_settings(RATELIMIT_ENABLE=False)
 class EdgeCaseTests(TestCase):

@@ -1,4 +1,4 @@
-from django.test import TestCase
+﻿from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
@@ -28,7 +28,7 @@ class StaffAPITest(TestCase):
     def get_token(self, username, password):
         response = self.client.post(
             '/api/token/', {'username': username, 'password': password})
-        return response.data['access']
+        return self.client.cookies['access_token'].value
 
     def test_admin_can_create_staff(self):
         token = self.get_token('admin', 'admin123')
