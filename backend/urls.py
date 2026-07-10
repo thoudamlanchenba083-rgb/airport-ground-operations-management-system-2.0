@@ -6,7 +6,6 @@ from rest_framework import permissions
 from accounts.views import RateLimitedTokenObtainPairView, RateLimitedTokenRefreshView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-import os
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -20,14 +19,12 @@ schema_view = get_schema_view(
     permission_classes=(permissions.IsAuthenticated,),
 )
 
-FRONTEND = os.path.join(
-    os.path.dirname(
-        os.path.dirname(
-            os.path.abspath(__file__))),
-    'frontend')
-
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
+    # docs/DEPLOYMENT.md's post-deploy checklist expects these reachable -
+    # schema_view above was already fully configured but never wired in.
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('api/token/', RateLimitedTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', RateLimitedTokenRefreshView.as_view(), name='token_refresh'),
     path('api/accounts/', include('accounts.urls')),
@@ -51,6 +48,5 @@ urlpatterns = [
     path('api/cargo/', include('cargo_management.urls')),
     path('api/ramp-operations/', include('ramp_operations.urls')),
     path('api/digital-twin/', include('digital_twin.urls')),
-    path('api/ai/', include('ai_module.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

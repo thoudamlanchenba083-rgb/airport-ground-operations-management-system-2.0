@@ -8,5 +8,6 @@ env/
 venv/
 *.log
 media/
+staticfiles/
 
 logs/

@@ -121,7 +121,17 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'frontend')]
+# Where `collectstatic` copies files to (admin CSS/JS, DRF browsable API
+# assets, etc.) so WhiteNoise can serve them in production. Required -
+# collectstatic refuses to run at all without this set, and
+# CompressedManifestStaticFilesStorage throws "Missing staticfiles manifest
+# entry" on any {% static %} lookup (e.g. loading /admin/) until collectstatic
+# has actually populated this directory. Run as part of your build step:
+#   python manage.py collectstatic --noinput
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+# NOTE: previously included frontend/ here via STATICFILES_DIRS, but the
+# React app is built/deployed separately (Vercel/Netlify) - Django never
+# serves it, so there's nothing of ours to collect from that folder.
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
