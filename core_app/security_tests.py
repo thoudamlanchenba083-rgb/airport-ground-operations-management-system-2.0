@@ -49,20 +49,17 @@ class RoleBasedAuthorizationTests(TestCase):
         )
 
     def _login(self, username, password):
-        response = self.client.post(
+        self.client.post(
             '/api/token/', {'username': username, 'password': password})
-        return response.data.get('access')
 
     def test_regular_user_cannot_create_airline(self):
-        token = self._login('sec_user', 'TestPass123!')
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        self._login('sec_user', 'TestPass123!')
         response = self.client.post(
             '/api/flights/airlines/', {'name': 'Test Air', 'code': 'TA1'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_admin_can_create_airline(self):
-        token = self._login('sec_admin', 'TestPass123!')
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        self._login('sec_admin', 'TestPass123!')
         response = self.client.post(
             '/api/flights/airlines/', {'name': 'Test Air', 'code': 'TA2'})
         self.assertIn(
