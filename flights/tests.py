@@ -21,7 +21,7 @@ class FlightAPITest(TestCase):
             capacity=180)
 
     def get_token(self, username, password):
-        response = self.client.post(
+        self.client.post(
             '/api/token/', {'username': username, 'password': password})
         return self.client.cookies['access_token'].value
 

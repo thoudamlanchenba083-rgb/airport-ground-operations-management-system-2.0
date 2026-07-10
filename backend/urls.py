@@ -54,4 +54,3 @@ urlpatterns = [
     path('api/ai/', include('ai_module.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

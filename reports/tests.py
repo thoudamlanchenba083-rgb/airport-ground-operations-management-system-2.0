@@ -23,7 +23,7 @@ class ReportAPITest(TestCase):
         )
 
     def get_token(self, username, password):
-        response = self.client.post(
+        self.client.post(
             '/api/token/', {'username': username, 'password': password})
         return self.client.cookies['access_token'].value
 

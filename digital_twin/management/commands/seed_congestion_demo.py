@@ -42,7 +42,7 @@ class Command(BaseCommand):
         flights = []
         for i in range(3):
             flight = Flight.objects.create(
-                flight_number=f'DEMO10{i+1}',
+                flight_number=f'DEMO10{i + 1}',
                 flight_type=target_gate.gate_type,
                 airline=airline,
                 aircraft=aircraft,

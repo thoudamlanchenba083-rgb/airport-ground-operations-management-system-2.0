@@ -41,7 +41,7 @@ class GroundEquipmentAPITest(TestCase):
             aircraft=self.aircraft)
 
     def get_token(self, username, password):
-        response = self.client.post(
+        self.client.post(
             '/api/token/', {'username': username, 'password': password})
         return self.client.cookies['access_token'].value
 
@@ -114,7 +114,7 @@ class EquipmentAssignmentAPITest(TestCase):
             aircraft=self.aircraft)
 
     def get_token(self, username, password):
-        response = self.client.post(
+        self.client.post(
             '/api/token/', {'username': username, 'password': password})
         return self.client.cookies['access_token'].value
 
@@ -191,7 +191,7 @@ class PredictFailureAPITest(TestCase):
         )
 
     def get_token(self, username, password):
-        response = self.client.post(
+        self.client.post(
             '/api/token/', {'username': username, 'password': password})
         return self.client.cookies['access_token'].value
 
@@ -261,7 +261,7 @@ class InvalidAssignmentScenariosTest(TestCase):
             aircraft=self.aircraft)
 
     def get_token(self, username, password):
-        response = self.client.post(
+        self.client.post(
             '/api/token/', {'username': username, 'password': password})
         return self.client.cookies['access_token'].value
 

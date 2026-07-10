@@ -718,7 +718,7 @@ class ChatbotEngine:
                     f"Delay prediction for {flight.flight_number}\n"
                     f"- Risk level: {result['risk_level']}\n"
                     f"- Estimated delay: {result['estimated_delay_minutes']} minutes\n"
-                    f"- Confidence: {int(confidence*100)}%\n"
+                    f"- Confidence: {int(confidence * 100)}%\n"
                     f"- Reason: {result['reason']}")
             return "Tell me which flight you want a delay prediction for, e.g. 'will AI202 be delayed'."
 
@@ -738,7 +738,7 @@ class ChatbotEngine:
                         f"Flight {flight.flight_number} — no gate assigned yet\n"
                         f"- Recommended gate: {result['recommended_gate']}\n"
                         f"- Suitability: {result['suitability_score']}/100\n"
-                        f"- Confidence: {int(confidence*100)}%")
+                        f"- Confidence: {int(confidence * 100)}%")
                 return note(
                     f"Flight {flight.flight_number} hasn't been assigned a gate yet, and no gates are currently available to recommend.")
             if gate:

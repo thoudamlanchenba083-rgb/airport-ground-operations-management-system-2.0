@@ -18,7 +18,7 @@ class NotificationAPITest(TestCase):
             user=self.user, type='GENERAL', message='Test notification', is_read=False)
 
     def get_token(self, username, password):
-        response = self.client.post(
+        self.client.post(
             '/api/token/', {'username': username, 'password': password})
         return self.client.cookies['access_token'].value
 

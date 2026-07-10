@@ -27,10 +27,10 @@ def make_user(
 
 def get_token(username, password):
     client = APIClient()
-    res = client.post('/api/token/',
-                      {'username': username,
-                       'password': password},
-                      format='json')
+    client.post('/api/token/',
+                {'username': username,
+                 'password': password},
+                format='json')
     return client.cookies['access_token'].value
 
 
