@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react'
 import axiosClient from '../api/axiosClient'
 import usePageMeta from '../hooks/usePageMeta'
+import LegalModal from '../components/legal/LegalModal'
 
 export default function Signup() {
   usePageMeta('Sign Up', 'Create your AeroGround account to manage airport ground operations.')
@@ -13,6 +14,8 @@ export default function Signup() {
   const [confirm, setConfirm]   = useState('')
   const [showPw, setShowPw]         = useState(false)
   const [showConfirmPw, setShowConfirmPw] = useState(false)
+  const [agreed, setAgreed]     = useState(false)
+  const [legalTab, setLegalTab] = useState(null) // 'faq' | 'help' | 'privacy' | 'terms' | null
   const [error, setError]       = useState('')
   const [success, setSuccess]   = useState(false)
   const [loading, setLoading]   = useState(false)
@@ -31,6 +34,10 @@ export default function Signup() {
     }
     if (password !== confirm) {
       setError('Passwords do not match.')
+      return
+    }
+    if (!agreed) {
+      setError('Please accept the Terms & Conditions and Privacy Policy to continue.')
       return
     }
     setLoading(true)
@@ -215,6 +222,27 @@ export default function Signup() {
               </div>
             </div>
 
+            {/* Terms / Privacy consent */}
+            <label htmlFor="signup-agree" className="flex items-start gap-2.5 text-xs text-neutral-400 leading-relaxed cursor-pointer">
+              <input
+                type="checkbox"
+                id="signup-agree"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5 size-3.5 rounded border-white/20 bg-white/5 text-blue-600 focus:ring-blue-500/60 focus:ring-offset-0 shrink-0"
+              />
+              <span>
+                I agree to the{' '}
+                <button type="button" onClick={() => setLegalTab('terms')} className="text-blue-400 hover:text-blue-300 underline underline-offset-2">
+                  Terms & Conditions
+                </button>{' '}
+                and{' '}
+                <button type="button" onClick={() => setLegalTab('privacy')} className="text-blue-400 hover:text-blue-300 underline underline-offset-2">
+                  Privacy Policy
+                </button>.
+              </span>
+            </label>
+
             {/* Submit */}
             <button
               type="submit"
@@ -240,8 +268,27 @@ export default function Signup() {
             Already have an account?{' '}
             <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium transition">Sign in</Link>
           </p>
+
+          <div className="h-px bg-linear-to-r from-transparent via-white/15 to-transparent mt-6 mb-5" />
+
+          {/* Legal / support links */}
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs text-neutral-400">
+            <button type="button" onClick={() => setLegalTab('faq')} className="hover:text-white transition">FAQ</button>
+            <span className="text-white/20">·</span>
+            <button type="button" onClick={() => setLegalTab('help')} className="hover:text-white transition">Help</button>
+            <span className="text-white/20">·</span>
+            <button type="button" onClick={() => setLegalTab('privacy')} className="hover:text-white transition">Privacy Policy</button>
+            <span className="text-white/20">·</span>
+            <button type="button" onClick={() => setLegalTab('terms')} className="hover:text-white transition">Terms & Conditions</button>
+          </div>
         </div>
       </div>
+
+      <LegalModal
+        open={legalTab !== null}
+        initialTab={legalTab || 'faq'}
+        onClose={() => setLegalTab(null)}
+      />
     </div>
   )
 }

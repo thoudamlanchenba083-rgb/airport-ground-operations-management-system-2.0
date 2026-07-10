@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { User, Lock, Eye, EyeOff, ArrowRight, AlertTriangle, Loader2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import LegalModal from '../components/legal/LegalModal'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -9,6 +10,7 @@ export default function Login() {
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
   const [showPw, setShowPw]     = useState(false)
+  const [legalTab, setLegalTab] = useState(null) // 'faq' | 'help' | 'privacy' | 'terms' | null
   const { login } = useAuth()
   const navigate  = useNavigate()
 
@@ -162,12 +164,29 @@ export default function Login() {
 
           <div className="h-px bg-linear-to-r from-transparent via-white/15 to-transparent mt-6 mb-5" />
 
+          {/* Legal / support links */}
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs text-neutral-400 mb-4">
+            <button type="button" onClick={() => setLegalTab('faq')} className="hover:text-white transition">FAQ</button>
+            <span className="text-white/20">·</span>
+            <button type="button" onClick={() => setLegalTab('help')} className="hover:text-white transition">Help</button>
+            <span className="text-white/20">·</span>
+            <button type="button" onClick={() => setLegalTab('privacy')} className="hover:text-white transition">Privacy Policy</button>
+            <span className="text-white/20">·</span>
+            <button type="button" onClick={() => setLegalTab('terms')} className="hover:text-white transition">Terms & Conditions</button>
+          </div>
+
           {/* Footer */}
           <p className="text-center text-white/30 text-xs">
             © {new Date().getFullYear()} AeroGround Ops · All rights reserved
           </p>
         </div>
       </div>
+
+      <LegalModal
+        open={legalTab !== null}
+        initialTab={legalTab || 'faq'}
+        onClose={() => setLegalTab(null)}
+      />
     </div>
   )
 }

@@ -21,10 +21,15 @@ function renderSignup() {
 
 // Fills in the form fields we care about via their labels, leaving room
 // for each test to override specific fields (e.g. a mismatched confirm).
-async function fillForm(user, { username = 'newuser', password = 'password123', confirm = 'password123' } = {}) {
+// Also ticks the required Terms & Privacy consent checkbox, since that's
+// part of the normal signup flow.
+async function fillForm(user, { username = 'newuser', password = 'password123', confirm = 'password123', agree = true } = {}) {
   await user.type(screen.getByPlaceholderText(/choose a username/i), username)
   await user.type(screen.getByPlaceholderText(/at least 8 characters/i), password)
   await user.type(screen.getByPlaceholderText(/re-enter password/i), confirm)
+  if (agree) {
+    await user.click(screen.getByRole('checkbox'))
+  }
 }
 
 describe('Signup', () => {
@@ -61,6 +66,17 @@ describe('Signup', () => {
     await user.click(screen.getByRole('button', { name: /sign up/i }))
 
     expect(await screen.findByText(/passwords do not match/i)).toBeInTheDocument()
+    expect(axiosClient.post).not.toHaveBeenCalled()
+  })
+
+  it('shows a validation error when terms are not accepted', async () => {
+    const user = userEvent.setup()
+    renderSignup()
+
+    await fillForm(user, { agree: false })
+    await user.click(screen.getByRole('button', { name: /sign up/i }))
+
+    expect(await screen.findByText(/accept the terms/i)).toBeInTheDocument()
     expect(axiosClient.post).not.toHaveBeenCalled()
   })
 })
