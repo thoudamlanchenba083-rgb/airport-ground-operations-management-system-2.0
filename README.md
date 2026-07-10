@@ -1,8 +1,8 @@
 # ✈️ Airport Ground Operations Management System
 
-A full-stack web application for managing day-to-day airport ground operations — flights, gates, staff, baggage, maintenance, equipment, HR, notifications, reports — with an integrated AI module for predictions and a chatbot.
+A full-stack web application for managing day-to-day airport ground operations — flights, gates, staff, baggage, maintenance, equipment, HR, fuel, catering, cleaning, cargo, incidents, ramp operations, passenger boarding, notifications, reports — with an integrated AI module for predictions, a digital-twin what-if simulator, and an LLM-backed operations chatbot.
 
-Built as a real operations platform, not a toy CRUD app: role-based access control, JWT auth, rate limiting, audit logs, ML-driven forecasting, and a REST API documented with Swagger.
+Built as a real operations platform, not a toy CRUD app: role-based access control, httpOnly-cookie JWT auth with CSRF protection, rate limiting, audit logs, ML-driven forecasting, and a REST API documented with Swagger.
 
 ---
 
@@ -12,14 +12,24 @@ Think of it as the internal software an airport's ground operations team would u
 
 - **Flights** — schedule flights, track their status through the ground-handling pipeline (scheduled → gate assigned → crew assigned → fueling → boarding → departed), and manage airlines/aircraft.
 - **Gates** — assign flights to gates, track availability, prevent double-booking.
+- **Turnaround** — tracks every ground-ops activity happening between an aircraft's arrival and departure (task-by-task turnaround tracking).
 - **Staff** — manage ground crew profiles, shifts, and schedules.
 - **HR Management** — departments, designations, employee HR profiles, leave types and leave requests.
 - **Baggage** — track baggage from check-in to claim, with a full status history per bag.
+- **Cargo Management** — ULDs (unit load devices/containers/pallets), cargo manifests per flight, and individual cargo item tracking.
+- **Passenger Boarding** — boarding sessions and group/zone-based boarding call tracking.
 - **Maintenance** — log and track maintenance requests for aircraft/equipment.
 - **Ground Equipment** — manage equipment inventory, usage, and condition.
+- **Fuel Management** — fuel companies, fuel trucks, and fueling operations per flight.
+- **Aircraft Cleaning** — cleaning task tracking per aircraft turnaround.
+- **Water & Lavatory Service** — servicing task tracking per aircraft turnaround.
+- **Catering** — catering companies and meal orders per flight.
+- **Incident Management** — log incidents (fuel spills, etc.) with a timeline of follow-up updates.
+- **Ramp Operations** — ramp safety inspections and pushback operation tracking.
+- **Digital Twin** — read-only "what happens if X closes" simulation engine (e.g. gate closure impact), plus a live gate-congestion heatmap.
 - **Notifications** — in-app notifications for relevant events (flight updates, maintenance alerts, etc.).
 - **Reports** — generate operational reports.
-- **AI Module** — machine-learning predictions (flight delay, maintenance urgency, gate recommendation, staffing needs, weather risk, passenger rush, equipment failure risk) plus a chatbot that answers operational questions using live data.
+- **AI Module** — machine-learning predictions (flight delay, maintenance urgency, gate recommendation, staffing needs, weather risk, passenger rush, equipment failure risk) plus an LLM-backed chatbot that answers operational questions using live data.
 
 Every meaningful action (create/update/delete) is written to an **audit log**, so there's a record of who did what and when.
 
@@ -30,14 +40,15 @@ Every meaningful action (create/update/delete) is written to an **audit log**, s
 | Layer | Technology |
 |---|---|
 | Backend | Django 5, Django REST Framework |
-| Auth | SimpleJWT (access + refresh tokens), rate-limited login |
-| Database | PostgreSQL (production), SQLite (local dev) — auto-switches based on `DATABASE_URL` |
+| Auth | SimpleJWT, tokens issued as httpOnly cookies (not exposed to frontend JS) with CSRF double-submit protection, rate-limited login |
+| Database | PostgreSQL (production/CI), SQLite (local dev) — auto-switches based on `DATABASE_URL` |
 | Frontend | React 19 + Vite + Tailwind CSS 4 |
 | Charts | Recharts |
-| Machine Learning | scikit-learn (RandomForest Regressor/Classifier) |
-| Chatbot | Rule-based retrieval engine (regex + intent matching + live DB lookups) |
+| Machine Learning | scikit-learn (RandomForest Regressor/Classifier) — 7 predictive models |
+| Chatbot | Tiered LLM engine — Claude (Anthropic API) → Gemini (Google Generative Language API) → offline rule-based fallback — with tool-calling into live app data |
+| Static Files | WhiteNoise (compressed manifest storage) |
 | API Docs | Swagger UI / ReDoc (drf-yasg) |
-| CI/CD | GitHub Actions (tests across every app + flake8 lint) |
+| CI/CD | GitHub Actions — per-app test suite + dedicated security-test job + integration tests, against a real PostgreSQL service container, plus flake8 lint and frontend UI tests |
 | Rate Limiting | django-ratelimit |
 
 ---
@@ -45,18 +56,19 @@ Every meaningful action (create/update/delete) is written to an **audit log**, s
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────┐        REST API (JWT)        ┌──────────────────────┐
-│   React + Vite SPA  │  ───────────────────────────▶ │   Django + DRF API   │
-│   (Tailwind CSS)    │  ◀─────────────────────────── │                      │
-└─────────────────────┘                                └──────────┬───────────┘
-                                                                    │
-                                       ┌────────────────────────────┼────────────────────────────┐
-                                       │                            │                            │
-                              ┌────────▼────────┐         ┌─────────▼─────────┐        ┌─────────▼─────────┐
-                              │  PostgreSQL /    │         │   AI Module        │        │   Audit Logging   │
-                              │  SQLite Database │         │  (scikit-learn +   │        │  + Notifications  │
-                              │                   │         │   chatbot)         │        │                    │
-                              └───────────────────┘         └────────────────────┘        └────────────────────┘
+┌─────────────────────┐   REST API (JWT via httpOnly cookies)   ┌──────────────────────┐
+│   React + Vite SPA  │  ──────────────────────────────────────▶ │   Django + DRF API   │
+│   (Tailwind CSS)    │  ◀────────────────────────────────────── │                      │
+└─────────────────────┘                                          └──────────┬───────────┘
+                                                                              │
+                                       ┌───────────────────────────┬─────────┼─────────┬───────────────────────┐
+                                       │                           │                   │                       │
+                              ┌────────▼────────┐         ┌────────▼────────┐ ┌────────▼────────┐   ┌──────────▼──────────┐
+                              │  PostgreSQL /    │         │   AI Module      │ │  Digital Twin    │   │   Audit Logging     │
+                              │  SQLite Database │         │  (scikit-learn + │ │  (what-if sim +  │   │  + Notifications    │
+                              │                   │         │   Claude/Gemini  │ │   congestion     │   │                      │
+                              │                   │         │   chatbot)       │ │   heatmap)       │   │                      │
+                              └───────────────────┘         └──────────────────┘ └──────────────────┘   └──────────────────────┘
 ```
 
 The frontend is a separate single-page app (React) that talks to the Django backend purely through the REST API — it's not server-rendered by Django.
@@ -68,20 +80,30 @@ The frontend is a separate single-page app (React) that talks to the Django back
 ```
 airport-ground-operations-management-system-2.0/
 │
-├── backend/                # Django project settings, root urls.py, wsgi/asgi
+├── backend/                   # Django project settings, root urls.py, wsgi/asgi
 │
-├── accounts/                # Custom User model, JWT login/register, roles
-├── core_app/                 # Shared utilities, permissions, audit log, exception handler
+├── accounts/                  # Custom User model, cookie-based JWT login/register, roles
+├── core_app/                  # Shared utilities, permissions, audit log, exception handler, security_tests.py
 ├── flights/                   # Airlines, aircraft, flights, service checklist
 ├── gates/                     # Gates and gate assignments
+├── turnaround/                 # Per-flight turnaround task tracking
 ├── staff/                     # Staff profiles, shifts, schedules
-├── hr_management/            # Departments, designations, HR profiles, leave
+├── hr_management/              # Departments, designations, HR profiles, leave
 ├── baggage/                   # Baggage records + tracking history
-├── maintenance/               # Maintenance requests and logs
-├── ground_equipment/          # Ground equipment inventory and usage
-├── notifications/             # In-app notifications
-├── reports/                   # Report generation
-├── ai_module/                 # ML predictions + chatbot
+├── cargo_management/           # ULDs, cargo manifests, cargo items
+├── passenger_boarding/         # Boarding sessions and boarding groups
+├── maintenance/                # Maintenance requests and logs
+├── ground_equipment/           # Ground equipment inventory and usage
+├── fuel_management/            # Fuel companies, trucks, fueling operations
+├── aircraft_cleaning/          # Cleaning task tracking
+├── water_lavatory_service/     # Water/lavatory servicing task tracking
+├── catering/                   # Catering companies and orders
+├── incident_management/        # Incidents + timeline updates
+├── ramp_operations/             # Ramp inspections, pushback operations
+├── digital_twin/                # What-if simulation engine + gate heatmap (no models — reads live state)
+├── notifications/               # In-app notifications
+├── reports/                     # Report generation
+├── ai_module/                   # ML predictions + LLM chatbot
 │   ├── ml/
 │   │   ├── train_models.py         # Trains all 7 ML models
 │   │   ├── predictor.py            # Loads trained models, runs inference
@@ -90,19 +112,22 @@ airport-ground-operations-management-system-2.0/
 │   │   ├── resource_optimizer.py   # Cross-model resource optimization
 │   │   ├── dashboard_intelligence.py # Live dashboard KPIs + forecasts
 │   │   └── saved_models/           # Trained .pkl model files
-│   └── chatbot.py             # Rule-based chatbot engine
+│   ├── ai_tools.py             # Shared tool definitions + live-data lookups for the chatbot
+│   ├── llm_engine.py           # Claude-backed chatbot engine (primary)
+│   ├── gemini_engine.py        # Gemini-backed chatbot engine (fallback)
+│   └── chatbot.py              # Offline rule-based chatbot engine (final fallback)
 │
-├── frontend/                  # React + Vite + Tailwind SPA
+├── frontend/                   # React + Vite + Tailwind SPA
 │   └── src/
-│       ├── pages/              # Dashboard, Flights, Gates, Staff, Baggage, etc.
-│       ├── components/         # Reusable UI components (per-module subfolders)
-│       ├── api/                # Axios API client
-│       ├── context/            # React context (auth, etc.)
-│       └── hooks/               # Custom hooks
+│       ├── pages/               # Dashboard, Flights, Gates, Staff, Baggage, etc.
+│       ├── components/          # Reusable UI components (per-module subfolders)
+│       ├── api/                 # Axios API client
+│       ├── context/             # React context (auth, etc.)
+│       └── hooks/                # Custom hooks
 │
-├── .github/workflows/ci.yml   # CI: runs tests for every app + lint
-├── logs/                       # Runtime logs (general/error/warning) — gitignored
-├── ER_DIAGRAM.md              # Entity-relationship documentation
+├── .github/workflows/ci.yml    # CI: per-app tests + security tests + integration tests + lint + frontend tests
+├── logs/                        # Runtime logs (general/error/warning) — gitignored
+├── ER_DIAGRAM.md                # Entity-relationship documentation
 ├── manage.py
 ├── requirements.txt
 └── README.md
@@ -141,6 +166,7 @@ SECRET_KEY=your-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=127.0.0.1,localhost
 CORS_ALLOWED_ORIGINS=http://localhost:5173
+CSRF_TRUSTED_ORIGINS=http://localhost:5173
 
 # Optional — omit to use SQLite locally
 # DATABASE_URL=postgresql://user:password@localhost:5432/dbname
@@ -148,6 +174,15 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173
 # Optional — for email features (welcome emails, etc.)
 EMAIL_HOST_USER=
 EMAIL_HOST_PASSWORD=
+
+# Optional — chatbot LLM backends (falls back to offline rule-based engine if unset)
+ANTHROPIC_API_KEY=
+AI_CHAT_MODEL=claude-sonnet-4-6
+GEMINI_API_KEY=
+GEMINI_CHAT_MODEL=gemini-2.5-flash
+
+# Optional — used by the weather-risk ML model
+OPENWEATHER_API_KEY=
 ```
 
 Run migrations and start the server:
@@ -184,11 +219,13 @@ This trains all 7 models (delay, maintenance, passenger rush, weather risk, staf
 
 ## 🔑 Authentication
 
-Login via `POST /api/token/` with `username` + `password` to receive a JWT access + refresh token pair. Include the access token on subsequent requests:
+Login via `POST /api/token/` with `username` + `password`. On success, the access and refresh JWTs are set as **httpOnly cookies** (`access_token` / `refresh_token`) — they are never exposed in the response body or to frontend JavaScript, which mitigates token theft via XSS. A non-httpOnly `csrftoken` cookie is issued at the same time.
 
-```
-Authorization: Bearer <access_token>
-```
+- **Reading data (GET)** — the cookie alone is enough; no extra headers needed.
+- **Writing data (POST/PUT/PATCH/DELETE)** — the request must also include the CSRF cookie's value as an `X-CSRFToken` header (Django's standard double-submit-cookie pattern). Axios can be configured to do this automatically via `xsrfCookieName` / `xsrfHeaderName`.
+- Non-browser clients (Swagger's "Authorize" button, Postman, server-to-server calls) can still authenticate the traditional way with `Authorization: Bearer <access_token>` — no CSRF check applies to header-based auth, since only same-origin JS can set custom headers.
+
+Refresh via `POST /api/token/refresh/` — reads the refresh token from its cookie automatically, no request body needed.
 
 Login is rate-limited to 5 attempts/minute per IP; token refresh to 10/minute.
 
@@ -211,20 +248,32 @@ Once the backend is running, interactive API docs are available at:
 | `/api/accounts/` | User accounts |
 | `/api/flights/` | Flights, airlines, aircraft |
 | `/api/gates/` | Gates, gate assignments |
+| `/api/turnaround/` | Turnaround task tracking |
 | `/api/staff/` | Staff, shifts |
 | `/api/hr/` | HR management |
 | `/api/maintenance/` | Maintenance requests |
 | `/api/baggage/` | Baggage tracking |
+| `/api/cargo/` | ULDs, cargo manifests, cargo items |
 | `/api/ground-equipment/` | Equipment |
+| `/api/fuel/` | Fuel companies, trucks, fueling operations |
+| `/api/cleaning/` | Aircraft cleaning tasks |
+| `/api/water-lavatory/` | Water/lavatory servicing |
+| `/api/catering/` | Catering companies and orders |
+| `/api/incidents/` | Incident management |
+| `/api/ramp-operations/` | Ramp inspections, pushback operations |
+| `/api/digital-twin/` | What-if simulation, gate heatmap |
 | `/api/notifications/` | Notifications |
 | `/api/reports/` | Reports |
 | `/api/core/` | Shared/audit utilities |
 | `/api/ai/` | AI predictions + chatbot |
 
+> Note: `passenger_boarding` currently has models, serializers, and a router (`boarding-sessions`, `boarding-groups`) but is **not yet wired into `backend/urls.py`** — worth adding a `path('api/passenger-boarding/', include('passenger_boarding.urls'))` entry.
+
 ---
 
 ## 🤖 AI Module
 
+### Predictive models
 Seven ML models (scikit-learn RandomForest) provide operational forecasts:
 
 | Model | Predicts |
@@ -237,7 +286,17 @@ Seven ML models (scikit-learn RandomForest) provide operational forecasts:
 | Gate Recommendation | Best-fit gate, ranked |
 | Equipment Failure | Failure risk + maintenance-required flag |
 
-Delay and maintenance models automatically switch from synthetic to **real historical data** once enough records exist in the database. The chatbot (`/api/ai/chat/send/`) is a separate rule-based engine that answers questions using live flight/gate/staff data — architected so it can later be swapped for a real LLM API.
+Delay and maintenance models automatically switch from synthetic to **real historical data** once enough records exist in the database.
+
+### Chatbot
+The chatbot (`/api/ai/chat/send/`) answers operational questions using live flight/gate/staff data via a tiered engine, falling through automatically if a step is unavailable or errors:
+
+1. **Claude** (`llm_engine.py`) — primary, via the Anthropic API, using `ai_tools.py`'s shared tool definitions to query live app data mid-conversation.
+2. **Gemini** (`gemini_engine.py`) — fallback if `ANTHROPIC_API_KEY` isn't set or the Claude call fails, using the same tool set against Google's Generative Language API.
+3. **Offline rule-based engine** (`chatbot.py`) — final fallback if neither LLM key is configured, using regex/intent matching against live DB lookups.
+
+### Digital Twin
+`digital_twin/simulation.py` is a read-only "what happens if X closes" engine — it never writes to the database, only reads current state and projects impact (e.g. `simulate_gate_closure()` finds alternative gates, estimates delayed flights, and reports staff/equipment knock-on effects). Paired with a live gate-congestion heatmap endpoint.
 
 ---
 
@@ -255,7 +314,19 @@ Run tests for a single app:
 python manage.py test flights
 ```
 
-CI (GitHub Actions) runs the full suite — every app individually plus integration tests — against a real PostgreSQL service container on every push/PR to `main` and `develop`, along with a flake8 lint check.
+Run just the security test suite (authentication enforcement, role-based authorization, rate limiting, information disclosure):
+
+```bash
+python manage.py test core_app.security_tests --verbosity=2
+```
+
+CI (GitHub Actions) runs three parallel jobs on every push/PR to `main` and `develop`:
+
+- **Run Tests** — every app's test suite individually, plus `core_app.security_tests` and `core_app.integration_tests`, against a real PostgreSQL service container.
+- **Lint Check** — flake8 across the whole repo (excluding `venv`, `env`, `node_modules`, `migrations`, `__pycache__`, `.git`), max line length 120.
+- **Frontend UI Tests** — `npm run test` in `frontend/`.
+
+> Local tip: your `venv/` and `frontend/node_modules/` folders are gitignored so CI never sees them, but if you run flake8 locally be sure to exclude them yourself (`--exclude=venv,env,migrations,__pycache__,.git,node_modules`) — some installed packages (e.g. PyYAML, pywin32) fail default lint rules and aren't your code.
 
 ---
 
@@ -267,7 +338,7 @@ Logs are written to `logs/` (gitignored, created automatically):
 - `logs/error.log` — errors only
 - `logs/warning.log` — warnings only
 
-Each app has its own named logger (e.g. `logging.getLogger('gates')`).
+Each app has its own named logger (e.g. `logging.getLogger('gates')`, `logging.getLogger('accounts')`).
 
 ---
 
@@ -282,7 +353,8 @@ See [`ER_DIAGRAM.md`](./ER_DIAGRAM.md) for the full database schema and relation
 - ML models: 5 of 7 still train on synthetic data only (real-data training exists for delay & maintenance).
 - No caching layer (Redis) yet.
 - Rate limiting not yet applied to chatbot/AI endpoints.
-- Static file serving for production (WhiteNoise) not yet configured.
+- `passenger_boarding` app is fully built (models/serializers/views/router) but not yet registered in `backend/urls.py`.
+- `digital_twin` is read-only by design — no persistence of simulation runs/history yet.
 
 ---
 
