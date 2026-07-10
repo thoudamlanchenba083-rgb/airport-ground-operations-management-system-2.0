@@ -8,7 +8,8 @@ import {
   LuTriangleAlert, LuCircleCheck, LuInfo, LuClock, LuTarget, LuChartColumn,
   LuMail, LuPhone, LuMapPin, LuMenu, LuX, LuZap,
 } from 'react-icons/lu'
-import { FaLinkedinIn, FaXTwitter, FaYoutube, FaInstagram } from 'react-icons/fa6'
+import { FaLinkedinIn, FaXTwitter, FaYoutube, FaInstagram, FaWhatsapp, FaFacebookF, FaTelegram } from 'react-icons/fa6'
+import LegalModal from '../components/legal/LegalModal'
 
 const profiles = [
   { img: '/images/team/backend.jpg', name: 'Thoudam Lanchenba', role: 'Backend Developer', bio: 'Develops the Django backend, creates REST APIs, implements authentication and authorization, configures URL routing.' },
@@ -158,6 +159,7 @@ export default function LandingPage() {
   const [mobOpen, setMobOpen] = useState(false)
   const [curSlide, setCurSlide] = useState(0)
   const [activePopup, setActivePopup] = useState(null)
+  const [legalTab, setLegalTab] = useState(null) // 'faq' | 'help' | 'privacy' | 'terms' | null
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 55)
@@ -764,8 +766,13 @@ export default function LandingPage() {
               <div className="foot-brand-name"><img src="/brand/aeroground-logo-white.png" alt="AeroGround" className="foot-logo-img" />AeroGround</div>
               <p>A complete ground operations management platform for modern airports â€” built for reliability, real-time visibility, and total operational control.</p>
               <div className="foot-socials">
-                <span className="social-btn"><FaInstagram /></span><span className="social-btn"><FaLinkedinIn /></span>
-                <span className="social-btn"><FaXTwitter /></span><span className="social-btn"><FaYoutube /></span>
+                <a className="social-btn" href="https://wa.me/919774808471" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><FaWhatsapp /></a>
+                <a className="social-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><FaInstagram /></a>
+                <a className="social-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><FaLinkedinIn /></a>
+                <a className="social-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)"><FaXTwitter /></a>
+                <a className="social-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><FaYoutube /></a>
+                <a className="social-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FaFacebookF /></a>
+                <a className="social-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Telegram"><FaTelegram /></a>
               </div>
               <div className="foot-badge"><span>â—</span>ISO 27001 Certified Â· DGCA Compliant</div>
             </div>
@@ -781,8 +788,9 @@ export default function LandingPage() {
             <div className="foot-contact">
               <h4>Contact Us</h4>
               <div className="contact-list">
-                <div className="contact-item"><div className="ci-icon"><LuMail /></div><div><div className="ci-label">Email</div><div className="ci-value">ops@airportops.in</div></div></div>
-                <div className="contact-item"><div className="ci-icon"><LuPhone /></div><div><div className="ci-label">Phone</div><div className="ci-value">+91 44 2233 4455</div></div></div>
+                <a className="contact-item" href="mailto:ops@airportops.in" style={{cursor:"pointer", textDecoration:"none"}}><div className="ci-icon"><LuMail /></div><div><div className="ci-label">Email</div><div className="ci-value">ops@airportops.in</div></div></a>
+                <a className="contact-item" href="tel:+914422334455" style={{cursor:"pointer", textDecoration:"none"}}><div className="ci-icon"><LuPhone /></div><div><div className="ci-label">Phone</div><div className="ci-value">+91 44 2233 4455</div></div></a>
+                <a className="contact-item" href="https://wa.me/919774808471" target="_blank" rel="noopener noreferrer" style={{cursor:"pointer", textDecoration:"none"}}><div className="ci-icon"><FaWhatsapp /></div><div><div className="ci-label">WhatsApp</div><div className="ci-value">+91 97748 08471</div></div></a>
                 <div className="contact-item"><div className="ci-icon"><LuMapPin /></div><div><div className="ci-label">Address</div><div className="ci-value">Chennai International Airport, TN â€“ 600027</div></div></div>
                 <div className="contact-item"><div className="ci-icon"><LuClock /></div><div><div className="ci-label">Operations</div><div className="ci-value">24 / 7 / 365</div></div></div>
               </div>
@@ -790,10 +798,21 @@ export default function LandingPage() {
           </div>
           <div className="footer-bottom">
             <span>Â© 2026 Airport Ground Operations Management System. All rights reserved.</span>
-            <div className="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms of Use</a></div>
+            <div className="footer-bottom-links">
+              <a href="#" onClick={e => { e.preventDefault(); setLegalTab('faq') }}>FAQ</a>
+              <a href="#" onClick={e => { e.preventDefault(); setLegalTab('help') }}>Help</a>
+              <a href="#" onClick={e => { e.preventDefault(); setLegalTab('privacy') }}>Privacy Policy</a>
+              <a href="#" onClick={e => { e.preventDefault(); setLegalTab('terms') }}>Terms of Use</a>
+            </div>
           </div>
         </footer>
       </div>
+
+      <LegalModal
+        open={legalTab !== null}
+        initialTab={legalTab || 'faq'}
+        onClose={() => setLegalTab(null)}
+      />
     </>
   )
 }
