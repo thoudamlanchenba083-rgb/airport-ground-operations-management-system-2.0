@@ -1,7 +1,14 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import usePageMeta from '../hooks/usePageMeta'
 import { DJANGO_ADMIN_URL } from '../api/config'
+import {
+  LuPlane, LuLuggage, LuDoorOpen, LuHardHat, LuWrench, LuClipboardList,
+  LuSatelliteDish, LuLock, LuBot, LuBell, LuShield,
+  LuTriangleAlert, LuCircleCheck, LuInfo, LuClock, LuTarget, LuChartColumn,
+  LuMail, LuPhone, LuMapPin, LuMenu, LuX, LuZap,
+} from 'react-icons/lu'
+import { FaLinkedinIn, FaXTwitter, FaYoutube, FaInstagram } from 'react-icons/fa6'
 
 const profiles = [
   { img: '/images/team/backend.jpg', name: 'Thoudam Lanchenba', role: 'Backend Developer', bio: 'Develops the Django backend, creates REST APIs, implements authentication and authorization, configures URL routing.' },
@@ -12,30 +19,30 @@ const profiles = [
 ]
 
 const slides = [
-  { icon: 'âœˆï¸', title: 'Flight Tracking', desc: 'Live schedules, status updates, and AI-powered delay predictions across every flight in your network.', chip: 'Real-Time' },
-  { icon: 'ðŸ§³', title: 'Baggage Handling', desc: 'End-to-end baggage tracking from check-in to claim, with full status history and exception alerts.', chip: 'Full Lifecycle' },
-  { icon: 'ðŸšª', title: 'Gate Management', desc: 'Real-time gate availability, dynamic reassignment, and occupancy tracking across every terminal.', chip: 'Live Status' },
-  { icon: 'ðŸ‘·', title: 'Staff Scheduling', desc: 'Coordinate ground crew, security, and maintenance teams with conflict-free shift management.', chip: 'Role-Based' },
-  { icon: 'ðŸ”§', title: 'Maintenance Logs', desc: 'Track aircraft maintenance requests from report to resolution with full audit trails and DGCA compliance.', chip: 'Audit Ready' },
-  { icon: 'ðŸ“‹', title: 'Operational Reports', desc: 'Exportable insights across flights, gates, baggage, and staff with custom date range filtering.', chip: 'Exportable' },
+  { icon: LuPlane, title: 'Flight Tracking', desc: 'Live schedules, status updates, and AI-powered delay predictions across every flight in your network.', chip: 'Real-Time' },
+  { icon: LuLuggage, title: 'Baggage Handling', desc: 'End-to-end baggage tracking from check-in to claim, with full status history and exception alerts.', chip: 'Full Lifecycle' },
+  { icon: LuDoorOpen, title: 'Gate Management', desc: 'Real-time gate availability, dynamic reassignment, and occupancy tracking across every terminal.', chip: 'Live Status' },
+  { icon: LuHardHat, title: 'Staff Scheduling', desc: 'Coordinate ground crew, security, and maintenance teams with conflict-free shift management.', chip: 'Role-Based' },
+  { icon: LuWrench, title: 'Maintenance Logs', desc: 'Track aircraft maintenance requests from report to resolution with full audit trails and DGCA compliance.', chip: 'Audit Ready' },
+  { icon: LuClipboardList, title: 'Operational Reports', desc: 'Exportable insights across flights, gates, baggage, and staff with custom date range filtering.', chip: 'Exportable' },
 ]
 
 const capabilities = [
-  { num: '01', icon: 'ðŸ“¡', title: 'Real-Time Sync', desc: 'Live data from flight APIs, baggage scanners, and gate sensors updates every 30 seconds across all operator dashboards.', tag: '30-sec refresh' },
-  { num: '02', icon: 'ðŸ”', title: 'Role-Based Access', desc: 'Four distinct access tiers â€” Admin, Manager, Staff, and Technician â€” with granular module permissions and audit trails.', tag: '4 Access Tiers' },
-  { num: '03', icon: 'ðŸ¤–', title: 'AI Predictions', desc: 'Machine learning models flag delay risks 40 minutes in advance, allowing pre-emptive gate reassignment and passenger rebooking.', tag: 'AI-Powered' },
-  { num: '04', icon: 'ðŸ””', title: 'Smart Alerts', desc: 'Priority-ranked notifications delivered to the right operator the instant a conflict, delay, or exception is detected.', tag: 'Instant Delivery' },
-  { num: '05', icon: 'ðŸ“Š', title: 'Exportable Reports', desc: 'Custom date-range reports across all modules â€” flights, gates, baggage, and staff â€” in PDF and Excel formats.', tag: 'Multi-Format' },
-  { num: '06', icon: 'ðŸ›¡ï¸', title: 'Compliance Ready', desc: 'Full audit trails, DGCA-compliant maintenance records, and ISO 27001 data handling standards built into every module.', tag: 'ISO 27001' },
+  { num: '01', icon: LuSatelliteDish, title: 'Real-Time Sync', desc: 'Live data from flight APIs, baggage scanners, and gate sensors updates every 30 seconds across all operator dashboards.', tag: '30-sec refresh' },
+  { num: '02', icon: LuLock, title: 'Role-Based Access', desc: 'Four distinct access tiers â€” Admin, Manager, Staff, and Technician â€” with granular module permissions and audit trails.', tag: '4 Access Tiers' },
+  { num: '03', icon: LuBot, title: 'AI Predictions', desc: 'Machine learning models flag delay risks 40 minutes in advance, allowing pre-emptive gate reassignment and passenger rebooking.', tag: 'AI-Powered' },
+  { num: '04', icon: LuBell, title: 'Smart Alerts', desc: 'Priority-ranked notifications delivered to the right operator the instant a conflict, delay, or exception is detected.', tag: 'Instant Delivery' },
+  { num: '05', icon: LuChartColumn, title: 'Exportable Reports', desc: 'Custom date-range reports across all modules â€” flights, gates, baggage, and staff â€” in PDF and Excel formats.', tag: 'Multi-Format' },
+  { num: '06', icon: LuShield, title: 'Compliance Ready', desc: 'Full audit trails, DGCA-compliant maintenance records, and ISO 27001 data handling standards built into every module.', tag: 'ISO 27001' },
 ]
 
 const alerts = [
-  { priority: 'med', icon: 'âš ï¸', iconBg: 'rgba(245,166,35,0.1)', type: 'Gate Conflict Â· Medium Priority', msg: 'Gate B7 reassignment required â€” aircraft 9W-314 swap with IndiGo 6E-504', time: '2 minutes ago Â· Assigned to Ops Manager' },
-  { priority: 'high', icon: 'ðŸ”§', iconBg: 'rgba(242,112,112,0.1)', type: 'Maintenance Â· High Priority', msg: 'VT-ANM brake inspection overdue â€” aircraft grounded pending clearance from Tech Ops', time: '11 minutes ago Â· Escalated to Chief Technician' },
-  { priority: 'low', icon: 'âœ…', iconBg: 'rgba(61,214,140,0.1)', type: 'Baggage Â· Resolved', msg: 'Carousel 3 exception cleared â€” all 14 flagged items reunited with passengers at claim', time: '18 minutes ago Â· Auto-resolved by system' },
-  { priority: 'info', icon: 'â„¹ï¸', iconBg: 'rgba(78,143,204,0.1)', type: 'Staff Ops Â· Informational', msg: 'Shift handover complete â€” Zone D crew transferred to Zone A to support boarding surge on SG-109', time: '26 minutes ago Â· Logged by Duty Manager' },
-  { priority: 'med', icon: 'ðŸ•', iconBg: 'rgba(245,166,35,0.1)', type: 'Flight Delay Â· Medium Priority', msg: 'SG-109 MAAâ†’CCU delayed 12 minutes due to late inbound connection from BOM sector', time: '31 minutes ago Â· Passenger notifications sent' },
-  { priority: 'low', icon: 'ðŸŽ¯', iconBg: 'rgba(61,214,140,0.1)', type: 'System Â· Informational', msg: 'Scheduled data sync with AOCC completed â€” all 47 active flights reconciled successfully', time: '45 minutes ago Â· Automated system process' },
+  { priority: 'med', icon: LuTriangleAlert, iconBg: 'rgba(245,166,35,0.1)', type: 'Gate Conflict Â· Medium Priority', msg: 'Gate B7 reassignment required â€” aircraft 9W-314 swap with IndiGo 6E-504', time: '2 minutes ago Â· Assigned to Ops Manager' },
+  { priority: 'high', icon: LuWrench, iconBg: 'rgba(242,112,112,0.1)', type: 'Maintenance Â· High Priority', msg: 'VT-ANM brake inspection overdue â€” aircraft grounded pending clearance from Tech Ops', time: '11 minutes ago Â· Escalated to Chief Technician' },
+  { priority: 'low', icon: LuCircleCheck, iconBg: 'rgba(61,214,140,0.1)', type: 'Baggage Â· Resolved', msg: 'Carousel 3 exception cleared â€” all 14 flagged items reunited with passengers at claim', time: '18 minutes ago Â· Auto-resolved by system' },
+  { priority: 'info', icon: LuInfo, iconBg: 'rgba(78,143,204,0.1)', type: 'Staff Ops Â· Informational', msg: 'Shift handover complete â€” Zone D crew transferred to Zone A to support boarding surge on SG-109', time: '26 minutes ago Â· Logged by Duty Manager' },
+  { priority: 'med', icon: LuClock, iconBg: 'rgba(245,166,35,0.1)', type: 'Flight Delay Â· Medium Priority', msg: 'SG-109 MAAâ†’CCU delayed 12 minutes due to late inbound connection from BOM sector', time: '31 minutes ago Â· Passenger notifications sent' },
+  { priority: 'low', icon: LuTarget, iconBg: 'rgba(61,214,140,0.1)', type: 'System Â· Informational', msg: 'Scheduled data sync with AOCC completed â€” all 47 active flights reconciled successfully', time: '45 minutes ago Â· Automated system process' },
 ]
 
 const tlData = [
@@ -436,7 +443,7 @@ export default function LandingPage() {
             aria-label="Toggle menu"
             aria-expanded={mobOpen}
           >
-            {mobOpen ? 'âœ•' : 'â˜°'}
+            {mobOpen ? <LuX /> : <LuMenu />}
           </button>
         </nav>
         {mobOpen && (
@@ -498,7 +505,7 @@ export default function LandingPage() {
               <Reveal style={{ transitionDelay: '.35s' }}>
                 <div className="hero-actions">
                   <button className="btn-primary" onClick={() => navigate('/login')}>â†’ Launch Dashboard</button>
-                  <a href="#services" className="btn-outline">âš¡ Explore Features</a>
+                  <a href="#services" className="btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><LuZap size={14} /> Explore Features</a>
                 </div>
               </Reveal>
             </div>
@@ -521,14 +528,14 @@ export default function LandingPage() {
         <div className="stats-bar">
           <div className="stats-grid">
             {[
-              { icon: 'âœˆ', target: 500, suffix: '+', lbl: 'Flights Managed Daily' },
-              { icon: 'ðŸ‘·', target: 120, suffix: '+', lbl: 'Ground Staff Coordinated' },
-              { icon: 'ðŸšª', target: 45, suffix: '', lbl: 'Live Gates Tracked' },
-              { icon: 'âš¡', target: 99.9, suffix: '%', lbl: 'System Uptime' },
+              { icon: LuPlane, target: 500, suffix: '+', lbl: 'Flights Managed Daily' },
+              { icon: LuHardHat, target: 120, suffix: '+', lbl: 'Ground Staff Coordinated' },
+              { icon: LuDoorOpen, target: 45, suffix: '', lbl: 'Live Gates Tracked' },
+              { icon: LuZap, target: 99.9, suffix: '%', lbl: 'System Uptime' },
             ].map((s, i) => (
               <Reveal key={i} style={{ transitionDelay: `${i * .1}s` }}>
                 <div className="stat-card">
-                  <span className="stat-icon">{s.icon}</span>
+                  <span className="stat-icon"><s.icon /></span>
                   <span className="stat-num"><Counter target={s.target} suffix={s.suffix} /></span>
                   <div className="stat-lbl">{s.lbl}</div>
                 </div>
@@ -554,7 +561,7 @@ export default function LandingPage() {
                 <div key={i} className={`slide-card${i === curSlide ? ' active' : ''}`}
                   style={{ transform: `translateX(calc(-50% + ${rel * 54}%)) translateY(-50%) scale(${1 - abs * .13}) rotateY(${rel * -8}deg)`, zIndex: 10 - abs, opacity: abs > 2 ? 0 : 1 - abs * .28 }}
                   onClick={() => goSlide(i)}>
-                  <div className="slide-icon">{s.icon}</div>
+                  <div className="slide-icon"><s.icon /></div>
                   <h3>{s.title}</h3>
                   <p>{s.desc}</p>
                   <span className="slide-chip">{s.chip}</span>
@@ -626,7 +633,7 @@ export default function LandingPage() {
               <Reveal key={i} style={{ transitionDelay: `${i * .05}s` }}>
                 <div className="cap-card">
                   <span className="cap-num">{c.num}</span>
-                  <div className="cap-icon">{c.icon}</div>
+                  <div className="cap-icon"><c.icon /></div>
                   <div className="cap-title">{c.title}</div>
                   <p className="cap-desc">{c.desc}</p>
                   <span className="cap-tag">{c.tag}</span>
@@ -671,7 +678,7 @@ export default function LandingPage() {
             {alerts.map((a, i) => (
               <Reveal key={i} style={{ transitionDelay: `${i * .05}s` }}>
                 <div className="alert-card" style={{ borderLeft: `2px solid ${priorityBorder[a.priority]}` }}>
-                  <div className="alert-icon" style={{ background: a.iconBg }}>{a.icon}</div>
+                  <div className="alert-icon" style={{ background: a.iconBg }}><a.icon /></div>
                   <div>
                     <div className="alert-type">{a.type}</div>
                     <div className="alert-msg">{a.msg}</div>
@@ -757,8 +764,8 @@ export default function LandingPage() {
               <div className="foot-brand-name"><img src="/brand/aeroground-logo-white.png" alt="AeroGround" className="foot-logo-img" />AeroGround</div>
               <p>A complete ground operations management platform for modern airports â€” built for reliability, real-time visibility, and total operational control.</p>
               <div className="foot-socials">
-                <span className="social-btn">âŒ¥</span><span className="social-btn">in</span>
-                <span className="social-btn">ð•</span><span className="social-btn">â–¶</span>
+                <span className="social-btn"><FaInstagram /></span><span className="social-btn"><FaLinkedinIn /></span>
+                <span className="social-btn"><FaXTwitter /></span><span className="social-btn"><FaYoutube /></span>
               </div>
               <div className="foot-badge"><span>â—</span>ISO 27001 Certified Â· DGCA Compliant</div>
             </div>
@@ -774,10 +781,10 @@ export default function LandingPage() {
             <div className="foot-contact">
               <h4>Contact Us</h4>
               <div className="contact-list">
-                <div className="contact-item"><div className="ci-icon">ðŸ“§</div><div><div className="ci-label">Email</div><div className="ci-value">ops@airportops.in</div></div></div>
-                <div className="contact-item"><div className="ci-icon">ðŸ“ž</div><div><div className="ci-label">Phone</div><div className="ci-value">+91 44 2233 4455</div></div></div>
-                <div className="contact-item"><div className="ci-icon">ðŸ“</div><div><div className="ci-label">Address</div><div className="ci-value">Chennai International Airport, TN â€“ 600027</div></div></div>
-                <div className="contact-item"><div className="ci-icon">ðŸ•</div><div><div className="ci-label">Operations</div><div className="ci-value">24 / 7 / 365</div></div></div>
+                <div className="contact-item"><div className="ci-icon"><LuMail /></div><div><div className="ci-label">Email</div><div className="ci-value">ops@airportops.in</div></div></div>
+                <div className="contact-item"><div className="ci-icon"><LuPhone /></div><div><div className="ci-label">Phone</div><div className="ci-value">+91 44 2233 4455</div></div></div>
+                <div className="contact-item"><div className="ci-icon"><LuMapPin /></div><div><div className="ci-label">Address</div><div className="ci-value">Chennai International Airport, TN â€“ 600027</div></div></div>
+                <div className="contact-item"><div className="ci-icon"><LuClock /></div><div><div className="ci-label">Operations</div><div className="ci-value">24 / 7 / 365</div></div></div>
               </div>
             </div>
           </div>
