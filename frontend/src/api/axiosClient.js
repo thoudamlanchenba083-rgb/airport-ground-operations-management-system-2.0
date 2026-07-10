@@ -1,18 +1,24 @@
 import axios from 'axios'
 import { API_BASE_URL } from './config'
 
+// Browsers never let JS on one origin read a cookie set by a different
+// origin - so when the frontend (Vercel) and API (Railway) are on
+// different domains, axios's built-in xsrfCookieName/xsrfHeaderName
+// mechanism can never find the 'csrftoken' cookie to echo back, even
+// though withCredentials correctly sends it to the server automatically.
+// Instead, the backend hands the token to us directly in the JSON body of
+// /token/, /token/refresh/, and /accounts/csrf/ (see accounts/views.py),
+// and we keep it here in memory and attach it manually.
+let csrfToken = null
+export const setCsrfToken = (token) => {
+  csrfToken = token
+}
+
 const axiosClient = axios.create({
   baseURL: API_BASE_URL,
-  // Send/receive the httpOnly JWT cookies (and read the CSRF cookie) on
-  // every request - required now that tokens live in cookies, not JS.
+  // Send/receive the httpOnly JWT cookies on every request - required now
+  // that tokens live in cookies, not JS.
   withCredentials: true,
-  // Reads the 'csrftoken' cookie and sends it as 'X-CSRFToken' automatically
-  // on unsafe (state-changing) requests, matching Django's CSRF cookie/header
-  // names. withXSRFToken is needed so this also applies cross-origin
-  // (frontend/backend on different domains), not just same-origin.
-  xsrfCookieName: 'csrftoken',
-  xsrfHeaderName: 'X-CSRFToken',
-  withXSRFToken: true,
   // Without this, a slow/hung backend call (e.g. the AI dashboard endpoint
   // waiting on an external weather API) leaves the UI spinning forever with
   // no feedback. 20s is generous enough for real requests but still bails
@@ -20,15 +26,19 @@ const axiosClient = axios.create({
   timeout: 20000,
 })
 
+axiosClient.interceptors.request.use((requestConfig) => {
+  if (csrfToken) {
+    requestConfig.headers['X-CSRFToken'] = csrfToken
+  }
+  return requestConfig
+})
+
 // Plain axios instance for the refresh call itself, so it never
-// re-triggers this same interceptor. Needs the same cookie/CSRF config
-// since the refresh token now lives in a cookie too.
+// re-triggers this same interceptor. Needs the same cookie config since
+// the refresh token now lives in a cookie too.
 const refreshClient = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
-  xsrfCookieName: 'csrftoken',
-  xsrfHeaderName: 'X-CSRFToken',
-  withXSRFToken: true,
 })
 
 let isRefreshing = false
@@ -81,9 +91,14 @@ axiosClient.interceptors.response.use(
     isRefreshing = true
 
     try {
-      await refreshClient.post('/token/refresh/')
+      const refreshRes = await refreshClient.post('/token/refresh/')
       // New access/refresh cookies were set by the Set-Cookie response
-      // headers already - nothing to store manually.
+      // headers already - nothing to store manually for those. The CSRF
+      // token rotates too though, and that one we DO need to store
+      // manually (see the top of this file for why).
+      if (refreshRes.data?.csrftoken) {
+        setCsrfToken(refreshRes.data.csrftoken)
+      }
       resolvePending(null)
       return axiosClient(originalRequest)
     } catch (refreshError) {

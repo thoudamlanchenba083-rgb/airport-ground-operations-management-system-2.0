@@ -73,8 +73,17 @@ class RateLimitedTokenObtainPairView(TokenObtainPairView):
             access = response.data.pop('access', None)
             refresh = response.data.pop('refresh', None)
             _set_auth_cookies(response, access=access, refresh=refresh)
-            get_token(request)  # ensures the csrftoken cookie gets issued
-            response.data = {'detail': 'Login successful.'}
+            # The csrftoken cookie itself is unreadable by frontend JS when
+            # the frontend and API are on different domains (e.g. Vercel +
+            # Railway) - browsers never expose a cookie set by one origin to
+            # JS running on another. So in addition to setting the cookie
+            # (for the browser to echo back automatically), we also hand the
+            # token to the frontend directly in the response body, so it can
+            # store it in memory and attach it manually as X-CSRFToken on
+            # every unsafe request. See also: csrf_token_view below, used to
+            # refresh this on page load for already-logged-in users.
+            csrf_token = get_token(request)
+            response.data = {'detail': 'Login successful.', 'csrftoken': csrf_token}
         else:
             logger.warning(
                 f"Login failed for user '{username}' from IP {request.META.get('REMOTE_ADDR')} - status {response.status_code}")
@@ -108,9 +117,24 @@ class RateLimitedTokenRefreshView(TokenRefreshView):
         access = serializer.validated_data.get('access')
         refresh = serializer.validated_data.get('refresh')  # present when ROTATE_REFRESH_TOKENS is on
 
-        response = Response({'detail': 'Token refreshed.'})
+        csrf_token = get_token(request)
+        response = Response({'detail': 'Token refreshed.', 'csrftoken': csrf_token})
         _set_auth_cookies(response, access=access, refresh=refresh)
         return response
+
+
+class CsrfTokenView(APIView):
+    """GET-only endpoint so the frontend can fetch a fresh CSRF token on
+    page load (e.g. a returning visitor who still has valid auth cookies
+    but no CSRF token in JS memory, since that memory doesn't survive a
+    page refresh). Deliberately open (AllowAny) - a CSRF token on its own
+    grants no access, it just unlocks the ability to submit state-changing
+    requests using whatever session/cookie auth the browser already has.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        return Response({'csrftoken': get_token(request)})
 
 
 class RegisterView(generics.CreateAPIView):

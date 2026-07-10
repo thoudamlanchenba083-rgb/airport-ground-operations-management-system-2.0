@@ -1,5 +1,5 @@
-import { createContext, useContext, useState } from 'react'
-import axiosClient from '../api/axiosClient'
+import { createContext, useContext, useState, useEffect } from 'react'
+import axiosClient, { setCsrfToken } from '../api/axiosClient'
 
 const AuthContext = createContext(null)
 
@@ -9,10 +9,26 @@ export function AuthProvider({ children }) {
     return stored ? JSON.parse(stored) : null
   })
 
+  // The CSRF token lives only in JS memory (see axiosClient.js), which is
+  // wiped on every page refresh. A returning visitor still has valid auth
+  // cookies at that point, just no CSRF token to submit with - so fetch a
+  // fresh one on mount to cover that case (not just the login() case below).
+  useEffect(() => {
+    axiosClient.get('/accounts/csrf/')
+      .then((res) => setCsrfToken(res.data?.csrftoken))
+      .catch(() => {
+        // Not logged in / network hiccup - fine, login() below will pick
+        // up a token when the user actually logs in.
+      })
+  }, [])
+
   const login = async (username, password) => {
     // The access/refresh tokens are set as httpOnly cookies by the server -
     // never touched here, so frontend JS never has direct access to them.
-    await axiosClient.post('/token/', { username, password })
+    const loginRes = await axiosClient.post('/token/', { username, password })
+    if (loginRes.data?.csrftoken) {
+      setCsrfToken(loginRes.data.csrftoken)
+    }
 
     const profileRes = await axiosClient.get('/accounts/profile/')
     // The cached profile itself isn't a credential, so it's fine in
