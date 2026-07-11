@@ -1,4 +1,4 @@
-# ✈️ Airport Ground Operations Management System
+# Airport Ground Operations Management System
 
 A full-stack web application for managing day-to-day airport ground operations — flights, gates, staff, baggage, maintenance, equipment, HR, fuel, catering, cleaning, cargo, incidents, ramp operations, passenger boarding, notifications, reports — with an integrated AI module for predictions, a digital-twin what-if simulator, and an LLM-backed operations chatbot.
 
@@ -6,7 +6,7 @@ Built as a real operations platform, not a toy CRUD app: role-based access contr
 
 ---
 
-## 🚀 Live Deployment
+## Live Deployment
 
 | Piece | URL |
 |---|---|
@@ -19,7 +19,7 @@ See [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) for the full deployment setup a
 
 ---
 
-## 📖 What This Project Does
+## What This Project Does
 
 Think of it as the internal software an airport's ground operations team would use to run a terminal day-to-day:
 
@@ -48,7 +48,7 @@ Every meaningful action (create/update/delete) is written to an **audit log**, s
 
 ---
 
-## 🧱 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -66,7 +66,7 @@ Every meaningful action (create/update/delete) is written to an **audit log**, s
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────┐   REST API (JWT via httpOnly cookies)   ┌──────────────────────┐
@@ -244,7 +244,7 @@ Login is rate-limited to 5 attempts/minute per IP; token refresh to 10/minute.
 
 ---
 
-## 📚 API Documentation
+## API Documentation
 
 Once the backend is running, interactive API docs are available at:
 
@@ -283,7 +283,7 @@ Once the backend is running, interactive API docs are available at:
 
 ---
 
-## 🤖 AI Module
+## AI Module
 
 ### Predictive models
 Seven ML models (scikit-learn RandomForest) provide operational forecasts:
@@ -342,7 +342,7 @@ CI (GitHub Actions) runs three parallel jobs on every push/PR to `main` and `dev
 
 ---
 
-## 📝 Logging
+##  Logging
 
 Logs are written to `logs/` (gitignored, created automatically):
 
