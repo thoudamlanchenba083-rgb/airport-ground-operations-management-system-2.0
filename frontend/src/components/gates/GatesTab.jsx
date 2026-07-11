@@ -12,7 +12,20 @@ export default function GatesTab() {
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ gate_number: '', terminal: '', is_available: true })
+  const [form, setForm] = useState({
+    gate_number: '',
+    terminal: '',
+    is_available: true,
+    gate_type: 'domestic',
+    connection_type: 'contact',
+    body_type: 'narrow_body',
+    purpose: 'passenger',
+  })
+
+  const GATE_TYPE_LABELS = { domestic: 'Domestic', international: 'International', swing: 'Swing' }
+  const CONNECTION_TYPE_LABELS = { contact: 'Contact (Jet Bridge)', remote: 'Remote (Apron)' }
+  const BODY_TYPE_LABELS = { narrow_body: 'Narrow-Body', wide_body: 'Wide-Body' }
+  const PURPOSE_LABELS = { passenger: 'Passenger', cargo: 'Cargo' }
 
   const load = () => {
     setLoading(true)
@@ -32,7 +45,19 @@ export default function GatesTab() {
   const handleSubmit = () => {
     setSaving(true)
     axiosClient.post('/gates/gates/', form)
-      .then(() => { load(); setShowForm(false); setForm({ gate_number: '', terminal: '', is_available: true }) })
+      .then(() => {
+        load()
+        setShowForm(false)
+        setForm({
+          gate_number: '',
+          terminal: '',
+          is_available: true,
+          gate_type: 'domestic',
+          connection_type: 'contact',
+          body_type: 'narrow_body',
+          purpose: 'passenger',
+        })
+      })
       .catch(() => setError('Failed to save gate.'))
       .finally(() => setSaving(false))
   }
@@ -93,6 +118,42 @@ export default function GatesTab() {
             <option value="true" className="bg-neutral-800 text-white">Available</option>
             <option value="false" className="bg-neutral-800 text-white">Unavailable</option>
           </select>
+          <select style={{ colorScheme: 'dark' }}
+            value={form.gate_type}
+            onChange={e => setForm(f => ({ ...f, gate_type: e.target.value }))}
+            className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
+          >
+            {Object.entries(GATE_TYPE_LABELS).map(([val, label]) => (
+              <option key={val} value={val} className="bg-neutral-800 text-white">{label}</option>
+            ))}
+          </select>
+          <select style={{ colorScheme: 'dark' }}
+            value={form.connection_type}
+            onChange={e => setForm(f => ({ ...f, connection_type: e.target.value }))}
+            className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
+          >
+            {Object.entries(CONNECTION_TYPE_LABELS).map(([val, label]) => (
+              <option key={val} value={val} className="bg-neutral-800 text-white">{label}</option>
+            ))}
+          </select>
+          <select style={{ colorScheme: 'dark' }}
+            value={form.body_type}
+            onChange={e => setForm(f => ({ ...f, body_type: e.target.value }))}
+            className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
+          >
+            {Object.entries(BODY_TYPE_LABELS).map(([val, label]) => (
+              <option key={val} value={val} className="bg-neutral-800 text-white">{label}</option>
+            ))}
+          </select>
+          <select style={{ colorScheme: 'dark' }}
+            value={form.purpose}
+            onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))}
+            className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
+          >
+            {Object.entries(PURPOSE_LABELS).map(([val, label]) => (
+              <option key={val} value={val} className="bg-neutral-800 text-white">{label}</option>
+            ))}
+          </select>
           <div className="col-span-3 flex justify-end">
             <button
               onClick={handleSubmit}
@@ -111,17 +172,37 @@ export default function GatesTab() {
             <tr>
               <th className="px-4 py-3 text-left">Gate</th>
               <th className="px-4 py-3 text-left">Terminal</th>
+              <th className="px-4 py-3 text-left">Type</th>
+              <th className="px-4 py-3 text-left">Connection</th>
+              <th className="px-4 py-3 text-left">Body</th>
+              <th className="px-4 py-3 text-left">Purpose</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-black/5 dark:divide-white/5">
             {filtered.length === 0 ? (
-              <tr><td colSpan={4} className="text-center text-neutral-400 dark:text-neutral-500 py-6">No gates found.</td></tr>
+              <tr><td colSpan={8} className="text-center text-neutral-400 dark:text-neutral-500 py-6">No gates found.</td></tr>
             ) : filtered.map(g => (
               <tr key={g.id} className="hover:bg-black/2 dark:hover:bg-white/3">
                 <td className="px-4 py-3 font-semibold text-neutral-900 dark:text-white">{g.gate_number}</td>
                 <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">{g.terminal}</td>
+                <td className="px-4 py-3">
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                    {GATE_TYPE_LABELS[g.gate_type] ?? g.gate_type}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">
+                  {CONNECTION_TYPE_LABELS[g.connection_type] ?? g.connection_type}
+                </td>
+                <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">
+                  {BODY_TYPE_LABELS[g.body_type] ?? g.body_type}
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${g.purpose === 'cargo' ? 'bg-orange-100 text-orange-700' : 'bg-neutral-100 text-neutral-600 dark:bg-white/10 dark:text-neutral-300'}`}>
+                    {PURPOSE_LABELS[g.purpose] ?? g.purpose}
+                  </span>
+                </td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${g.is_available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
                     {g.is_available ? 'Available' : 'Unavailable'}

@@ -92,21 +92,27 @@ class BusinessRuleValidator:
     def can_assign_gate_to_flight(gate, flight):
         """
         Check if gate can be assigned to flight
-        Validates: Gate capacity, type (domestic/international), time conflicts, availability
+        Validates: Gate capacity, purpose (passenger/cargo), traffic type
+        (domestic/international/swing), time conflicts, availability
         """
 
         # Rule 1: Gate capacity validation
         if flight.aircraft.width > gate.width or flight.aircraft.length > gate.length:
             return False, "Aircraft dimensions exceed gate capacity"
 
-        # Rule 2: Gate type validation (Domestic/International)
+        # Rule 2: Gate purpose validation (Cargo gates are reserved for freight)
+        if gate.purpose == 'cargo':
+            return False, "Cannot assign a cargo gate to a passenger flight"
+
+        # Rule 3: Gate type validation (Domestic/International/Swing)
+        # Swing gates flex either way, so they skip this check entirely.
         if gate.gate_type == 'domestic' and flight.flight_type == 'international':
             return False, "Cannot assign domestic gate to international flight"
 
         if gate.gate_type == 'international' and flight.flight_type == 'domestic':
             return False, "Cannot assign international gate to domestic flight"
 
-        # Rule 3: Gate availability during flight time
+        # Rule 4: Gate availability during flight time
         overlapping_gates = GateAssignment.objects.filter(
             gate=gate,
             status='assigned'
@@ -118,7 +124,7 @@ class BusinessRuleValidator:
         if overlapping_gates:
             return False, "Gate is already assigned during this time period"
 
-        # Rule 4: Gate maintenance status
+        # Rule 5: Gate maintenance status
         if gate.is_under_maintenance:
             return False, "Gate is under maintenance"
 
@@ -221,6 +227,11 @@ class BusinessRuleValidator:
         """
         Validates gate type matches flight type
         """
+
+        if gate.purpose == 'cargo':
+            raise ValidationError(
+                "Cannot assign a cargo gate to a passenger flight"
+            )
 
         if gate.gate_type == 'domestic' and flight.flight_type == 'international':
             raise ValidationError(

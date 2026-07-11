@@ -13,9 +13,9 @@ class BaggageViewSet(viewsets.ModelViewSet):
     serializer_class = BaggageSerializer
     permission_classes = [IsBaggageSupervisor]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['flight']
+    filterset_fields = ['flight', 'baggage_type', 'is_special_handling']
     search_fields = ['baggage_tag', 'passenger_name']
-    ordering_fields = ['flight']
+    ordering_fields = ['flight', 'baggage_type']
 
     def perform_create(self, serializer):
         instance = serializer.save()

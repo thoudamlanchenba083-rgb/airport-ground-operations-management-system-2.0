@@ -13,6 +13,22 @@ const STATUS_COLORS = {
 
 const STATUSES = ['CHECKED_IN', 'LOADED', 'IN_TRANSIT', 'ARRIVED', 'CLAIMED', 'MISSING']
 
+const BAGGAGE_TYPES = [
+  { value: 'CARRY_ON',      label: 'Carry-on (Cabin)' },
+  { value: 'CHECKED',       label: 'Checked' },
+  { value: 'PERSONAL_ITEM', label: 'Personal Item' },
+  { value: 'SPECIAL',       label: 'Special' },
+]
+
+const BAGGAGE_TYPE_COLORS = {
+  CARRY_ON:      'bg-sky-100 text-sky-700',
+  CHECKED:       'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300',
+  PERSONAL_ITEM: 'bg-teal-100 text-teal-700',
+  SPECIAL:       'bg-orange-100 text-orange-700',
+}
+
+const baggageTypeLabel = (value) => BAGGAGE_TYPES.find(t => t.value === value)?.label ?? value
+
 export default function BaggageTab() {
   const { user } = useAuth()
   // Matches backend IsBaggageSupervisor: only ADMIN, BAGGAGE_SUPERVISOR, GROUND_STAFF can write.
@@ -28,7 +44,8 @@ export default function BaggageTab() {
   const [tracking,  setTracking]  = useState([])
   const [trackForm, setTrackForm] = useState({ status: 'CHECKED_IN', location: '', notes: '' })
   const [form, setForm] = useState({
-    baggage_tag: '', passenger_name: '', weight: '', flight: ''
+    baggage_tag: '', passenger_name: '', weight: '', flight: '',
+    baggage_type: 'CHECKED', is_special_handling: false, special_handling_notes: ''
   })
 
   const load = () => {
@@ -61,8 +78,19 @@ export default function BaggageTab() {
 
   const handleSubmit = () => {
     setSaving(true)
-    axiosClient.post('/baggage/baggage/', { ...form, weight: parseFloat(form.weight) })
-      .then(() => { load(); setShowForm(false); setForm({ baggage_tag: '', passenger_name: '', weight: '', flight: '' }) })
+    axiosClient.post('/baggage/baggage/', {
+      ...form,
+      weight: parseFloat(form.weight),
+      is_special_handling: form.baggage_type === 'SPECIAL' ? true : form.is_special_handling,
+    })
+      .then(() => {
+        load()
+        setShowForm(false)
+        setForm({
+          baggage_tag: '', passenger_name: '', weight: '', flight: '',
+          baggage_type: 'CHECKED', is_special_handling: false, special_handling_notes: ''
+        })
+      })
       .catch(() => setError('Failed to save baggage.'))
       .finally(() => setSaving(false))
   }
@@ -197,6 +225,24 @@ export default function BaggageTab() {
               <option key={fl.id} value={fl.id} className="bg-neutral-800 text-white">{fl.flight_number}</option>
             ))}
           </select>
+          <select style={{ colorScheme: 'dark' }}
+            value={form.baggage_type}
+            onChange={e => setForm(f => ({ ...f, baggage_type: e.target.value }))}
+            className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
+          >
+            {BAGGAGE_TYPES.map(t => (
+              <option key={t.value} value={t.value} className="bg-neutral-800 text-white">{t.label}</option>
+            ))}
+          </select>
+          {form.baggage_type === 'SPECIAL' && (
+            <textarea
+              placeholder="Special handling notes (e.g. sports equipment, instrument, wheelchair, fragile)"
+              value={form.special_handling_notes}
+              onChange={e => setForm(f => ({ ...f, special_handling_notes: e.target.value }))}
+              className="col-span-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-3 py-2 text-sm"
+              rows={2}
+            />
+          )}
           <div className="col-span-2 flex justify-end">
             <button
               onClick={handleSubmit}
@@ -216,6 +262,7 @@ export default function BaggageTab() {
             <tr>
               <th className="px-4 py-3 text-left">Tag</th>
               <th className="px-4 py-3 text-left">Passenger</th>
+              <th className="px-4 py-3 text-left">Type</th>
               <th className="px-4 py-3 text-left">Weight</th>
               <th className="px-4 py-3 text-left">Flight</th>
               <th className="px-4 py-3 text-left">Current Status</th>
@@ -224,11 +271,19 @@ export default function BaggageTab() {
           </thead>
           <tbody className="divide-y divide-black/5 dark:divide-white/5">
             {filtered.length === 0 ? (
-              <tr><td colSpan={6} className="text-center text-neutral-400 dark:text-neutral-500 py-6">No baggage found.</td></tr>
+              <tr><td colSpan={7} className="text-center text-neutral-400 dark:text-neutral-500 py-6">No baggage found.</td></tr>
             ) : filtered.map(b => (
               <tr key={b.id} className="hover:bg-black/2 dark:hover:bg-white/3">
                 <td className="px-4 py-3 font-semibold text-neutral-900 dark:text-white">{b.baggage_tag}</td>
                 <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">{b.passenger_name}</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${BAGGAGE_TYPE_COLORS[b.baggage_type] ?? 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-300'}`}
+                    title={b.special_handling_notes || ''}
+                  >
+                    {baggageTypeLabel(b.baggage_type)}
+                  </span>
+                </td>
                 <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">{b.weight} kg</td>
                 <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">
                   {flights.find(f => f.id === b.flight)?.flight_number ?? b.flight}

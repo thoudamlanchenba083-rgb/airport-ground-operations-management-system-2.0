@@ -28,7 +28,7 @@ class CargoItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CargoItem
         fields = '__all__'
-        read_only_fields = ['manifest', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
     def validate(self, data):
         is_dg = data.get(

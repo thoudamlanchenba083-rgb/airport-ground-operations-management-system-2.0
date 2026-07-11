@@ -68,3 +68,60 @@ class GateAPITest(TestCase):
     def test_unauthenticated_cannot_access_gates(self):
         response = self.client.get('/api/gates/gates/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_gate_type_choices_cover_all_new_types(self):
+        gate_types = dict(Gate.GATE_TYPE_CHOICES)
+        self.assertIn('domestic', gate_types)
+        self.assertIn('international', gate_types)
+        self.assertIn('swing', gate_types)
+
+        connection_types = dict(Gate.CONNECTION_TYPE_CHOICES)
+        self.assertIn('contact', connection_types)
+        self.assertIn('remote', connection_types)
+
+        body_types = dict(Gate.BODY_TYPE_CHOICES)
+        self.assertIn('narrow_body', body_types)
+        self.assertIn('wide_body', body_types)
+
+        purposes = dict(Gate.PURPOSE_CHOICES)
+        self.assertIn('passenger', purposes)
+        self.assertIn('cargo', purposes)
+
+    def test_admin_can_create_gate_with_new_attributes(self):
+        token = self.get_token('admin', 'admin123')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        response = self.client.post('/api/gates/gates/', {
+            'gate_number': 'B7',
+            'terminal': 'B',
+            'is_available': True,
+            'gate_type': 'swing',
+            'connection_type': 'remote',
+            'body_type': 'wide_body',
+            'purpose': 'passenger',
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['gate_type'], 'swing')
+        self.assertEqual(response.data['connection_type'], 'remote')
+        self.assertEqual(response.data['body_type'], 'wide_body')
+
+    def test_cargo_gate_cannot_be_assigned_to_passenger_flight(self):
+        cargo_gate = Gate.objects.create(
+            gate_number='CG1', terminal='Cargo', purpose='cargo')
+        token = self.get_token('admin', 'admin123')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        response = self.client.post('/api/gates/gate-assignments/', {
+            'gate': cargo_gate.id, 'flight': self.flight.id
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_swing_gate_accepts_domestic_and_international(self):
+        swing_gate = Gate.objects.create(
+            gate_number='SW1', terminal='A', gate_type='swing')
+        self.flight.flight_type = 'international'
+        self.flight.save()
+        token = self.get_token('admin', 'admin123')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        response = self.client.post('/api/gates/gate-assignments/', {
+            'gate': swing_gate.id, 'flight': self.flight.id
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

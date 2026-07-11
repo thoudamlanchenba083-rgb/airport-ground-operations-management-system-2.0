@@ -48,17 +48,20 @@ class GateAssignmentService:
     @staticmethod
     def auto_assign(flight, user) -> GateAssignment:
         """
-        Picks the best available gate for a flight: filters to matching
-        gate_type + available + not-under-maintenance, ordered smallest-fit
-        first (keeps larger gates free for bigger aircraft), then walks each
-        candidate through the full BusinessRuleValidator check (also catches
-        time-overlap conflicts the initial filter can't).
+        Picks the best available gate for a flight: filters to passenger
+        gates (excludes cargo stands), matching traffic type (its own
+        gate_type or a flexible 'swing' gate) + available + not-under-
+        maintenance, ordered smallest-fit first (keeps larger gates free for
+        bigger aircraft), then walks each candidate through the full
+        BusinessRuleValidator check (also catches time-overlap conflicts the
+        initial filter can't).
         Raises GateAssignmentError if no gate fits without conflict.
         """
         candidates = Gate.objects.filter(
             is_available=True,
             is_under_maintenance=False,
-            gate_type=flight.flight_type,
+            purpose='passenger',
+            gate_type__in=[flight.flight_type, 'swing'],
         ).order_by('width', 'length', 'gate_number')
 
         chosen = None

@@ -3,9 +3,31 @@ from flights.models import Flight
 
 
 class Gate(models.Model):
+    # Traffic type: which flights the gate is cleared to serve.
+    # 'swing' gates can flex between domestic and international use
+    # depending on the day's schedule.
     GATE_TYPE_CHOICES = [
         ('domestic', 'Domestic'),
         ('international', 'International'),
+        ('swing', 'Swing'),
+    ]
+
+    # Physical connection between the terminal and the aircraft.
+    CONNECTION_TYPE_CHOICES = [
+        ('contact', 'Contact (Jet Bridge)'),
+        ('remote', 'Remote (Apron Stand)'),
+    ]
+
+    # Aircraft size class the gate is built to serve.
+    BODY_TYPE_CHOICES = [
+        ('narrow_body', 'Narrow-Body'),
+        ('wide_body', 'Wide-Body'),
+    ]
+
+    # What the gate is used for: moving passengers or handling freight.
+    PURPOSE_CHOICES = [
+        ('passenger', 'Passenger'),
+        ('cargo', 'Cargo'),
     ]
 
     gate_number = models.CharField(max_length=10, unique=True)
@@ -14,7 +36,26 @@ class Gate(models.Model):
     gate_type = models.CharField(
         max_length=20,
         choices=GATE_TYPE_CHOICES,
-        default='domestic'
+        default='domestic',
+        help_text='Traffic type: domestic, international, or swing (either).'
+    )
+    connection_type = models.CharField(
+        max_length=20,
+        choices=CONNECTION_TYPE_CHOICES,
+        default='contact',
+        help_text='Contact (jet bridge) or remote (apron stand, bus transfer).'
+    )
+    body_type = models.CharField(
+        max_length=20,
+        choices=BODY_TYPE_CHOICES,
+        default='narrow_body',
+        help_text='Aircraft size class the gate is designed for.'
+    )
+    purpose = models.CharField(
+        max_length=20,
+        choices=PURPOSE_CHOICES,
+        default='passenger',
+        help_text='Passenger gate or dedicated cargo stand.'
     )
     width = models.DecimalField(
         max_digits=6,

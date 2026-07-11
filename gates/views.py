@@ -22,7 +22,10 @@ class GateViewSet(viewsets.ModelViewSet):
     serializer_class = GateSerializer
     permission_classes = [IsGateManager]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['is_available', 'terminal']
+    filterset_fields = [
+        'is_available', 'terminal', 'gate_type',
+        'connection_type', 'body_type', 'purpose',
+    ]
     search_fields = ['gate_number', 'terminal']
     ordering_fields = ['gate_number']
 

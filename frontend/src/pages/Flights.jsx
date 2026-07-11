@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Plane, Building2, Cog, ListChecks } from 'lucide-react'
+import { Plane, Building2, Cog, ListChecks, Package } from 'lucide-react'
 import AirlinesTab  from '../components/flights/AirlinesTab'
 import AircraftTab  from '../components/flights/AircraftTab'
 import FlightsTab   from '../components/flights/FlightsTab'
 import TurnaroundTab from '../components/flights/TurnaroundTab'
+import CargoTab     from '../components/flights/CargoTab'
 import PageHeader   from '../components/PageHeader'
 import PillTabs     from '../components/PillTabs'
 import usePageMeta  from '../hooks/usePageMeta'
@@ -11,6 +12,7 @@ import usePageMeta  from '../hooks/usePageMeta'
 const tabs = [
   { key: 'flights',    label: 'Flights',    icon: Plane },
   { key: 'turnaround', label: 'Turnaround', icon: ListChecks },
+  { key: 'cargo',      label: 'Cargo',      icon: Package },
   { key: 'airlines',   label: 'Airlines',   icon: Building2 },
   { key: 'aircraft',   label: 'Aircraft',   icon: Cog },
 ]
@@ -26,6 +28,7 @@ export default function Flights() {
       <div>
         {activeTab === 'flights'    && <FlightsTab />}
         {activeTab === 'turnaround' && <TurnaroundTab />}
+        {activeTab === 'cargo'      && <CargoTab />}
         {activeTab === 'airlines'   && <AirlinesTab />}
         {activeTab === 'aircraft'   && <AircraftTab />}
       </div>
