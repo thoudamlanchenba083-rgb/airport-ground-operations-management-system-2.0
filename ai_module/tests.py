@@ -268,13 +268,23 @@ class AIPredictionPermissionTest(AIModuleBaseTest):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-@override_settings(RATELIMIT_ENABLE=True)
+@override_settings(RATELIMIT_ENABLE=True, ANTHROPIC_API_KEY='', GEMINI_API_KEY='')
 class AIEndpointRateLimitTest(AIModuleBaseTest):
     """
     Chat 'send' and prediction 'create' hit paid/compute-heavy backends, so
     both are rate-limited per user. RATELIMIT_ENABLE is forced True here
     since it's disabled globally during test runs (see backend/settings.py
     TESTING flag).
+
+    ANTHROPIC_API_KEY/GEMINI_API_KEY are forced empty here so 'send' falls
+    straight through to the offline ChatbotEngine instead of making real,
+    slow network calls to api.anthropic.com/generativelanguage.googleapis.com.
+    Those calls (~1-1.3s each with an invalid key) stretch this 17-request
+    loop to 20+ real seconds - long enough to occasionally straddle
+    django_ratelimit's 60s fixed window, silently resetting the counter
+    mid-test and making the block=True check flaky/never trip. Keeping each
+    request in the low-milliseconds keeps the whole loop far inside a single
+    window.
     """
 
     def test_chat_send_is_rate_limited_after_15_per_minute(self):
