@@ -150,6 +150,31 @@ jobs:
             --ignore=E501,W503,W504 \
             --count
 
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Bandit (static analysis)
+        run: |
+          bandit -r . -x ./frontend,migrations --severity-level medium
+
+      - name: Run pip-audit (dependency vulnerabilities)
+        run: |
+          pip-audit -r requirements.txt
+
   frontend-tests:
     name: Frontend UI Tests
     runs-on: ubuntu-latest
@@ -173,3 +198,4 @@ jobs:
 
         working-directory: frontend
         run: npm run test
+
