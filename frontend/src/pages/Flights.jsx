@@ -22,7 +22,7 @@ export default function Flights() {
   const [activeTab, setActiveTab] = useState('flights')
 
   return (
-    <div className="p-6 space-y-5 max-w-[1600px] mx-auto">
+    <div className="p-6 space-y-5 max-w-400 mx-auto">
       <PageHeader icon={Plane} title="Flights Management" subtitle="Flights, airlines and aircraft in one place" />
       <PillTabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
       <div>

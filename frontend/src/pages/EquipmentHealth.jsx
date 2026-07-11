@@ -34,7 +34,7 @@ export default function EquipmentHealth() {
   const highRiskCount = items.filter((i) => i.risk === 'High').length
 
   return (
-    <div className="p-6 space-y-5 max-w-[1600px] mx-auto">
+    <div className="p-6 space-y-5 max-w-400 mx-auto">
       <PageHeader icon={HeartPulse} chip="icon-chip-rose" title="Equipment Health Score" subtitle="Predictive maintenance across the fleet" />
 
       {error && (

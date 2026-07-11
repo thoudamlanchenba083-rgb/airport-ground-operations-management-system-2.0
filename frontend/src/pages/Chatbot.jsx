@@ -152,7 +152,7 @@ export default function Chatbot() {
   usePageMeta('AeroGround AI', 'Ask about flight status, delays, gates, maintenance, staffing — or anything else.')
 
   return (
-    <div className="p-6 h-screen flex flex-col max-w-[1400px] mx-auto w-full">
+    <div className="p-6 h-screen flex flex-col max-w-350 mx-auto w-full">
       <div className="mb-5">
         <PageHeader
           icon={Sparkles}
@@ -266,7 +266,7 @@ export default function Chatbot() {
               <div
                 className={`max-w-[75%] px-4 py-2 rounded-[26px] text-sm whitespace-pre-wrap ${
                   m.role === 'user'
-                    ? 'bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-br-sm shadow-md shadow-blue-600/20'
+                    ? 'bg-linear-to-br from-blue-500 to-blue-700 text-white rounded-br-sm shadow-md shadow-blue-600/20'
                     : 'glass-hairline bg-black/3 dark:bg-white/6 text-neutral-900 dark:text-white rounded-bl-sm'
                 }`}
               >
@@ -298,7 +298,7 @@ export default function Chatbot() {
           <button
             type="submit"
             disabled={sending || !input.trim()}
-            className="flex items-center gap-1.5 bg-gradient-to-br from-blue-500 to-blue-700 hover:shadow-lg hover:shadow-blue-600/30 disabled:opacity-50 disabled:hover:shadow-none text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+            className="flex items-center gap-1.5 bg-linear-to-br from-blue-500 to-blue-700 hover:shadow-lg hover:shadow-blue-600/30 disabled:opacity-50 disabled:hover:shadow-none text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
           >
             <Send size={14} />
             Send

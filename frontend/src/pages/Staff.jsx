@@ -31,7 +31,7 @@ export default function Staff() {
   const [activeTab, setActiveTab] = useState(isHR ? 'staff' : 'payroll')
 
   return (
-    <div className="p-6 space-y-5 max-w-[1600px] mx-auto">
+    <div className="p-6 space-y-5 max-w-400 mx-auto">
       <PageHeader icon={Users} chip="icon-chip-emerald" title="Staff Management" subtitle="Records, roles, shifts and payroll" />
       <PillTabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
       <div>

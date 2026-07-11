@@ -107,7 +107,7 @@ export default function AeroGroundAIIntro() {
   usePageMeta('Introduction to AeroGround AI', 'What each AeroGround AI forecast does, and the real data behind it.')
 
   return (
-    <div className="p-6 space-y-8 max-w-[1200px] mx-auto">
+    <div className="p-6 space-y-8 max-w-300 mx-auto">
       {/* Hero */}
       <div className="glass-hero rounded-3xl p-8 sm:p-10">
         <div className="relative flex items-start gap-4">
@@ -208,7 +208,7 @@ export default function AeroGroundAIIntro() {
           </Link>
           <Link
             to="/dashboard"
-            className="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all"
+            className="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2.5 rounded-xl bg-linear-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all"
           >
             Back to Dashboard <ArrowRight size={16} />
           </Link>
