@@ -1,6 +1,5 @@
 import logging
 
-from django.conf import settings
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
 
@@ -15,7 +14,7 @@ from django_ratelimit.decorators import ratelimit
 
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
-from .services import AuthCookieService, PasswordChangeService, ACCESS_COOKIE, REFRESH_COOKIE
+from .services import AuthCookieService, PasswordChangeService, REFRESH_COOKIE
 from core_app.permissions import IsAdminUser
 
 logger = logging.getLogger('accounts')

@@ -209,7 +209,7 @@ class EquipmentAssignmentViewSet(viewsets.ModelViewSet):
         equipment = serializer.validated_data.get('equipment')
         flight = serializer.validated_data.get('flight')
         EquipmentAssignmentService.validate_assignment(equipment, flight)
-        assignment = serializer.save()
+        serializer.save()
         equipment.status = 'in_use'
         equipment.save()
 

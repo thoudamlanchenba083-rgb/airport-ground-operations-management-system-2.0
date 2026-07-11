@@ -4,8 +4,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from django.utils import timezone
-from datetime import datetime
 from core_app.permissions import HasRole
 from .models import Department, Designation, HRProfile, LeaveType, LeaveRequest, Attendance, Payroll
 from .serializers import (

@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -9,7 +9,7 @@ from .serializers import (
     MaintenanceRequestApprovalSerializer,
     MaintenanceLogSerializer,
 )
-from .services import MaintenanceApprovalService, is_supervisor_or_admin
+from .services import MaintenanceApprovalService
 from core_app.utils import log_action
 from core_app.permissions import IsAdminUser, IsMaintenanceStaff
 
