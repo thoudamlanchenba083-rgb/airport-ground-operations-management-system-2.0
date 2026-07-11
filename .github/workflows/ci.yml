@@ -83,6 +83,36 @@ jobs:
       - name: Test hr_management
         run: python manage.py test hr_management --verbosity=2
 
+      - name: Test aircraft_cleaning
+        run: python manage.py test aircraft_cleaning --verbosity=2
+
+      - name: Test cargo_management
+        run: python manage.py test cargo_management --verbosity=2
+
+      - name: Test catering
+        run: python manage.py test catering --verbosity=2
+
+      - name: Test digital_twin
+        run: python manage.py test digital_twin --verbosity=2
+
+      - name: Test fuel_management
+        run: python manage.py test fuel_management --verbosity=2
+
+      - name: Test incident_management
+        run: python manage.py test incident_management --verbosity=2
+
+      - name: Test passenger_boarding
+        run: python manage.py test passenger_boarding --verbosity=2
+
+      - name: Test ramp_operations
+        run: python manage.py test ramp_operations --verbosity=2
+
+      - name: Test turnaround
+        run: python manage.py test turnaround --verbosity=2
+
+      - name: Test water_lavatory_service
+        run: python manage.py test water_lavatory_service --verbosity=2
+
       - name: Test ai_module
         run: python manage.py test ai_module --verbosity=2
 
