@@ -6,13 +6,11 @@ from rest_framework.exceptions import ValidationError
 
 class ULDService:
     @staticmethod
-    def validate_weight(uld, new_weight_kg=None, new_max_weight_kg=None):
-        weight = new_weight_kg if new_weight_kg is not None else uld.weight_kg
-        max_weight = new_max_weight_kg if new_max_weight_kg is not None else uld.max_weight_kg
-        if max_weight and weight and weight > max_weight:
+    def validate_weight(weight_kg, max_weight_kg):
+        if max_weight_kg and weight_kg and weight_kg > max_weight_kg:
             raise ValidationError(
-                f'ULD weight ({weight}kg) exceeds its maximum capacity '
-                f'({max_weight}kg).'
+                f'ULD weight ({weight_kg}kg) exceeds its maximum capacity '
+                f'({max_weight_kg}kg).'
             )
 
 
