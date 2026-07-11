@@ -1,5 +1,6 @@
-﻿from django.test import TestCase
+﻿from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from rest_framework.test import APIClient
 from rest_framework import status
 
@@ -13,6 +14,7 @@ class AIModuleBaseTest(TestCase):
     """Shared setUp for all ai_module API tests."""
 
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
         self.admin = User.objects.create_superuser(
             username='ai_admin', password='admin123', email='ai_admin@test.com'
@@ -168,6 +170,18 @@ class AIPredictionSummaryDashboardTest(AIModuleBaseTest):
         response = self.client.get('/api/ai/predictions/dashboard/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_dashboard_endpoint_is_cached(self):
+        from unittest.mock import patch
+        self.auth_as('ai_user', 'user123')
+        with patch('ai_module.views.get_dashboard_intelligence',
+                   return_value={'stub': True}) as mocked:
+            first = self.client.get('/api/ai/predictions/dashboard/')
+            second = self.client.get('/api/ai/predictions/dashboard/')
+            self.assertEqual(first.data, {'stub': True})
+            self.assertEqual(second.data, {'stub': True})
+            # Second call should be served from cache, not recompute ML
+            mocked.assert_called_once()
+
     def test_unauthenticated_cannot_access_summary(self):
         response = self.client.get('/api/ai/predictions/summary/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -252,3 +266,52 @@ class AIPredictionPermissionTest(AIModuleBaseTest):
             HTTP_AUTHORIZATION='Bearer invalid.token.value')
         response = self.client.get('/api/ai/predictions/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+@override_settings(RATELIMIT_ENABLE=True)
+class AIEndpointRateLimitTest(AIModuleBaseTest):
+    """
+    Chat 'send' and prediction 'create' hit paid/compute-heavy backends, so
+    both are rate-limited per user. RATELIMIT_ENABLE is forced True here
+    since it's disabled globally during test runs (see backend/settings.py
+    TESTING flag).
+    """
+
+    def test_chat_send_is_rate_limited_after_15_per_minute(self):
+        self.auth_as('ai_user', 'user123')
+        responses = []
+        for i in range(17):
+            response = self.client.post(
+                '/api/ai/chat/send/', {'content': f'hello {i}'})
+            responses.append(response.status_code)
+        self.assertIn(status.HTTP_403_FORBIDDEN, responses)
+        self.assertEqual(
+            responses[:15].count(status.HTTP_201_CREATED), 15)
+
+    def test_prediction_create_is_rate_limited_after_30_per_minute(self):
+        self.auth_as('ai_user', 'user123')
+        responses = []
+        for _ in range(32):
+            response = self.client.post('/api/ai/predictions/', {
+                'prediction_type': 'DELAY',
+                'flight': self.flight.id,
+                'input_data': {},
+            }, format='json')
+            responses.append(response.status_code)
+        self.assertIn(status.HTTP_403_FORBIDDEN, responses)
+        self.assertEqual(
+            responses[:30].count(status.HTTP_201_CREATED), 30)
+
+    def test_rate_limit_is_scoped_per_user(self):
+        # ai_admin's requests should not be affected by ai_user's usage
+        self.auth_as('ai_user', 'user123')
+        for i in range(15):
+            self.client.post('/api/ai/chat/send/', {'content': f'hi {i}'})
+        blocked = self.client.post(
+            '/api/ai/chat/send/', {'content': 'one too many'})
+        self.assertEqual(blocked.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.auth_as('ai_admin', 'admin123')
+        response = self.client.post(
+            '/api/ai/chat/send/', {'content': 'admin is fine'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

@@ -1,3 +1,7 @@
+﻿from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
+from django.core.cache import cache
+
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -54,7 +58,13 @@ PREDICTION_HANDLERS = {
 }
 
 
+@method_decorator(ratelimit(key='user', rate='30/m',
+                  method='POST', block=True), name='create')
 class AIPredictionViewSet(viewsets.ModelViewSet):
+    """
+    ML predictions are compute-heavy (RandomForest inference) - capped at
+    30 creations/minute per user to prevent abuse/runaway polling.
+    """
     queryset = AIPrediction.objects.all()
     serializer_class = AIPredictionSerializer
     permission_classes = [IsAuthenticated]
@@ -100,11 +110,27 @@ class AIPredictionViewSet(viewsets.ModelViewSet):
         Live KPIs + ML forecasts (delay, weather, passenger rush, staff
         shortage, maintenance alerts) for the dashboard. Read-only, doesn't
         write an AIPrediction row - see dashboard_intelligence.py docstring.
+
+        Re-running every ML model on every dashboard refresh is expensive,
+        so the result is cached for 30s (Redis in prod, LocMemCache in dev/
+        tests - see CACHES in settings.py). Short enough that "live" still
+        feels live, long enough to absorb repeated polling from open tabs.
         """
-        return Response(get_dashboard_intelligence())
+        data = cache.get('ai_dashboard_intelligence')
+        if data is None:
+            data = get_dashboard_intelligence()
+            cache.set('ai_dashboard_intelligence', data, 30)
+        return Response(data)
 
 
+@method_decorator(ratelimit(key='user', rate='15/m',
+                  method='POST', block=True), name='send')
 class AIChatViewSet(viewsets.ViewSet):
+    """
+    'send' can call out to a paid external LLM (Claude/Gemini) per message,
+    so it's capped at 15 messages/minute per user to bound API cost and
+    abuse from a single account.
+    """
     permission_classes = [IsAuthenticated]
 
     def list(self, request):

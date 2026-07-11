@@ -140,6 +140,31 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# --- CACHE (Redis via env, fallback to Django's in-process memory cache) ---
+# Mirrors the DATABASE_URL pattern above: set REDIS_URL in production so the
+# cache is shared across worker processes/dynos; omit it locally (or during
+# `manage.py test`) and Django's LocMemCache is used instead so the cache
+# API still works without requiring a Redis server to be running.
+REDIS_URL = config('REDIS_URL', default=None)
+
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'TIMEOUT': 300,
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
+
 AUTH_USER_MODEL = 'accounts.User'
 
 # --- Admin path (configurable so it isn't always the default scanner-bait /admin/) ---
@@ -304,3 +329,4 @@ LOGGING = {
         },
     },
 }
+
