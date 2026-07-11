@@ -103,12 +103,18 @@ class RateLimitTests(TestCase):
     """
 
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.client = APIClient()
         User.objects.create_user(
             username='ratelimit_user',
             password='TestPass123!')
 
     def test_repeated_failed_logins_are_rate_limited(self):
+        from django.conf import settings
+        self.assertTrue(
+            settings.RATELIMIT_ENABLE,
+            'RATELIMIT_ENABLE override did not take effect - check override_settings scope')
         responses = []
         for _ in range(7):
             response = self.client.post(
