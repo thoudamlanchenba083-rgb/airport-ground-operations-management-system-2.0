@@ -1,6 +1,9 @@
-import { useEffect, useState, useMemo } from 'react'
-import { RefreshCw, DoorOpen, Wrench, PlaneTakeoff } from 'lucide-react'
+import { useEffect, useState, useMemo, lazy, Suspense } from 'react'
+import { RefreshCw, DoorOpen, Wrench, PlaneTakeoff, Box, Layers } from 'lucide-react'
 import axiosClient from '../../api/axiosClient'
+
+// Loaded on demand only — keeps three.js out of the initial bundle
+const Terminal3DScene = lazy(() => import('./scene/Terminal3DScene'))
 
 const GATE_COLORS = {
   maintenance: { fill: '#f59e0b', label: '#78350f' }, // amber
@@ -25,6 +28,7 @@ export default function DigitalTwinMap() {
   const [snapshot, setSnapshot] = useState(null)
   const [error, setError] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
+  const [view, setView] = useState('2d') // '2d' | '3d'
 
   const fetchSnapshot = async () => {
     try {
@@ -91,13 +95,40 @@ export default function DigitalTwinMap() {
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
             {lastUpdated ? `Live · updated ${lastUpdated.toLocaleTimeString()}` : 'Loading live data…'}
           </p>
-          <button
-            onClick={fetchSnapshot}
-            className="flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            <RefreshCw size={13} /> Refresh
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center rounded-lg overflow-hidden border border-neutral-300 dark:border-neutral-700 text-xs">
+              <button
+                onClick={() => setView('2d')}
+                className={`flex items-center gap-1 px-2.5 py-1 font-medium ${view === '2d' ? 'bg-blue-600 text-white' : 'text-neutral-500 dark:text-neutral-400'}`}
+              >
+                <Layers size={12} /> 2D
+              </button>
+              <button
+                onClick={() => setView('3d')}
+                className={`flex items-center gap-1 px-2.5 py-1 font-medium ${view === '3d' ? 'bg-blue-600 text-white' : 'text-neutral-500 dark:text-neutral-400'}`}
+              >
+                <Box size={12} /> 3D
+              </button>
+            </div>
+            <button
+              onClick={fetchSnapshot}
+              className="flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              <RefreshCw size={13} /> Refresh
+            </button>
+          </div>
         </div>
+        {view === '3d' ? (
+          <Suspense
+            fallback={
+              <div className="h-[520px] flex items-center justify-center text-sm text-neutral-500 dark:text-neutral-400">
+                Loading 3D scene…
+              </div>
+            }
+          >
+            <Terminal3DScene gates={gates} equipment={equipment} />
+          </Suspense>
+        ) : (
         <svg width={svgWidth} height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`}>
           {/* Gates */}
           {gates.map((gate) => {
@@ -170,6 +201,7 @@ export default function DigitalTwinMap() {
             </g>
           ))}
         </svg>
+        )}
         <div className="flex flex-wrap items-center gap-4 mt-3 px-2 text-xs text-neutral-500 dark:text-neutral-400">
           <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: GATE_COLORS.available.fill }} /> Gate available</span>
           <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: GATE_COLORS.occupied.fill }} /> Gate occupied</span>
