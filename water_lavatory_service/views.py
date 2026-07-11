@@ -1,9 +1,9 @@
-from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import WaterLavatoryService
 from .serializers import WaterLavatoryServiceSerializer
+from .services import WaterLavatoryServiceRules
 from core_app.utils import log_action
 from core_app.permissions import HasRole
 
@@ -37,13 +37,8 @@ class WaterLavatoryServiceViewSet(viewsets.ModelViewSet):
             self.request)
 
     def perform_update(self, serializer):
-        extra = {}
-        if serializer.validated_data.get(
-                'status') == 'COMPLETED' and not serializer.instance.completed_at:
-            extra['completed_at'] = timezone.now()
-        if serializer.validated_data.get(
-                'status') == 'IN_PROGRESS' and not serializer.instance.started_at:
-            extra['started_at'] = timezone.now()
+        extra = WaterLavatoryServiceRules.build_status_timestamps(
+            serializer.instance, serializer.validated_data)
         instance = serializer.save(**extra)
         log_action(
             self.request.user,

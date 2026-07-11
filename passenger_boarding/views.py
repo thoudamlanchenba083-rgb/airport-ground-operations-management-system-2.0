@@ -1,9 +1,9 @@
-from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import BoardingSession, BoardingGroup
 from .serializers import BoardingSessionSerializer, BoardingGroupSerializer
+from .services import BoardingSessionService
 from core_app.utils import log_action
 from core_app.permissions import HasRole
 
@@ -32,14 +32,8 @@ class BoardingSessionViewSet(viewsets.ModelViewSet):
                    f'Created boarding session: {instance}', self.request)
 
     def perform_update(self, serializer):
-        extra = {}
-        new_status = serializer.validated_data.get('status')
-        if new_status == 'BOARDING' and not serializer.instance.boarding_started_at:
-            extra['boarding_started_at'] = timezone.now()
-        if new_status == 'FINAL_CALL' and not serializer.instance.final_call_at:
-            extra['final_call_at'] = timezone.now()
-        if new_status == 'COMPLETED' and not serializer.instance.boarding_completed_at:
-            extra['boarding_completed_at'] = timezone.now()
+        extra = BoardingSessionService.build_status_timestamps(
+            serializer.instance, serializer.validated_data)
         instance = serializer.save(**extra)
         log_action(self.request.user, 'UPDATE', 'BoardingSession', instance.id,
                    f'Updated boarding session: {instance}', self.request)

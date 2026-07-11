@@ -1,9 +1,9 @@
-from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Incident, IncidentUpdate
 from .serializers import IncidentSerializer, IncidentUpdateSerializer
+from .services import IncidentService
 from core_app.utils import log_action
 from core_app.permissions import HasRole
 
@@ -30,12 +30,8 @@ class IncidentViewSet(viewsets.ModelViewSet):
                    f'Created incident: {instance}', self.request)
 
     def perform_update(self, serializer):
-        extra = {}
-        new_status = serializer.validated_data.get('status')
-        if new_status in (
-            'RESOLVED',
-                'CLOSED') and not serializer.instance.resolved_at:
-            extra['resolved_at'] = timezone.now()
+        extra = IncidentService.build_status_timestamps(
+            serializer.instance, serializer.validated_data)
         instance = serializer.save(**extra)
         log_action(self.request.user, 'UPDATE', 'Incident', instance.id,
                    f'Updated incident: {instance}', self.request)

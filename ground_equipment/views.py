@@ -10,6 +10,7 @@ from django.db import models
 from flights.models import Flight
 from gates.models import GateAssignment
 from core_app.business_rules import BusinessRuleValidator
+from .services import EquipmentAssignmentService
 from ai_module.ml.predictor import predict_equipment_failure
 from core_app.permissions import IsAuthenticatedBlockGroundStaffWrite
 
@@ -204,9 +205,11 @@ class EquipmentAssignmentViewSet(viewsets.ModelViewSet):
     ordering_fields = ['assigned_at', 'released_at']
 
     def perform_create(self, serializer):
-        """Override create to update equipment status"""
+        """Validate the assignment against business rules, then update equipment status"""
+        equipment = serializer.validated_data.get('equipment')
+        flight = serializer.validated_data.get('flight')
+        EquipmentAssignmentService.validate_assignment(equipment, flight)
         assignment = serializer.save()
-        equipment = assignment.equipment
         equipment.status = 'in_use'
         equipment.save()
 

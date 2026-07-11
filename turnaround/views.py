@@ -7,6 +7,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import TurnaroundTask
 from .serializers import TurnaroundTaskSerializer
+from .services import TurnaroundTaskService
 from core_app.utils import log_action
 from core_app.permissions import HasRole
 
@@ -37,15 +38,8 @@ class TurnaroundTaskViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         # Auto-stamp who completed it and when, based on status change
-        extra = {}
-        new_status = serializer.validated_data.get('status')
-        if new_status == 'COMPLETED':
-            extra['completed_by'] = self.request.user
-            if not serializer.validated_data.get('actual_end_time'):
-                extra['actual_end_time'] = timezone.now()
-        if new_status == 'IN_PROGRESS' and not serializer.instance.actual_start_time:
-            extra['actual_start_time'] = timezone.now()
-
+        extra = TurnaroundTaskService.build_status_timestamps(
+            serializer.instance, serializer.validated_data, self.request.user)
         instance = serializer.save(**extra)
         log_action(self.request.user, 'UPDATE', 'TurnaroundTask', instance.id,
                    f'Updated task: {instance}', self.request)

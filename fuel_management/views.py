@@ -3,6 +3,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import FuelCompany, FuelTruck, FuelOperation
 from .serializers import FuelCompanySerializer, FuelTruckSerializer, FuelOperationSerializer
+from .services import FuelOperationService
 from core_app.utils import log_action
 from core_app.permissions import HasRole
 
@@ -49,11 +50,28 @@ class FuelOperationViewSet(viewsets.ModelViewSet):
     ordering_fields = ['fuel_start_time', 'fuel_end_time', 'created_at']
 
     def perform_create(self, serializer):
+        fuel_truck = serializer.validated_data.get('fuel_truck')
+        quantity = serializer.validated_data.get('quantity_liters')
+        FuelOperationService.validate_truck_capacity(fuel_truck, quantity)
+        FuelOperationService.validate_truck_availability(fuel_truck)
+        FuelOperationService.validate_time_window(
+            serializer.validated_data.get('fuel_start_time'),
+            serializer.validated_data.get('fuel_end_time'))
         instance = serializer.save()
         log_action(self.request.user, 'CREATE', 'FuelOperation', instance.id,
                    f'Created fuel operation: {instance}', self.request)
 
     def perform_update(self, serializer):
+        fuel_truck = serializer.validated_data.get(
+            'fuel_truck', serializer.instance.fuel_truck)
+        quantity = serializer.validated_data.get(
+            'quantity_liters', serializer.instance.quantity_liters)
+        FuelOperationService.validate_truck_capacity(fuel_truck, quantity)
+        FuelOperationService.validate_time_window(
+            serializer.validated_data.get(
+                'fuel_start_time', serializer.instance.fuel_start_time),
+            serializer.validated_data.get(
+                'fuel_end_time', serializer.instance.fuel_end_time))
         instance = serializer.save()
         log_action(self.request.user, 'UPDATE', 'FuelOperation', instance.id,
                    f'Updated fuel operation: {instance}', self.request)

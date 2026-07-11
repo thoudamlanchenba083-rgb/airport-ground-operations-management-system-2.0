@@ -1,9 +1,9 @@
-from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import CateringCompany, CateringOrder
 from .serializers import CateringCompanySerializer, CateringOrderSerializer
+from .services import CateringOrderService
 from core_app.utils import log_action
 from core_app.permissions import HasRole
 
@@ -46,10 +46,8 @@ class CateringOrderViewSet(viewsets.ModelViewSet):
                    f'Created catering order: {instance}', self.request)
 
     def perform_update(self, serializer):
-        extra = {}
-        if serializer.validated_data.get(
-                'status') == 'LOADED' and not serializer.instance.loaded_at:
-            extra['loaded_at'] = timezone.now()
+        extra = CateringOrderService.build_status_timestamps(
+            serializer.instance, serializer.validated_data)
         instance = serializer.save(**extra)
         log_action(self.request.user, 'UPDATE', 'CateringOrder', instance.id,
                    f'Updated catering order: {instance}', self.request)

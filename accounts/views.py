@@ -15,42 +15,13 @@ from django_ratelimit.decorators import ratelimit
 
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
+from .services import AuthCookieService, PasswordChangeService, ACCESS_COOKIE, REFRESH_COOKIE
 from core_app.permissions import IsAdminUser
 
 logger = logging.getLogger('accounts')
 
-ACCESS_COOKIE = 'access_token'
-REFRESH_COOKIE = 'refresh_token'
-
-
-def _cookie_kwargs():
-    return dict(
-        httponly=True,
-        secure=settings.JWT_COOKIE_SECURE,
-        samesite=settings.JWT_COOKIE_SAMESITE,
-        path='/',
-    )
-
-
-def _set_auth_cookies(response, access=None, refresh=None):
-    kwargs = _cookie_kwargs()
-    if access is not None:
-        response.set_cookie(
-            ACCESS_COOKIE, access,
-            max_age=int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds()),
-            **kwargs,
-        )
-    if refresh is not None:
-        response.set_cookie(
-            REFRESH_COOKIE, refresh,
-            max_age=int(settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds()),
-            **kwargs,
-        )
-
-
-def _clear_auth_cookies(response):
-    response.delete_cookie(ACCESS_COOKIE, path='/')
-    response.delete_cookie(REFRESH_COOKIE, path='/')
+_set_auth_cookies = AuthCookieService.set_auth_cookies
+_clear_auth_cookies = AuthCookieService.clear_auth_cookies
 
 
 @method_decorator(ratelimit(key='ip', rate='5/m',
@@ -183,15 +154,11 @@ class ChangePasswordView(APIView):
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)
         if serializer.is_valid():
-            user = request.user
-            if not user.check_password(
-                    serializer.validated_data['old_password']):
-                return Response(
-                    {'old_password': 'Incorrect password.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            user.set_password(serializer.validated_data['new_password'])
-            user.save()
+            PasswordChangeService.change_password(
+                request.user,
+                serializer.validated_data['old_password'],
+                serializer.validated_data['new_password'],
+            )
             return Response({'detail': 'Password changed successfully.'})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

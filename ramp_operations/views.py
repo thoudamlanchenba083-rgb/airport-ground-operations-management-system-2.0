@@ -1,9 +1,9 @@
-from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import RampInspection, PushbackOperation
 from .serializers import RampInspectionSerializer, PushbackOperationSerializer
+from .services import RampInspectionService, PushbackOperationService
 from core_app.utils import log_action
 from core_app.permissions import HasRole
 
@@ -29,10 +29,8 @@ class RampInspectionViewSet(viewsets.ModelViewSet):
                    f'Created ramp inspection: {instance}', self.request)
 
     def perform_update(self, serializer):
-        extra = {}
-        if serializer.validated_data.get('status') in (
-                'PASSED', 'FAILED') and not serializer.instance.inspected_at:
-            extra['inspected_at'] = timezone.now()
+        extra = RampInspectionService.build_status_timestamps(
+            serializer.instance, serializer.validated_data)
         instance = serializer.save(**extra)
         log_action(self.request.user, 'UPDATE', 'RampInspection', instance.id,
                    f'Updated ramp inspection: {instance}', self.request)
@@ -69,14 +67,8 @@ class PushbackOperationViewSet(viewsets.ModelViewSet):
             self.request)
 
     def perform_update(self, serializer):
-        extra = {}
-        new_status = serializer.validated_data.get('status')
-        if new_status == 'APPROVED' and not serializer.instance.approved_at:
-            extra['approved_at'] = timezone.now()
-        if new_status == 'IN_PROGRESS' and not serializer.instance.started_at:
-            extra['started_at'] = timezone.now()
-        if new_status == 'COMPLETED' and not serializer.instance.completed_at:
-            extra['completed_at'] = timezone.now()
+        extra = PushbackOperationService.build_status_timestamps(
+            serializer.instance, serializer.validated_data)
         instance = serializer.save(**extra)
         log_action(
             self.request.user,

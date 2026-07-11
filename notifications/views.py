@@ -1,8 +1,11 @@
 from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Notification
 from .serializers import NotificationSerializer
+from .services import NotificationService
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
@@ -32,3 +35,10 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['post'], url_path='mark-all-read')
+    def mark_all_read(self, request):
+        """POST /api/notifications/notifications/mark-all-read/ marks every
+        unread notification visible to the caller as read."""
+        updated = NotificationService.mark_all_read(self.get_queryset())
+        return Response({'marked_read': updated})

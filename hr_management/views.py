@@ -12,6 +12,7 @@ from .serializers import (
     DepartmentSerializer, DesignationSerializer, HRProfileSerializer,
     LeaveTypeSerializer, LeaveRequestSerializer, AttendanceSerializer, PayrollSerializer
 )
+from .services import LeaveRequestService, AttendanceService, PayrollService
 
 # HR/org-management roles: manage department structure, HR profiles,
 # approve leave, generate/mark payroll. ADMIN is always included by HasRole.
@@ -78,19 +79,8 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         """Approve leave request"""
-        leave = self.get_object()
-
-        if leave.status != 'pending':
-            return Response(
-                {'error': 'Only pending leaves can be approved'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        leave.status = 'approved'
-        leave.approved_by = request.user.staff_profile
-        leave.approval_date = timezone.now()
-        leave.save()
-
+        leave = LeaveRequestService.approve(
+            self.get_object(), request.user.staff_profile)
         return Response({
             'message': 'Leave approved successfully',
             'leave': LeaveRequestSerializer(leave).data
@@ -99,19 +89,8 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         """Reject leave request"""
-        leave = self.get_object()
         reason = request.data.get('reason', '')
-
-        if leave.status != 'pending':
-            return Response(
-                {'error': 'Only pending leaves can be rejected'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        leave.status = 'rejected'
-        leave.rejection_reason = reason
-        leave.save()
-
+        leave = LeaveRequestService.reject(self.get_object(), reason)
         return Response({
             'message': 'Leave rejected',
             'leave': LeaveRequestSerializer(leave).data
@@ -142,19 +121,8 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def check_in(self, request):
         """Mark check-in for today"""
-        staff = request.user.staff_profile
-        today = timezone.now().date()
-
-        attendance, created = Attendance.objects.get_or_create(
-            staff=staff,
-            date=today,
-            defaults={'status': 'present', 'check_in_time': timezone.now().time()}
-        )
-
-        if not created:
-            attendance.check_in_time = timezone.now().time()
-            attendance.save()
-
+        attendance = AttendanceService.check_in(
+            request.user.staff_profile, Attendance)
         return Response({
             'message': 'Checked in successfully',
             'attendance': AttendanceSerializer(attendance).data
@@ -163,14 +131,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def check_out(self, request):
         """Mark check-out for today"""
-        staff = request.user.staff_profile
-        today = timezone.now().date()
-
         try:
-            attendance = Attendance.objects.get(staff=staff, date=today)
-            attendance.check_out_time = timezone.now().time()
-            attendance.save()
-
+            attendance = AttendanceService.check_out(
+                request.user.staff_profile, Attendance)
             return Response({
                 'message': 'Checked out successfully',
                 'attendance': AttendanceSerializer(attendance).data
@@ -207,31 +170,8 @@ class PayrollViewSet(viewsets.ModelViewSet):
         """Generate payroll for a month"""
         from staff.models import Staff
         month = request.data.get('month')  # Format: YYYY-MM-01
-
-        if not month:
-            return Response(
-                {'error': 'Month required in format YYYY-MM-01'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-            month_date = datetime.strptime(month, '%Y-%m-%d').date()
-        except ValueError:
-            return Response(
-                {'error': 'Invalid date format'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        created_count = 0
-        for staff in Staff.objects.all():
-            payroll, created = Payroll.objects.get_or_create(
-                staff=staff,
-                month=month_date,
-                defaults={'base_salary': staff.salary if hasattr(staff, 'salary') else 0}
-            )
-            if created:
-                created_count += 1
-
+        created_count, month_date = PayrollService.generate_for_month(
+            month, Staff, Payroll)
         return Response({
             'message': f'Payroll generated for {created_count} staff',
             'month': month
@@ -240,11 +180,7 @@ class PayrollViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def mark_paid(self, request, pk=None):
         """Mark a payroll record as paid"""
-        payroll = self.get_object()
-        payroll.status = 'paid'
-        payroll.payment_date = timezone.now()
-        payroll.save()
-
+        payroll = PayrollService.mark_paid(self.get_object())
         return Response({
             'message': 'Payroll marked as paid',
             'payroll': PayrollSerializer(payroll).data

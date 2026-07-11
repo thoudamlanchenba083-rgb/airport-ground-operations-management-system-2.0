@@ -3,6 +3,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Baggage, BaggageTracking
 from .serializers import BaggageSerializer, BaggageTrackingSerializer
+from .services import BaggageTrackingService
 from core_app.utils import log_action
 from core_app.permissions import IsBaggageSupervisor
 
@@ -42,6 +43,10 @@ class BaggageTrackingViewSet(viewsets.ModelViewSet):
     ordering_fields = ['updated_at']
 
     def perform_create(self, serializer):
+        baggage = serializer.validated_data.get('baggage')
+        new_status = serializer.validated_data.get('status')
+        if baggage and new_status:
+            BaggageTrackingService.validate_transition(baggage, new_status)
         instance = serializer.save(updated_by=self.request.user)
         log_action(
             self.request.user,
