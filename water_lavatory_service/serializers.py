@@ -1,4 +1,4 @@
-from rest_framework import serializers
+﻿from rest_framework import serializers
 from .models import WaterLavatoryService
 
 
@@ -13,6 +13,12 @@ class WaterLavatoryServiceSerializer(serializers.ModelSerializer):
         model = WaterLavatoryService
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at']
+
+    def validate_water_quantity_liters(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError(
+                'Water quantity cannot be negative.')
+        return value
 
     def validate(self, data):
         started_at = data.get(

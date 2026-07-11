@@ -43,6 +43,7 @@ urlpatterns = [
     path('api/cleaning/', include('aircraft_cleaning.urls')),
     path('api/water-lavatory/', include('water_lavatory_service.urls')),
     path('api/ai/', include('ai_module.urls')),
+    path('api/passenger-boarding/', include('passenger_boarding.urls')),
     path('api/catering/', include('catering.urls')),
     path('api/incidents/', include('incident_management.urls')),
     path('api/cargo/', include('cargo_management.urls')),

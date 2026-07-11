@@ -6,7 +6,7 @@ class BoardingGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = BoardingGroup
         fields = '__all__'
-        read_only_fields = ['boarding_session']
+        read_only_fields = ['id']
 
 
 class BoardingSessionSerializer(serializers.ModelSerializer):

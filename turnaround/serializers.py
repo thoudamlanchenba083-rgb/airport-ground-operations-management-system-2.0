@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import TurnaroundTask
+from .services import TurnaroundTaskService
 
 
 class TurnaroundTaskSerializer(serializers.ModelSerializer):
@@ -38,4 +39,13 @@ class TurnaroundTaskSerializer(serializers.ModelSerializer):
         if start and end and end < start:
             raise serializers.ValidationError(
                 'actual_end_time cannot be before actual_start_time.')
+
+        flight = data.get('flight', getattr(self.instance, 'flight', None))
+        task_type = data.get(
+            'task_type', getattr(self.instance, 'task_type', None))
+        if flight and task_type:
+            TurnaroundTaskService.validate_task_type_for_flight(
+                flight, task_type,
+                exclude_pk=self.instance.pk if self.instance else None)
+
         return data

@@ -15,18 +15,7 @@ class DigitalTwinView(APIView):
     """
     GET /api/digital-twin/snapshot/
 
-    Returns a live snapshot of the airport: every gate (with whicheverfrom django.shortcuts import get_object_or_404
-from .simulation import simulate_gate_closure
-from gates.models import Gate
-from django.utils import timezone
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-
-from gates.models import Gate, GateAssignment
-from ground_equipment.models import GroundEquipment, EquipmentAssignment
-from turnaround.models import TurnaroundTask
+    Returns a live snapshot of the airport: every gate (with whichever
     flight currently occupies it, if any) and every piece of ground
     equipment (with whichever flight/gate it is currently working, if any).
     The frontend uses this single payload to render the 2D live map.

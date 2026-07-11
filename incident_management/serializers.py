@@ -9,7 +9,7 @@ class IncidentUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = IncidentUpdate
         fields = '__all__'
-        read_only_fields = ['incident', 'created_at']
+        read_only_fields = ['created_at']
 
 
 class IncidentSerializer(serializers.ModelSerializer):
