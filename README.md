@@ -362,10 +362,14 @@ See [`ER_DIAGRAM.md`](./ER_DIAGRAM.md) for the full database schema and relation
 
 ## ðŸš§ Roadmap / Known Gaps
 
-- ML models: 5 of 7 still train on synthetic data only (real-data training exists for delay & maintenance).
-- No caching layer (Redis) yet.
-- Rate limiting not yet applied to chatbot/AI endpoints.
-- `digital_twin` is read-only by design â€” no persistence of simulation runs/history yet (snapshot/heatmap/what-if endpoints now have full test coverage).
+**Open:**
+- ML models: 5 of 7 still train on synthetic data only (real-data training exists for delay & maintenance; the other five fall back to synthetic distributions until enough real historical outcomes accumulate in the database).
+- `digital_twin` is read-only by design â€” no persistence of simulation runs/history yet (snapshot/heatmap/what-if endpoints have full test coverage).
+
+**Resolved since last review:**
+- Redis caching layer â€” see `CACHES` in `backend/settings.py` (Redis via `REDIS_URL` in production, in-process `LocMemCache` locally/in CI).
+- Rate limiting on chatbot/AI endpoints â€” `django-ratelimit` on `ai_module` chat/predictions and `accounts` login/register.
+- CI coverage for `aircraft_cleaning`, `cargo_management`, `catering`, `digital_twin`, `fuel_management`, `incident_management`, `passenger_boarding`, `ramp_operations`, `turnaround`, `water_lavatory_service` â€” all 22 apps now run individually in the **Run Tests** CI job.
 
 ---
 
